@@ -4,8 +4,9 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.3
+   Version: 2.4
    DATA SAFETY & ACCOUNT PROTECTION
+   SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
 ========================================== */
 
@@ -50,6 +51,18 @@ const STEP_IDS = [
   "prep", "backup", "enable", "flash", "persist",
   "status", "key", "store", "recode"
 ];
+
+/*
+  Supabase user_changes_entity_type_check
+  accepts ONLY these entity types.
+*/
+
+const ALLOWED_ENTITY_TYPES = new Set([
+  "car",
+  "step",
+  "active",
+  "restore"
+]);
 
 const DEVICE_ID = getDeviceId();
 
@@ -310,7 +323,7 @@ function createInterface() {
   panel.className = "panel open";
 
   panel.innerHTML = `
-    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.3</div>
+    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
 
     <div class="backup-info">
       Централизирана синхронизация на автомобилите,
@@ -429,7 +442,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 2.3 · DATA SAFETY & ACCOUNT PROTECTION
+      M-GARAGE PRO 2.4 · DATA SAFETY & ACCOUNT PROTECTION
     </div>
   `;
 
@@ -540,6 +553,11 @@ function formatDate(value) {
     });
 }
 
+/*
+  Old unsupported events are ignored.
+  No unsupported entity_type can reach Supabase.
+*/
+
 function readPending() {
   try {
     const data = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
@@ -551,6 +569,7 @@ function readPending() {
       typeof event === "object" &&
       typeof event.event_id === "string" &&
       typeof event.entity_type === "string" &&
+      ALLOWED_ENTITY_TYPES.has(event.entity_type) &&
       typeof event.entity_id === "string"
     );
   } catch {
@@ -559,8 +578,18 @@ function readPending() {
 }
 
 function savePending(events) {
+  const safeEvents = Array.isArray(events)
+    ? events.filter(event =>
+        event &&
+        ALLOWED_ENTITY_TYPES.has(event.entity_type)
+      )
+    : [];
+
   try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify(events));
+    localStorage.setItem(
+      PENDING_KEY,
+      JSON.stringify(safeEvents)
+    );
   } catch (error) {
     console.error("M-GARAGE PENDING STORAGE:", error);
     throw new Error(
@@ -737,6 +766,12 @@ function readLocalData() {
 }
 
 function createEvent(entityType, entityId, operation, data) {
+  if (!ALLOWED_ENTITY_TYPES.has(entityType)) {
+    throw new Error(
+      "Недопустим тип Cloud събитие: " + entityType
+    );
+  }
+
   return {
     event_id: crypto.randomUUID
       ? crypto.randomUUID()
@@ -754,10 +789,17 @@ function createEvent(entityType, entityId, operation, data) {
 function enqueueEvents(events) {
   if (!events.length) return;
 
+  const validEvents = events.filter(event =>
+    event &&
+    ALLOWED_ENTITY_TYPES.has(event.entity_type)
+  );
+
+  if (!validEvents.length) return;
+
   const pending = readPending();
   const ownerId = currentUser?.id || null;
 
-  const tagged = events.map(event => ({
+  const tagged = validEvents.map(event => ({
     ...event,
     owner_user_id: ownerId
   }));
@@ -910,24 +952,11 @@ Storage.prototype.setItem = function(key, value) {
     return result;
   }
 
-  if (key === THEME_KEY) {
-    const oldTheme = originalGetItem.call(this, key) || "dark";
-    const result = originalSetItem.call(this, key, value);
-    const newTheme = String(value || "dark");
-
-    if (
-      oldTheme !== newTheme &&
-      (newTheme === "light" || newTheme === "dark")
-    ) {
-      enqueueEvents([
-        createEvent("theme", "theme", "set", {
-          theme: newTheme
-        })
-      ]);
-    }
-
-    return result;
-  }
+  /*
+    THEME IS LOCAL PREFERENCE ONLY.
+    It remains included in full Backup/Restore snapshots.
+    It is NOT uploaded as a separate user_changes event.
+  */
 
   return originalSetItem.call(this, key, value);
 };
@@ -1096,6 +1125,17 @@ async function fetchAllEvents(userId) {
 async function uploadEvents(userId, events) {
   if (!events.length) return;
 
+  const invalid = events.filter(event =>
+    !event ||
+    !ALLOWED_ENTITY_TYPES.has(event.entity_type)
+  );
+
+  if (invalid.length) {
+    throw new Error(
+      "Блокирано е изпращане на несъвместими Cloud събития."
+    );
+  }
+
   const rows = events.map(event => ({
     event_id: event.event_id,
     user_id: userId,
@@ -1214,17 +1254,10 @@ function createInitialEvents(events, local, legacy) {
     );
   }
 
-  const hasTheme = events.some(
-    event => event.entity_type === "theme"
-  );
-
-  if (!hasTheme) {
-    initial.push(
-      createEvent("theme", "theme", "set", {
-        theme: local.theme || "dark"
-      })
-    );
-  }
+  /*
+    No initial theme event.
+    Theme is handled through restore snapshots only.
+  */
 
   return initial;
 }
@@ -1317,12 +1350,6 @@ function applyEvents(events) {
     if (type === "active") {
       activeVin = safeString(data.vin, 17);
       return;
-    }
-
-    if (type === "theme") {
-      if (data.theme === "light" || data.theme === "dark") {
-        theme = data.theme;
-      }
     }
   });
 
