@@ -4,7 +4,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.2
+   Version: 1.3
 ========================================== */
 
 import { createClient } from
@@ -73,6 +73,23 @@ function getDeviceId() {
   return id;
 }
 
+function getDeviceName() {
+  const ua = navigator.userAgent || "";
+
+  if (/iPad/i.test(ua)) return "iPad";
+
+  if (
+    /iPhone/i.test(ua) ||
+    (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)
+  ) {
+    return "iPhone";
+  }
+
+  if (/Android/i.test(ua)) return "Android";
+
+  return "Компютър";
+}
+
 /* ==========================================
    INTERFACE
 ========================================== */
@@ -85,7 +102,7 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 1.2
+      CLOUD SYNC · M-GARAGE PRO 1.3
     </div>
 
     <div class="backup-info">
@@ -100,66 +117,33 @@ function createInterface() {
       margin:14px 0;
     ">
 
-      <div style="
-        background:var(--card,rgba(128,128,128,.10));
-        border:1px solid var(--border,rgba(128,128,128,.2));
-        border-radius:12px;
-        padding:12px;
-      ">
-        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
-          ИНТЕРНЕТ
-        </div>
-        <div id="dashboardNetwork"
-          style="font-weight:700;font-size:14px">
+      <div class="cloud-card">
+        <div class="cloud-label">ИНТЕРНЕТ</div>
+        <div id="dashboardNetwork" class="cloud-value">
           Проверка...
         </div>
       </div>
 
-      <div style="
-        background:var(--card,rgba(128,128,128,.10));
-        border:1px solid var(--border,rgba(128,128,128,.2));
-        border-radius:12px;
-        padding:12px;
-      ">
-        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
-          CLOUD СТАТУС
-        </div>
-        <div id="dashboardCloud"
-          style="font-weight:700;font-size:14px">
+      <div class="cloud-card">
+        <div class="cloud-label">CLOUD СТАТУС</div>
+        <div id="dashboardCloud" class="cloud-value">
           Проверка...
         </div>
       </div>
 
-      <div style="
-        background:var(--card,rgba(128,128,128,.10));
-        border:1px solid var(--border,rgba(128,128,128,.2));
-        border-radius:12px;
-        padding:12px;
-      ">
-        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
-          ПОСЛЕДНА СИНХРОНИЗАЦИЯ
-        </div>
-        <div id="dashboardLastSync"
-          style="font-weight:700;font-size:12px;line-height:1.5">
+      <div class="cloud-card">
+        <div class="cloud-label">ПОСЛЕДНА СИНХРОНИЗАЦИЯ</div>
+        <div id="dashboardLastSync" class="cloud-value small">
           Все още няма данни
         </div>
       </div>
 
-      <div style="
-        background:var(--card,rgba(128,128,128,.10));
-        border:1px solid var(--border,rgba(128,128,128,.2));
-        border-radius:12px;
-        padding:12px;
-      ">
-        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
-          ЧАКАЩИ ПРОМЕНИ
-        </div>
-        <div id="dashboardPending"
-          style="font-weight:700;font-size:14px">
+      <div class="cloud-card">
+        <div class="cloud-label">ЧАКАЩИ ПРОМЕНИ</div>
+        <div id="dashboardPending" class="cloud-value">
           0
         </div>
       </div>
-
     </div>
 
     <div id="cloudUser" class="form-msg">
@@ -184,19 +168,11 @@ function createInterface() {
       </div>
 
       <div class="panel-row">
-        <button
-          class="btn-primary"
-          id="cloudLogin"
-          type="button"
-        >
+        <button class="btn-primary" id="cloudLogin" type="button">
           Вход
         </button>
 
-        <button
-          class="btn-secondary"
-          id="cloudRegister"
-          type="button"
-        >
+        <button class="btn-secondary" id="cloudRegister" type="button">
           Регистрация
         </button>
       </div>
@@ -204,30 +180,18 @@ function createInterface() {
 
     <div id="cloudActions" hidden>
       <div class="panel-row">
-        <button
-          class="btn-primary"
-          id="cloudSync"
-          type="button"
-        >
+        <button class="btn-primary" id="cloudSync" type="button">
           ↻ Синхронизирай сега
         </button>
 
-        <button
-          class="btn-secondary"
-          id="cloudLogout"
-          type="button"
-        >
+        <button class="btn-secondary" id="cloudLogout" type="button">
           Изход
         </button>
       </div>
 
       <div class="panel-row">
-        <button
-          class="btn-secondary"
-          id="cloudRetry"
-          type="button"
-          style="width:100%"
-        >
+        <button class="btn-secondary" id="cloudRetry"
+          type="button" style="width:100%">
           ⟳ Повтори синхронизацията
         </button>
       </div>
@@ -237,8 +201,40 @@ function createInterface() {
       Данните се съхраняват локално.
     </div>
 
+    <div style="
+      border-top:1px solid var(--border,rgba(128,128,128,.2));
+      margin-top:18px;
+      padding-top:16px;
+    ">
+
+      <div class="section-title">
+        ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ
+      </div>
+
+      <div class="backup-info">
+        Централизирана история за всички устройства
+        в твоя Cloud профил.
+      </div>
+
+      <button
+        class="btn-secondary"
+        id="cloudHistoryRefresh"
+        type="button"
+        style="width:100%;margin:10px 0"
+      >
+        ↻ Обнови историята
+      </button>
+
+      <div id="cloudHistoryStatus" class="form-msg">
+        Историята ще се зареди след вход.
+      </div>
+
+      <div id="cloudHistoryList"></div>
+
+    </div>
+
     <div class="backup-info">
-      M-GARAGE PRO 1.2 · CLOUD DASHBOARD
+      M-GARAGE PRO 1.3 · CLOUD DASHBOARD
     </div>
   `;
 
@@ -249,10 +245,72 @@ function createInterface() {
   } else {
     const layout = document.querySelector(".layout");
 
-    if (layout) {
-      layout.prepend(panel);
-    }
+    if (layout) layout.prepend(panel);
   }
+
+  const style = document.createElement("style");
+
+  style.textContent = `
+    .cloud-card {
+      background:var(--card,rgba(128,128,128,.10));
+      border:1px solid var(--border,rgba(128,128,128,.2));
+      border-radius:12px;
+      padding:12px;
+      min-width:0;
+    }
+
+    .cloud-label {
+      font-size:11px;
+      opacity:.7;
+      margin-bottom:7px;
+    }
+
+    .cloud-value {
+      font-weight:700;
+      font-size:14px;
+      overflow-wrap:anywhere;
+    }
+
+    .cloud-value.small {
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .history-item {
+      border:1px solid var(--border,rgba(128,128,128,.2));
+      background:var(--card,rgba(128,128,128,.06));
+      border-radius:12px;
+      padding:12px;
+      margin:9px 0;
+    }
+
+    .history-heading {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      font-size:13px;
+    }
+
+    .history-meta {
+      opacity:.7;
+      font-size:12px;
+      line-height:1.6;
+      margin-top:7px;
+      overflow-wrap:anywhere;
+    }
+
+    .history-success {
+      color:#16a34a;
+    }
+
+    .history-error {
+      color:#dc2626;
+    }
+  `;
+
+  document.head.appendChild(style);
 
   return panel;
 }
@@ -274,13 +332,7 @@ function setIndicator(id, message, color) {
   element.style.color = color || "inherit";
 }
 
-function getLastSyncText() {
-  const value = localStorage.getItem(LAST_SYNC_KEY);
-
-  if (!value) {
-    return "Все още няма данни";
-  }
-
+function formatDate(value) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
@@ -293,6 +345,12 @@ function getLastSyncText() {
       hour: "2-digit",
       minute: "2-digit"
     });
+}
+
+function getLastSyncText() {
+  const value = localStorage.getItem(LAST_SYNC_KEY);
+
+  return value ? formatDate(value) : "Все още няма данни";
 }
 
 function refreshDashboard() {
@@ -318,43 +376,38 @@ function refreshDashboard() {
     "inherit"
   );
 
-  let cloudMessage = "Не е влязъл";
-  let cloudColor = "#d97706";
+  let message = "Не е влязъл";
+  let color = "#d97706";
 
   if (syncRunning) {
-    cloudMessage = "Синхронизира...";
-    cloudColor = "#2563eb";
-
+    message = "Синхронизира...";
+    color = "#2563eb";
   } else if (lastSyncError) {
-    cloudMessage = "Има проблем";
-    cloudColor = "#dc2626";
-
+    message = "Има проблем";
+    color = "#dc2626";
   } else if (currentUser && !online) {
-    cloudMessage = "Изчаква интернет";
-    cloudColor = "#d97706";
-
+    message = "Изчаква интернет";
+    color = "#d97706";
   } else if (currentUser && pending > 0) {
-    cloudMessage = "Чакащи промени";
-    cloudColor = "#d97706";
-
+    message = "Чакащи промени";
+    color = "#d97706";
   } else if (currentUser && localStorage.getItem(LAST_SYNC_KEY)) {
-    cloudMessage = "Синхронизиран";
-    cloudColor = "#16a34a";
-
+    message = "Синхронизиран";
+    color = "#16a34a";
   } else if (currentUser) {
-    cloudMessage = "Очаква синхронизация";
-    cloudColor = "#2563eb";
+    message = "Очаква синхронизация";
+    color = "#2563eb";
   }
 
   setIndicator(
     "dashboardCloud",
-    "● " + cloudMessage,
-    cloudColor
+    "● " + message,
+    color
   );
 }
 
 /* ==========================================
-   STATUS MESSAGES
+   STATUS
 ========================================== */
 
 function status(message, type = "") {
@@ -379,19 +432,24 @@ function userStatus(message, type = "") {
   refreshDashboard();
 }
 
+function setHistoryStatus(message) {
+  const element = $("cloudHistoryStatus");
+
+  if (element) element.textContent = message;
+}
+
 function setBusy(busy) {
   [
     "cloudLogin",
     "cloudRegister",
     "cloudSync",
     "cloudLogout",
-    "cloudRetry"
+    "cloudRetry",
+    "cloudHistoryRefresh"
   ].forEach(id => {
     const button = $(id);
 
-    if (button) {
-      button.disabled = busy;
-    }
+    if (button) button.disabled = busy;
   });
 
   refreshDashboard();
@@ -441,18 +499,15 @@ function cleanCars(input) {
 
 function readLocalData() {
   try {
-    const rawCars = localStorage.getItem(STORAGE_KEY);
-    const parsedCars = rawCars ? JSON.parse(rawCars) : [];
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
 
     return {
-      cars: cleanCars(parsedCars),
+      cars: cleanCars(parsed),
       activeVin: localStorage.getItem(ACTIVE_KEY) || ""
     };
-
   } catch (error) {
-    throw new Error(
-      "Не могат да бъдат прочетени локалните данни."
-    );
+    throw new Error("Не могат да бъдат прочетени локалните данни.");
   }
 }
 
@@ -462,27 +517,17 @@ function readPending() {
     const parsed = raw ? JSON.parse(raw) : [];
 
     return Array.isArray(parsed) ? parsed : [];
-
   } catch (error) {
     return [];
   }
 }
 
 function savePending(events) {
-  localStorage.setItem(
-    PENDING_KEY,
-    JSON.stringify(events)
-  );
-
+  localStorage.setItem(PENDING_KEY, JSON.stringify(events));
   refreshDashboard();
 }
 
-function createEvent(
-  entityType,
-  entityId,
-  operation,
-  data
-) {
+function createEvent(entityType, entityId, operation, data) {
   return {
     event_id: crypto.randomUUID(),
     device_id: DEVICE_ID,
@@ -512,21 +557,14 @@ function compareCars(oldInput, newInput) {
   const oldCars = cleanCars(oldInput);
   const newCars = cleanCars(newInput);
 
-  const oldMap = new Map(
-    oldCars.map(car => [car.vin, car])
-  );
-
-  const newMap = new Map(
-    newCars.map(car => [car.vin, car])
-  );
+  const oldMap = new Map(oldCars.map(car => [car.vin, car]));
+  const newMap = new Map(newCars.map(car => [car.vin, car]));
 
   const events = [];
 
   oldMap.forEach((oldCar, vin) => {
     if (!newMap.has(vin)) {
-      events.push(
-        createEvent("car", vin, "delete", {})
-      );
+      events.push(createEvent("car", vin, "delete", {}));
     }
   });
 
@@ -543,12 +581,9 @@ function compareCars(oldInput, newInput) {
       STEP_IDS.forEach(id => {
         if (newCar.done[id] === true) {
           events.push(
-            createEvent(
-              "step",
-              vin + ":" + id,
-              "set",
-              { done: true }
-            )
+            createEvent("step", vin + ":" + id, "set", {
+              done: true
+            })
           );
         }
       });
@@ -570,12 +605,9 @@ function compareCars(oldInput, newInput) {
 
       if (oldDone !== newDone) {
         events.push(
-          createEvent(
-            "step",
-            vin + ":" + id,
-            "set",
-            { done: newDone }
-          )
+          createEvent("step", vin + ":" + id, "set", {
+            done: newDone
+          })
         );
       }
     });
@@ -592,10 +624,7 @@ const originalSetItem = Storage.prototype.setItem;
 const originalGetItem = Storage.prototype.getItem;
 
 Storage.prototype.setItem = function(key, value) {
-  if (
-    this !== localStorage ||
-    suppressLocalEvents
-  ) {
+  if (this !== localStorage || suppressLocalEvents) {
     return originalSetItem.call(this, key, value);
   }
 
@@ -612,8 +641,7 @@ Storage.prototype.setItem = function(key, value) {
     const result = originalSetItem.call(this, key, value);
 
     try {
-      const newCars = JSON.parse(value);
-      enqueueEvents(compareCars(oldCars, newCars));
+      enqueueEvents(compareCars(oldCars, JSON.parse(value)));
     } catch (error) {
       console.error("Cloud change detection:", error);
     }
@@ -622,8 +650,7 @@ Storage.prototype.setItem = function(key, value) {
   }
 
   if (key === ACTIVE_KEY) {
-    const oldVin =
-      originalGetItem.call(this, key) || "";
+    const oldVin = originalGetItem.call(this, key) || "";
 
     const result = originalSetItem.call(this, key, value);
 
@@ -631,12 +658,9 @@ Storage.prototype.setItem = function(key, value) {
 
     if (oldVin !== newVin) {
       enqueueEvents([
-        createEvent(
-          "active",
-          "active",
-          "set",
-          { vin: newVin }
-        )
+        createEvent("active", "active", "set", {
+          vin: newVin
+        })
       ]);
     }
 
@@ -665,12 +689,8 @@ function saveLocalData(data) {
       ACTIVE_KEY,
       data.activeVin || ""
     );
-
   } catch (error) {
-    throw new Error(
-      "Неуспешно запазване на локалните данни."
-    );
-
+    throw new Error("Неуспешно запазване на локалните данни.");
   } finally {
     suppressLocalEvents = false;
   }
@@ -686,12 +706,11 @@ function showAuthenticated(user) {
   $("cloudAuthForm").hidden = true;
   $("cloudActions").hidden = false;
 
-  userStatus(
-    "Влязъл потребител: " + user.email,
-    "ok"
-  );
+  userStatus("Влязъл потребител: " + user.email, "ok");
 
   status("Cloud Sync е активен.");
+
+  loadHistory();
 }
 
 function showLoggedOut() {
@@ -702,6 +721,10 @@ function showLoggedOut() {
 
   userStatus("Не си влязъл в Cloud Sync.");
 
+  setHistoryStatus("Влез в профила си, за да видиш историята.");
+
+  $("cloudHistoryList").replaceChildren();
+
   status("Локалните данни са налични.");
 }
 
@@ -710,9 +733,7 @@ async function register() {
   const password = $("cloudPassword").value;
 
   if (!email || password.length < 6) {
-    status(
-      "Въведи валиден имейл и парола от минимум 6 символа."
-    );
+    status("Въведи валиден имейл и парола от минимум 6 символа.");
     return;
   }
 
@@ -730,16 +751,11 @@ async function register() {
       showAuthenticated(data.user);
       status("Регистрацията е успешна.", "ok");
       scheduleAutomaticSync(1000);
-
     } else {
-      status(
-        "Регистрацията е приета. Провери имейла си и потвърди регистрацията."
-      );
+      status("Регистрацията е приета. Провери имейла си и потвърди регистрацията.");
     }
-
   } catch (error) {
     status("Грешка при регистрация: " + error.message);
-
   } finally {
     setBusy(false);
   }
@@ -757,11 +773,10 @@ async function login() {
   setBusy(true);
 
   try {
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
     if (error) throw error;
 
@@ -769,10 +784,8 @@ async function login() {
     status("Входът е успешен.", "ok");
 
     scheduleAutomaticSync(1000);
-
   } catch (error) {
     status("Грешка при вход: " + error.message);
-
   } finally {
     setBusy(false);
   }
@@ -788,17 +801,15 @@ async function logout() {
 
     showLoggedOut();
     status("Излезе от Cloud Sync.", "ok");
-
   } catch (error) {
     status("Грешка при изход: " + error.message);
-
   } finally {
     setBusy(false);
   }
 }
 
 /* ==========================================
-   FETCH CLOUD EVENTS
+   CLOUD EVENT FETCH
 ========================================== */
 
 async function fetchAllEvents(userId) {
@@ -811,11 +822,10 @@ async function fetchAllEvents(userId) {
     const { data, error } = await supabase
       .from("user_changes")
       .select(
-        "event_id, device_id, entity_type, entity_id, operation, data, created_at"
+        "event_id, event_order, device_id, entity_type, entity_id, operation, data, created_at"
       )
       .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .order("event_id", { ascending: true })
+      .order("event_order", { ascending: true })
       .range(offset, offset + pageSize - 1);
 
     if (error) throw error;
@@ -824,9 +834,7 @@ async function fetchAllEvents(userId) {
       allEvents.push(...data);
     }
 
-    if (!data || data.length < pageSize) {
-      break;
-    }
+    if (!data || data.length < pageSize) break;
 
     offset += pageSize;
   }
@@ -835,7 +843,7 @@ async function fetchAllEvents(userId) {
 }
 
 /* ==========================================
-   LEGACY DATA MIGRATION
+   LEGACY DATA
 ========================================== */
 
 async function readLegacyData(userId) {
@@ -847,9 +855,7 @@ async function readLegacyData(userId) {
 
   if (error) throw error;
 
-  return data && data.payload
-    ? data.payload
-    : {};
+  return data && data.payload ? data.payload : {};
 }
 
 function createInitialEvents(events, local, legacy) {
@@ -885,12 +891,9 @@ function createInitialEvents(events, local, legacy) {
     STEP_IDS.forEach(id => {
       if (car.done[id] === true) {
         initialEvents.push(
-          createEvent(
-            "step",
-            car.vin + ":" + id,
-            "set",
-            { done: true }
-          )
+          createEvent("step", car.vin + ":" + id, "set", {
+            done: true
+          })
         );
       }
     });
@@ -901,18 +904,12 @@ function createInitialEvents(events, local, legacy) {
   );
 
   if (!hasActiveEvent) {
-    const activeVin =
-      local.activeVin ||
-      legacy.activeVin ||
-      "";
+    const activeVin = local.activeVin || legacy.activeVin || "";
 
     initialEvents.push(
-      createEvent(
-        "active",
-        "active",
-        "set",
-        { vin: activeVin }
-      )
+      createEvent("active", "active", "set", {
+        vin: activeVin
+      })
     );
   }
 
@@ -949,7 +946,7 @@ async function uploadEvents(userId, events) {
 async function uploadPending(userId) {
   const pending = readPending();
 
-  if (!pending.length) return;
+  if (!pending.length) return 0;
 
   const sendingIds = new Set(
     pending.map(event => event.event_id)
@@ -962,6 +959,8 @@ async function uploadPending(userId) {
   );
 
   savePending(remaining);
+
+  return pending.length;
 }
 
 /* ==========================================
@@ -1039,6 +1038,125 @@ function applyEvents(events) {
 }
 
 /* ==========================================
+   CLOUD SYNC HISTORY
+========================================== */
+
+async function writeHistory(
+  userId,
+  result,
+  carsCount,
+  changesCount,
+  errorMessage = ""
+) {
+  const { error } = await supabase
+    .from("sync_history")
+    .insert({
+      user_id: userId,
+      device_id: DEVICE_ID,
+      result,
+      cars_count: carsCount,
+      changes_count: changesCount,
+      error_message: errorMessage
+        ? String(errorMessage).slice(0, 500)
+        : null
+    });
+
+  if (error) throw error;
+}
+
+function renderHistory(items) {
+  const container = $("cloudHistoryList");
+
+  if (!container) return;
+
+  container.replaceChildren();
+
+  if (!items.length) {
+    setHistoryStatus("Все още няма записи в историята.");
+    return;
+  }
+
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "history-item";
+
+    const heading = document.createElement("div");
+    heading.className = "history-heading";
+
+    const result = document.createElement("span");
+    result.className =
+      item.result === "success"
+        ? "history-success"
+        : "history-error";
+
+    result.textContent =
+      item.result === "success"
+        ? "✓ Успешна синхронизация"
+        : "✕ Неуспешна синхронизация";
+
+    const device = document.createElement("span");
+    device.textContent =
+      item.device_id === DEVICE_ID
+        ? getDeviceName()
+        : "Друго устройство";
+
+    heading.append(result, device);
+
+    const meta = document.createElement("div");
+    meta.className = "history-meta";
+
+    meta.textContent =
+      formatDate(item.created_at) +
+      "\nАвтомобили: " + item.cars_count +
+      " · Промени: " + item.changes_count;
+
+    card.append(heading, meta);
+
+    if (item.error_message) {
+      const error = document.createElement("div");
+      error.className = "history-meta history-error";
+      error.textContent = "Причина: " + item.error_message;
+      card.append(error);
+    }
+
+    container.append(card);
+  });
+
+  setHistoryStatus("Показани са последните " + items.length + " записа.");
+}
+
+async function loadHistory() {
+  if (!currentUser) {
+    setHistoryStatus("Влез в профила си, за да видиш историята.");
+    return;
+  }
+
+  setHistoryStatus("Зареждане на историята...");
+
+  try {
+    const { data, error } = await supabase
+      .from("sync_history")
+      .select(
+        "id, device_id, result, cars_count, changes_count, error_message, created_at"
+      )
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    renderHistory(data || []);
+  } catch (error) {
+    console.error("M-GARAGE HISTORY:", error);
+
+    setHistoryStatus(
+      "Историята не може да бъде заредена: " + error.message
+    );
+  }
+}
+
+/* ==========================================
    MAIN SYNC
 ========================================== */
 
@@ -1057,9 +1175,13 @@ async function syncNow() {
 
   syncRunning = true;
   lastSyncError = false;
-  setBusy(true);
 
+  setBusy(true);
   status("Синхронизацията започна...");
+
+  let historyUserId = null;
+  let processedChanges = 0;
+  let mergedCarsCount = 0;
 
   try {
     const {
@@ -1071,6 +1193,7 @@ async function syncNow() {
     if (!session) throw new Error("Не си влязъл в профила.");
 
     const userId = session.user.id;
+    historyUserId = userId;
 
     const local = readLocalData();
 
@@ -1086,13 +1209,16 @@ async function syncNow() {
 
     if (initialEvents.length) {
       await uploadEvents(userId, initialEvents);
+      processedChanges += initialEvents.length;
     }
 
-    await uploadPending(userId);
+    processedChanges += await uploadPending(userId);
 
     cloudEvents = await fetchAllEvents(userId);
 
     const merged = applyEvents(cloudEvents);
+
+    mergedCarsCount = merged.cars.length;
 
     saveLocalData(merged);
 
@@ -1112,11 +1238,31 @@ async function syncNow() {
 
     lastSyncError = false;
 
+    let historyMessage = "";
+
+    try {
+      await writeHistory(
+        userId,
+        "success",
+        mergedCarsCount,
+        processedChanges
+      );
+
+      await loadHistory();
+    } catch (historyError) {
+      console.error("M-GARAGE HISTORY WRITE:", historyError);
+      historyMessage = " Историята не можа да бъде записана.";
+    }
+
     status(
       "Синхронизацията е успешна. Автомобили: " +
-      merged.cars.length +
-      ". Последна синхронизация: " +
-      now.toLocaleString("bg-BG"),
+      mergedCarsCount +
+      ". Промени: " +
+      processedChanges +
+      ". " +
+      now.toLocaleString("bg-BG") +
+      "." +
+      historyMessage,
       "ok"
     );
 
@@ -1125,9 +1271,26 @@ async function syncNow() {
 
     lastSyncError = true;
 
-    status(
-      "Грешка при синхронизация: " + error.message
-    );
+    if (historyUserId) {
+      try {
+        await writeHistory(
+          historyUserId,
+          "error",
+          mergedCarsCount,
+          processedChanges,
+          error.message
+        );
+
+        await loadHistory();
+      } catch (historyError) {
+        console.error(
+          "M-GARAGE HISTORY ERROR:",
+          historyError
+        );
+      }
+    }
+
+    status("Грешка при синхронизация: " + error.message);
 
   } finally {
     syncRunning = false;
@@ -1141,9 +1304,7 @@ async function syncNow() {
 ========================================== */
 
 function scheduleAutomaticSync(delay = 1800) {
-  if (syncTimer) {
-    clearTimeout(syncTimer);
-  }
+  if (syncTimer) clearTimeout(syncTimer);
 
   syncTimer = setTimeout(async () => {
     if (!navigator.onLine) {
@@ -1159,15 +1320,10 @@ function scheduleAutomaticSync(delay = 1800) {
 
       if (error) throw error;
 
-      if (session) {
-        await syncNow();
-      }
+      if (session) await syncNow();
 
     } catch (error) {
-      console.error(
-        "M-GARAGE AUTO SYNC:",
-        error
-      );
+      console.error("M-GARAGE AUTO SYNC:", error);
 
       lastSyncError = true;
       refreshDashboard();
@@ -1182,18 +1338,13 @@ function scheduleAutomaticSync(delay = 1800) {
 window.addEventListener("online", () => {
   lastSyncError = false;
 
-  status(
-    "Интернетът е възстановен. Започва синхронизация..."
-  );
+  status("Интернетът е възстановен. Започва синхронизация...");
 
   scheduleAutomaticSync(500);
 });
 
 window.addEventListener("offline", () => {
-  status(
-    "Няма интернет. Локалните промени се запазват."
-  );
-
+  status("Няма интернет. Локалните промени се запазват.");
   refreshDashboard();
 });
 
@@ -1218,6 +1369,7 @@ $("cloudRegister").addEventListener("click", register);
 $("cloudLogout").addEventListener("click", logout);
 $("cloudSync").addEventListener("click", syncNow);
 $("cloudRetry").addEventListener("click", syncNow);
+$("cloudHistoryRefresh").addEventListener("click", loadHistory);
 
 /* ==========================================
    AUTH STATE
@@ -1234,7 +1386,6 @@ supabase.auth.onAuthStateChange((event, session) => {
     ) {
       scheduleAutomaticSync(1200);
     }
-
   } else {
     showLoggedOut();
   }
@@ -1260,11 +1411,9 @@ async function initializeCloud() {
     if (session) {
       showAuthenticated(session.user);
       scheduleAutomaticSync(1500);
-
     } else {
       showLoggedOut();
     }
-
   } catch (error) {
     lastSyncError = true;
 
