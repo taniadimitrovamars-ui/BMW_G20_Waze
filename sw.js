@@ -4,19 +4,21 @@
 /* ==========================================
    M-GARAGE PRO
    Service Worker
-   Version: 1.0
+   Version: 1.1
 ========================================== */
 
 const CACHE_PREFIX = "m-garage-pro-";
-const CACHE_NAME = CACHE_PREFIX + "v5";
+const CACHE_NAME = CACHE_PREFIX + "v6";
 
 /* Основни файлове – необходими за стартиране */
+
 const CORE_ASSETS = [
   "./",
   "./index.html"
 ];
 
-/* Допълнителни файлове – кешират се, ако съществуват */
+/* Допълнителни файлове */
+
 const OPTIONAL_ASSETS = [
   "./manifest.json",
   "./favicon.ico",
@@ -35,11 +37,8 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
 
-      // Основните файлове трябва да се кешират успешно.
       await cache.addAll(CORE_ASSETS);
 
-      // Липсващите допълнителни файлове не трябва
-      // да блокират инсталацията.
       await Promise.allSettled(
         OPTIONAL_ASSETS.map(async (asset) => {
           try {
@@ -88,15 +87,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Не обработваме POST, PUT, DELETE и други заявки.
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  // Обработваме само файлове от същия домейн.
   if (url.origin !== self.location.origin) return;
 
-  // Не кешираме заявки към API.
   if (url.pathname.includes("/api/")) return;
 
   const isNavigation =
@@ -146,7 +142,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Статични ресурси: първо кеш, после мрежа.
   event.respondWith(
     (async () => {
       const cached = await caches.match(request);
@@ -172,8 +167,6 @@ self.addEventListener("fetch", (event) => {
         return response;
 
       } catch (error) {
-        // Не връщаме HTML вместо изображение,
-        // икона или друг статичен ресурс.
         return new Response("", {
           status: 503,
           statusText: "Offline"
