@@ -8,7 +8,7 @@
 ========================================== */
 
 const CACHE_PREFIX = "m-garage-pro-";
-const CACHE_NAME = CACHE_PREFIX + "v1";
+const CACHE_NAME = CACHE_PREFIX + "v2";
 
 /* Основни файлове – необходими за стартиране */
 const CORE_ASSETS = [
