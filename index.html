@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
-<title>M-GARAGE PRO 3.2</title>
+<title>M-GARAGE PRO 3.3</title>
 
 <style>
 :root{
@@ -112,6 +112,14 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .due-tag.warn{color:var(--warn)}
 .due-tag.danger{color:var(--danger)}
 .due-tag.good{color:var(--good)}
+.finance-list{display:grid;gap:11px}
+.finance-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.finance-label{font-size:12px;font-weight:700}
+.finance-value{font-size:12px;font-weight:900;text-align:right}
+.finance-track{grid-column:1/-1;height:7px;border-radius:20px;background:var(--surface-2);overflow:hidden}
+.finance-fill{height:100%;background:var(--accent);border-radius:20px;min-width:0}
+.finance-total{font-size:21px;font-weight:900;margin:4px 0 12px}
+.finance-caption{font-size:10px;color:var(--muted);margin-top:4px}
 .rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:10px!important;font-weight:800!important;opacity:1!important}
 .rules ~ * button:disabled{opacity:.55!important}
 .rules ~ * input,.rules ~ * select{background:var(--surface-2)!important;color:var(--text)!important;border:1px solid var(--border)!important}
@@ -130,7 +138,7 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 <header class="topbar">
  <div>
   <div class="brand">M-<span>GARAGE</span> PRO</div>
-  <div class="version">VEHICLE MANAGEMENT SYSTEM · 3.2 SMART SERVICE</div>
+  <div class="version">VEHICLE MANAGEMENT SYSTEM · 3.3 SMART FINANCE</div>
  </div>
  <div class="top-actions">
   <button class="icon-btn" id="themeToggle" type="button">◐</button>
@@ -191,6 +199,11 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
  <div id="overviewAlerts"></div>
  <div class="section-title" style="margin-top:18px">ПРЕДСТОЯЩИ ОБСЛУЖВАНИЯ</div>
  <div id="upcomingServices"></div>
+
+ <hr>
+ <div class="section-title">ФИНАНСОВ ОБЗОР</div>
+ <div id="financeSummary"></div>
+
  <div class="section-title" style="margin-top:18px">НАСТРОЙКА НА АВТОМОБИЛА</div>
  <div id="overviewDetails" class="muted"></div>
  <div class="btn-row">
@@ -325,7 +338,7 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
  <div id="localMessage" class="form-msg"></div>
 </section>
 
-<div class="footer">M-GARAGE PRO 3.2 · YOUR VEHICLE. YOUR DATA.</div>
+<div class="footer">M-GARAGE PRO 3.3 · YOUR VEHICLE. YOUR DATA.</div>
 </div>
 
 <script>
@@ -367,6 +380,15 @@ function addMonths(dateString,months){
  d.setDate(Math.min(day,last));
  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
+function safeHttpUrl(value){
+ const raw=safeText(value,2000);
+ if(!raw)return"";
+ try{
+  const url=new URL(raw);
+  if(url.protocol!=="http:"&&url.protocol!=="https:")return"";
+  return url.href;
+ }catch(error){return""}
+}
 function cleanRecord(record,type){
  const r=record&&typeof record==="object"?record:{};
  const result={
@@ -380,6 +402,9 @@ function cleanRecord(record,type){
   provider:safeText(r.provider,150),
   notes:safeText(r.notes,2000)
  };
+ if(type==="expense"){
+  result.category=safeText(r.category,100);
+ }
  if(type==="reminder"){
   result.dueDate=safeText(r.dueDate,40);
   result.dueMileage=safeNumber(r.dueMileage);
@@ -392,7 +417,7 @@ function cleanRecord(record,type){
  }
  if(type==="document"){
   result.fileName=safeText(r.fileName,200);
-  result.fileUrl=safeText(r.fileUrl,2000);
+  result.fileUrl=safeHttpUrl(r.fileUrl);
   result.documentType=safeText(r.documentType,100);
  }
  return result;
@@ -484,13 +509,59 @@ function reminderState(r,car){
  const soon=!overdue&&((daysLeft!==null&&daysLeft<=30)||(kmLeft!==null&&kmLeft<=1000));
  return{overdue,soon,daysLeft,kmLeft};
 }
+function getFinancialTotals(car){
+ const services=car.serviceRecords.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ const modifications=car.modifications.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ const expenses=car.expenses.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ return{services,modifications,expenses,total:services+modifications+expenses};
+}
+function renderFinance(car){
+ const totals=getFinancialTotals(car);
+ const container=$("financeSummary");
+ $("statExpenses").textContent=formatMoney(totals.total);
+ const categories=[
+  {label:"Сервизни дейности",value:totals.services},
+  {label:"Модификации",value:totals.modifications},
+  {label:"Други разходи",value:totals.expenses}
+ ];
+ container.replaceChildren();
+ const total=document.createElement("div");
+ total.className="finance-total";
+ total.textContent=formatMoney(totals.total);
+ container.append(total);
+ const caption=document.createElement("div");
+ caption.className="finance-caption";
+ caption.textContent="Общо отчетени разходи за автомобила";
+ container.append(caption);
+ const list=document.createElement("div");
+ list.className="finance-list";
+ list.style.marginTop="15px";
+ categories.forEach(item=>{
+  const row=document.createElement("div");
+  row.className="finance-row";
+  const label=document.createElement("div");
+  label.className="finance-label";
+  label.textContent=item.label;
+  const value=document.createElement("div");
+  value.className="finance-value";
+  value.textContent=formatMoney(item.value);
+  const track=document.createElement("div");
+  track.className="finance-track";
+  const fill=document.createElement("div");
+  fill.className="finance-fill";
+  fill.style.width=totals.total?Math.min(100,item.value/totals.total*100)+"%":"0%";
+  track.append(fill);
+  row.append(label,value,track);
+  list.append(row);
+ });
+ container.append(list);
+}
 function renderOverview(car){
  $("vehicleName").textContent=car.nick||"BMW";
  $("vehicleVin").textContent="VIN: "+car.vin;
  $("statMileage").textContent=(car.details.mileage||0).toLocaleString("bg-BG")+" km";
  $("statServices").textContent=car.serviceRecords.length;
- const total=car.expenses.reduce((sum,r)=>sum+safeNumber(r.cost),0);
- $("statExpenses").textContent=formatMoney(total);
+ renderFinance(car);
  $("statReminders").textContent=car.reminders.filter(r=>!r.completed).length;
  const d=car.details;
  $("overviewDetails").textContent=[
@@ -626,9 +697,22 @@ function renderRecords(containerId,records,type,car){
     card.append(complete);
    }
   }else if(type==="document"&&record.fileUrl){
-   const link=document.createElement("a");link.href=record.fileUrl;link.target="_blank";
-   link.rel="noopener noreferrer";link.textContent="Отвори документа";
-   link.style.display="inline-block";link.style.marginTop="10px";card.append(link);
+   const safeUrl=safeHttpUrl(record.fileUrl);
+   if(safeUrl){
+    const link=document.createElement("a");
+    link.href=safeUrl;
+    link.target="_blank";
+    link.rel="noopener noreferrer";
+    link.textContent="Отвори документа";
+    link.style.display="inline-block";
+    link.style.marginTop="10px";
+    card.append(link);
+   }else{
+    const warning=document.createElement("div");
+    warning.className="record-date";
+    warning.textContent="Линкът не е валиден или не е разрешен.";
+    card.append(warning);
+   }
   }
 
   const actions=document.createElement("div");actions.className="record-actions";
@@ -731,7 +815,10 @@ function addExpense(){
 }
 function addDocument(){
  if(!getVal("dTitle"))return alert("Въведи име на документа.");
- addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:getVal("dUrl"),notes:getVal("dNotes")});
+ const rawUrl=getVal("dUrl");
+ const safeUrl=safeHttpUrl(rawUrl);
+ if(rawUrl&&!safeUrl)return alert("Линкът трябва да бъде валиден адрес, започващ с http:// или https://.");
+ addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:safeUrl,notes:getVal("dNotes")});
  ["dTitle","dDate","dUrl","dNotes"].forEach(id=>$(id).value="");
 }
 function exportBackup(){
