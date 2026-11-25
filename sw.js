@@ -1,4 +1,4 @@
-const CACHE_NAME = 'g20-waze-helper-v2';
+const CACHE_NAME = 'g20-waze-helper-v3';
 const ASSETS = [
   './',
   './index.html',
