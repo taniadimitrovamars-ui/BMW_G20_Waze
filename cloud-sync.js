@@ -4,7 +4,8 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.4
+   Version: 1.5
+   FULL BACKUP & CLOUD RESTORE
 ========================================== */
 
 import { createClient } from
@@ -34,9 +35,11 @@ const supabase = createClient(
 
 const STORAGE_KEY = "mgu_cars";
 const ACTIVE_KEY = "mgu_active";
+const THEME_KEY = "mgu_theme";
 const PENDING_KEY = "mgu_cloud_pending";
 const DEVICE_KEY = "mgu_cloud_device";
 const LAST_SYNC_KEY = "mgu_cloud_last_sync";
+const RESTORE_KEY = "mgu_cloud_restore_id";
 
 const STEP_IDS = [
   "prep",
@@ -102,7 +105,7 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 1.4
+      CLOUD SYNC · M-GARAGE PRO 1.5
     </div>
 
     <div class="backup-info">
@@ -152,19 +155,12 @@ function createInterface() {
 
     <div id="cloudAuthForm">
       <div class="panel-row">
-        <input
-          id="cloudEmail"
-          type="email"
-          placeholder="Имейл адрес"
-          autocomplete="email"
-        >
+        <input id="cloudEmail" type="email"
+          placeholder="Имейл адрес" autocomplete="email">
 
-        <input
-          id="cloudPassword"
-          type="password"
+        <input id="cloudPassword" type="password"
           placeholder="Парола – минимум 6 символа"
-          autocomplete="current-password"
-        >
+          autocomplete="current-password">
       </div>
 
       <div class="panel-row">
@@ -202,7 +198,43 @@ function createInterface() {
     </div>
 
     <div class="cloud-section">
+      <div class="section-title">
+        BACKUP & RESTORE
+      </div>
 
+      <div class="backup-info">
+        Създай архив на автомобилите, сервизния прогрес
+        и темата. Възстановяването замества гаража
+        в Cloud профила и на останалите устройства.
+      </div>
+
+      <button class="btn-primary" id="cloudExport"
+        type="button" style="width:100%;margin:10px 0">
+        ↓ Създай архив
+      </button>
+
+      <div class="backup-info">
+        Възстановяването е необратима операция за
+        останалите устройства. Преди да продължиш,
+        увери се, че избраният архив е правилният.
+      </div>
+
+      <input id="cloudRestoreFile"
+        type="file"
+        accept=".json,application/json"
+        style="width:100%;margin:10px 0">
+
+      <button class="btn-secondary" id="cloudRestore"
+        type="button" style="width:100%">
+        ↥ Възстанови архива във всички устройства
+      </button>
+
+      <div id="cloudRestoreStatus" class="form-msg">
+        Избери архивен JSON файл.
+      </div>
+    </div>
+
+    <div class="cloud-section">
       <div class="section-title">
         УПРАВЛЕНИЕ НА УСТРОЙСТВАТА
       </div>
@@ -216,12 +248,9 @@ function createInterface() {
         Все още няма регистрирани устройства.
       </div>
 
-      <button
-        class="btn-secondary"
-        id="cloudDevicesRefresh"
-        type="button"
-        style="width:100%;margin:10px 0"
-      >
+      <button class="btn-secondary"
+        id="cloudDevicesRefresh" type="button"
+        style="width:100%;margin:10px 0">
         ↻ Обнови устройствата
       </button>
 
@@ -230,11 +259,9 @@ function createInterface() {
       </div>
 
       <div id="cloudDevicesList"></div>
-
     </div>
 
     <div class="cloud-section">
-
       <div class="section-title">
         ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ
       </div>
@@ -244,12 +271,9 @@ function createInterface() {
         в твоя Cloud профил.
       </div>
 
-      <button
-        class="btn-secondary"
-        id="cloudHistoryRefresh"
-        type="button"
-        style="width:100%;margin:10px 0"
-      >
+      <button class="btn-secondary"
+        id="cloudHistoryRefresh" type="button"
+        style="width:100%;margin:10px 0">
         ↻ Обнови историята
       </button>
 
@@ -258,11 +282,10 @@ function createInterface() {
       </div>
 
       <div id="cloudHistoryList"></div>
-
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 1.4 · CLOUD DASHBOARD
+      M-GARAGE PRO 1.5 · CLOUD BACKUP & RESTORE
     </div>
   `;
 
@@ -272,7 +295,6 @@ function createInterface() {
     rules.after(panel);
   } else {
     const layout = document.querySelector(".layout");
-
     if (layout) layout.prepend(panel);
   }
 
@@ -335,39 +357,7 @@ function createInterface() {
       font-weight:700;
     }
 
-    .device-item {
-      border:1px solid var(--border,rgba(128,128,128,.2));
-      background:var(--card,rgba(128,128,128,.06));
-      border-radius:12px;
-      padding:13px;
-      margin:9px 0;
-    }
-
-    .device-heading {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      font-weight:700;
-      font-size:14px;
-    }
-
-    .device-current {
-      color:#16a34a;
-      font-size:11px;
-      font-weight:700;
-      white-space:nowrap;
-    }
-
-    .device-meta {
-      opacity:.7;
-      font-size:12px;
-      line-height:1.7;
-      margin-top:8px;
-      overflow-wrap:anywhere;
-    }
-
-    .history-item {
+    .device-item,.history-item {
       border:1px solid var(--border,rgba(128,128,128,.2));
       background:var(--card,rgba(128,128,128,.06));
       border-radius:12px;
@@ -375,7 +365,7 @@ function createInterface() {
       margin:9px 0;
     }
 
-    .history-heading {
+    .device-heading,.history-heading {
       display:flex;
       justify-content:space-between;
       align-items:center;
@@ -384,20 +374,23 @@ function createInterface() {
       font-size:13px;
     }
 
-    .history-meta {
-      opacity:.7;
-      font-size:12px;
-      line-height:1.6;
-      margin-top:7px;
-      overflow-wrap:anywhere;
-    }
-
-    .history-success {
+    .device-current,.history-success {
       color:#16a34a;
+      font-size:11px;
+      font-weight:700;
     }
 
     .history-error {
       color:#dc2626;
+    }
+
+    .device-meta,.history-meta {
+      opacity:.75;
+      font-size:12px;
+      line-height:1.7;
+      margin-top:8px;
+      overflow-wrap:anywhere;
+      white-space:pre-line;
     }
   `;
 
@@ -408,7 +401,7 @@ function createInterface() {
 
 createInterface();
 
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 /* ==========================================
    DASHBOARD
@@ -416,7 +409,6 @@ const $ = (id) => document.getElementById(id);
 
 function setIndicator(id, message, color) {
   const element = $(id);
-
   if (!element) return;
 
   element.textContent = message;
@@ -438,19 +430,28 @@ function formatDate(value) {
     });
 }
 
-function getLastSyncText() {
-  const value = localStorage.getItem(LAST_SYNC_KEY);
+function readPending() {
+  try {
+    const parsed = JSON.parse(
+      localStorage.getItem(PENDING_KEY) || "[]"
+    );
 
-  return value ? formatDate(value) : "Все още няма данни";
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePending(events) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(events));
+  refreshDashboard();
 }
 
 function refreshDashboard() {
-  const online = navigator.onLine;
-
   setIndicator(
     "dashboardNetwork",
-    online ? "● ONLINE" : "● OFFLINE",
-    online ? "#16a34a" : "#dc2626"
+    navigator.onLine ? "● ONLINE" : "● OFFLINE",
+    navigator.onLine ? "#16a34a" : "#dc2626"
   );
 
   const pending = readPending().length;
@@ -461,10 +462,11 @@ function refreshDashboard() {
     pending > 0 ? "#d97706" : "#16a34a"
   );
 
+  const lastSync = localStorage.getItem(LAST_SYNC_KEY);
+
   setIndicator(
     "dashboardLastSync",
-    getLastSyncText(),
-    "inherit"
+    lastSync ? formatDate(lastSync) : "Все още няма данни"
   );
 
   let message = "Не е влязъл";
@@ -476,13 +478,11 @@ function refreshDashboard() {
   } else if (lastSyncError) {
     message = "Има проблем";
     color = "#dc2626";
-  } else if (currentUser && !online) {
+  } else if (currentUser && !navigator.onLine) {
     message = "Изчаква интернет";
-    color = "#d97706";
   } else if (currentUser && pending > 0) {
     message = "Чакащи промени";
-    color = "#d97706";
-  } else if (currentUser && localStorage.getItem(LAST_SYNC_KEY)) {
+  } else if (currentUser && lastSync) {
     message = "Синхронизиран";
     color = "#16a34a";
   } else if (currentUser) {
@@ -490,11 +490,7 @@ function refreshDashboard() {
     color = "#2563eb";
   }
 
-  setIndicator(
-    "dashboardCloud",
-    "● " + message,
-    color
-  );
+  setIndicator("dashboardCloud", "● " + message, color);
 }
 
 /* ==========================================
@@ -523,16 +519,25 @@ function userStatus(message, type = "") {
   refreshDashboard();
 }
 
-function setHistoryStatus(message) {
-  const element = $("cloudHistoryStatus");
+function restoreStatus(message, type = "") {
+  const element = $("cloudRestoreStatus");
 
-  if (element) element.textContent = message;
+  if (element) {
+    element.textContent = message;
+    element.className = "form-msg" + (type ? " " + type : "");
+  }
+}
+
+function setHistoryStatus(message) {
+  if ($("cloudHistoryStatus")) {
+    $("cloudHistoryStatus").textContent = message;
+  }
 }
 
 function setDevicesStatus(message) {
-  const element = $("cloudDevicesStatus");
-
-  if (element) element.textContent = message;
+  if ($("cloudDevicesStatus")) {
+    $("cloudDevicesStatus").textContent = message;
+  }
 }
 
 function setBusy(busy) {
@@ -543,11 +548,11 @@ function setBusy(busy) {
     "cloudLogout",
     "cloudRetry",
     "cloudHistoryRefresh",
-    "cloudDevicesRefresh"
+    "cloudDevicesRefresh",
+    "cloudExport",
+    "cloudRestore"
   ].forEach(id => {
-    const button = $(id);
-
-    if (button) button.disabled = busy;
+    if ($(id)) $(id).disabled = busy;
   });
 
   refreshDashboard();
@@ -598,31 +603,14 @@ function cleanCars(input) {
 function readLocalData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
 
     return {
-      cars: cleanCars(parsed),
+      cars: cleanCars(raw ? JSON.parse(raw) : []),
       activeVin: localStorage.getItem(ACTIVE_KEY) || ""
     };
-  } catch (error) {
+  } catch {
     throw new Error("Не могат да бъдат прочетени локалните данни.");
   }
-}
-
-function readPending() {
-  try {
-    const raw = localStorage.getItem(PENDING_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function savePending(events) {
-  localStorage.setItem(PENDING_KEY, JSON.stringify(events));
-  refreshDashboard();
 }
 
 function createEvent(entityType, entityId, operation, data) {
@@ -640,7 +628,6 @@ function enqueueEvents(events) {
   if (!events.length) return;
 
   const pending = readPending();
-
   pending.push(...events);
 
   savePending(pending);
@@ -677,7 +664,7 @@ function compareCars(oldInput, newInput) {
       );
 
       STEP_IDS.forEach(id => {
-        if (newCar.done[id] === true) {
+        if (newCar.done[id]) {
           events.push(
             createEvent("step", vin + ":" + id, "set", {
               done: true
@@ -732,7 +719,7 @@ Storage.prototype.setItem = function(key, value) {
     try {
       const oldRaw = originalGetItem.call(this, key);
       oldCars = oldRaw ? JSON.parse(oldRaw) : [];
-    } catch (error) {
+    } catch {
       oldCars = [];
     }
 
@@ -749,9 +736,7 @@ Storage.prototype.setItem = function(key, value) {
 
   if (key === ACTIVE_KEY) {
     const oldVin = originalGetItem.call(this, key) || "";
-
     const result = originalSetItem.call(this, key, value);
-
     const newVin = String(value || "");
 
     if (oldVin !== newVin) {
@@ -787,10 +772,248 @@ function saveLocalData(data) {
       ACTIVE_KEY,
       data.activeVin || ""
     );
-  } catch (error) {
+
+    if (data.theme) {
+      originalSetItem.call(
+        localStorage,
+        THEME_KEY,
+        data.theme
+      );
+    }
+  } catch {
     throw new Error("Неуспешно запазване на локалните данни.");
   } finally {
     suppressLocalEvents = false;
+  }
+}
+
+/* ==========================================
+   BACKUP EXPORT
+========================================== */
+
+function createBackup() {
+  const local = readLocalData();
+
+  return {
+    app: "M-GARAGE PRO",
+    version: 3,
+    archiveType: "full",
+    exportedAt: new Date().toISOString(),
+    cars: local.cars,
+    activeVin: local.activeVin,
+    theme: localStorage.getItem(THEME_KEY) || "dark"
+  };
+}
+
+function exportBackup() {
+  try {
+    const backup = createBackup();
+
+    const blob = new Blob(
+      [JSON.stringify(backup, null, 2)],
+      { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download =
+      "M-GARAGE-PRO-backup-" +
+      new Date().toISOString().slice(0, 10) +
+      ".json";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    restoreStatus("Архивът е създаден успешно.", "ok");
+  } catch (error) {
+    restoreStatus("Грешка при създаване на архива: " + error.message);
+  }
+}
+
+/* ==========================================
+   BACKUP VALIDATION
+========================================== */
+
+function validateBackup(raw) {
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("Файлът не съдържа валиден JSON.");
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("Невалиден архив.");
+  }
+
+  if (parsed.app !== "M-GARAGE PRO") {
+    throw new Error("Архивът не е от M-GARAGE PRO.");
+  }
+
+  if (!Array.isArray(parsed.cars)) {
+    throw new Error("В архива липсва списък с автомобили.");
+  }
+
+  const cars = cleanCars(parsed.cars);
+
+  if (!cars.length) {
+    throw new Error("Архивът няма валидни автомобили.");
+  }
+
+  const requestedActive = String(parsed.activeVin || "");
+  const activeVin = cars.some(car => car.vin === requestedActive)
+    ? requestedActive
+    : cars[0].vin;
+
+  const theme =
+    parsed.theme === "light" ? "light" : "dark";
+
+  return {
+    cars,
+    activeVin,
+    theme
+  };
+}
+
+/* ==========================================
+   CLOUD RESTORE
+========================================== */
+
+async function restoreBackup() {
+  if (syncRunning) {
+    restoreStatus("Изчакай текущата синхронизация.");
+    return;
+  }
+
+  const file = $("cloudRestoreFile").files[0];
+
+  if (!file) {
+    restoreStatus("Първо избери архивен JSON файл.");
+    return;
+  }
+
+  if (!navigator.onLine) {
+    restoreStatus("За пълно Cloud възстановяване е необходим интернет.");
+    return;
+  }
+
+  if (!currentUser) {
+    restoreStatus("Първо влез в Cloud профила си.");
+    return;
+  }
+
+  const confirmed = confirm(
+    "ВНИМАНИЕ!\n\n" +
+    "Ще замениш текущия гараж в Cloud профила с данните от архива.\n\n" +
+    "Останалите устройства ще получат възстановеното състояние " +
+    "при следващата си синхронизация.\n\n" +
+    "Сигурен ли си, че искаш да продължиш?"
+  );
+
+  if (!confirmed) return;
+
+  setBusy(true);
+  restoreStatus("Проверка на архивния файл...");
+
+  try {
+    const raw = await file.text();
+    const backup = validateBackup(raw);
+
+    restoreStatus("Подготовка на Cloud възстановяването...");
+
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError) throw sessionError;
+    if (!session) throw new Error("Cloud сесията е изтекла.");
+
+    const restoreEvent = createEvent(
+      "restore",
+      "snapshot",
+      "set",
+      {
+        archiveVersion: backup.version || 1,
+        cars: backup.cars,
+        activeVin: backup.activeVin,
+        theme: backup.theme,
+        restoredAt: new Date().toISOString()
+      }
+    );
+
+    /*
+      Clear old local pending events.
+      The restore snapshot becomes the new
+      authoritative cloud state.
+    */
+
+    savePending([]);
+
+    await uploadEvents(session.user.id, [restoreEvent]);
+
+    const events = await fetchAllEvents(session.user.id);
+    const restored = applyEvents(events);
+
+    saveLocalData(restored);
+
+    localStorage.setItem(
+      RESTORE_KEY,
+      restoreEvent.event_id
+    );
+
+    localStorage.setItem(
+      LAST_SYNC_KEY,
+      new Date().toISOString()
+    );
+
+    if (typeof window.renderAll === "function") {
+      window.renderAll();
+    }
+
+    try {
+      await writeHistory(
+        session.user.id,
+        "success",
+        restored.cars.length,
+        1
+      );
+
+      await loadHistory();
+      await loadDevices();
+    } catch (historyError) {
+      console.error("Restore history:", historyError);
+    }
+
+    restoreStatus(
+      "Архивът е възстановен успешно. Автомобили: " +
+      restored.cars.length +
+      ".",
+      "ok"
+    );
+
+    status(
+      "Cloud възстановяването е успешно. " +
+      "Останалите устройства ще получат новото състояние при синхронизация.",
+      "ok"
+    );
+
+  } catch (error) {
+    console.error("M-GARAGE RESTORE:", error);
+
+    restoreStatus(
+      "Грешка при възстановяване: " + error.message
+    );
+
+    status("Възстановяването не беше завършено.");
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -805,7 +1028,6 @@ function showAuthenticated(user) {
   $("cloudActions").hidden = false;
 
   userStatus("Влязъл потребител: " + user.email, "ok");
-
   status("Cloud Sync е активен.");
 
   loadHistory();
@@ -825,6 +1047,7 @@ function showLoggedOut() {
 
   $("cloudHistoryList").replaceChildren();
   $("cloudDevicesList").replaceChildren();
+
   $("deviceSummary").textContent =
     "Все още няма регистрирани устройства.";
 
@@ -855,7 +1078,7 @@ async function register() {
       status("Регистрацията е успешна.", "ok");
       scheduleAutomaticSync(1000);
     } else {
-      status("Регистрацията е приета. Провери имейла си и потвърди регистрацията.");
+      status("Регистрацията е приета. Провери имейла си.");
     }
   } catch (error) {
     status("Грешка при регистрация: " + error.message);
@@ -918,7 +1141,6 @@ async function logout() {
 async function fetchAllEvents(userId) {
   const allEvents = [];
   const pageSize = 1000;
-
   let offset = 0;
 
   while (true) {
@@ -992,7 +1214,7 @@ function createInitialEvents(events, local, legacy) {
     );
 
     STEP_IDS.forEach(id => {
-      if (car.done[id] === true) {
+      if (car.done[id]) {
         initialEvents.push(
           createEvent("step", car.vin + ":" + id, "set", {
             done: true
@@ -1073,11 +1295,35 @@ async function uploadPending(userId) {
 function applyEvents(events) {
   const cars = new Map();
   let activeVin = "";
+  let theme = "";
 
   events.forEach(event => {
     const type = event.entity_type;
     const id = event.entity_id;
     const data = event.data || {};
+
+    /*
+      RESTORE EVENT:
+      Reset the garage to the archived snapshot.
+      All earlier events are superseded.
+    */
+
+    if (type === "restore") {
+      cars.clear();
+
+      cleanCars(data.cars || []).forEach(car => {
+        cars.set(car.vin, {
+          vin: car.vin,
+          nick: car.nick,
+          done: { ...car.done }
+        });
+      });
+
+      activeVin = String(data.activeVin || "");
+      theme = data.theme === "light" ? "light" : "dark";
+
+      return;
+    }
 
     if (type === "car") {
       if (event.operation === "delete") {
@@ -1111,7 +1357,6 @@ function applyEvents(events) {
       if (!STEP_IDS.includes(stepId)) return;
 
       const car = cars.get(vin);
-
       if (!car) return;
 
       if (data.done === true) {
@@ -1136,8 +1381,21 @@ function applyEvents(events) {
 
   return {
     cars: resultCars,
-    activeVin
+    activeVin,
+    theme
   };
+}
+
+function getLatestRestore(events) {
+  let latest = null;
+
+  events.forEach(event => {
+    if (event.entity_type === "restore") {
+      latest = event;
+    }
+  });
+
+  return latest;
 }
 
 /* ==========================================
@@ -1170,7 +1428,6 @@ async function writeHistory(
 
 function renderHistory(items) {
   const container = $("cloudHistoryList");
-
   if (!container) return;
 
   container.replaceChildren();
@@ -1253,8 +1510,6 @@ async function loadHistory() {
 
     renderHistory(data || []);
   } catch (error) {
-    console.error("M-GARAGE HISTORY:", error);
-
     setHistoryStatus(
       "Историята не може да бъде заредена: " + error.message
     );
@@ -1267,32 +1522,18 @@ async function loadHistory() {
 
 function renderDeviceSummary(devices) {
   const container = $("deviceSummary");
-
   if (!container) return;
 
   container.replaceChildren();
 
-  const total = devices.length;
-
-  const active = devices.filter(device =>
-    device.device_id === DEVICE_ID
-  ).length;
-
-  const successful = devices.reduce(
-    (sum, device) => sum + device.successCount,
-    0
-  );
-
-  const failed = devices.reduce(
-    (sum, device) => sum + device.errorCount,
-    0
-  );
-
   const stats = [
-    ["УСТРОЙСТВА", total],
-    ["ТЕКУЩО УСТРОЙСТВО", active],
-    ["УСПЕШНИ СИНХРОНИЗАЦИИ", successful],
-    ["НЕУСПЕШНИ СИНХРОНИЗАЦИИ", failed]
+    ["УСТРОЙСТВА", devices.length],
+    ["ТЕКУЩО УСТРОЙСТВО",
+      devices.filter(d => d.device_id === DEVICE_ID).length],
+    ["УСПЕШНИ СИНХРОНИЗАЦИИ",
+      devices.reduce((sum, d) => sum + d.successCount, 0)],
+    ["НЕУСПЕШНИ СИНХРОНИЗАЦИИ",
+      devices.reduce((sum, d) => sum + d.errorCount, 0)]
   ];
 
   stats.forEach(([label, value]) => {
@@ -1314,7 +1555,6 @@ function renderDeviceSummary(devices) {
 
 function renderDevices(items) {
   const container = $("cloudDevicesList");
-
   if (!container) return;
 
   container.replaceChildren();
@@ -1342,11 +1582,8 @@ function renderDevices(items) {
 
     device.totalCount++;
 
-    if (item.result === "success") {
-      device.successCount++;
-    } else if (item.result === "error") {
-      device.errorCount++;
-    }
+    if (item.result === "success") device.successCount++;
+    if (item.result === "error") device.errorCount++;
 
     if (
       new Date(item.created_at).getTime() >
@@ -1370,8 +1607,7 @@ function renderDevices(items) {
   renderDeviceSummary(devices);
 
   if (!devices.length) {
-    container.textContent =
-      "Все още няма регистрирани устройства.";
+    container.textContent = "Все още няма регистрирани устройства.";
     setDevicesStatus("Няма намерени записи.");
     return;
   }
@@ -1391,8 +1627,6 @@ function renderDevices(items) {
     if (device.device_id === DEVICE_ID) {
       current.className = "device-current";
       current.textContent = "ТЕКУЩО";
-    } else {
-      current.textContent = "";
     }
 
     heading.append(name, current);
@@ -1400,14 +1634,10 @@ function renderDevices(items) {
     const meta = document.createElement("div");
     meta.className = "device-meta";
 
-    const statusText =
-      device.lastResult === "success"
-        ? "✓ Успешна"
-        : "✕ Неуспешна";
-
     meta.textContent =
       "Последна активност: " + formatDate(device.lastSeen) +
-      "\nПоследен резултат: " + statusText +
+      "\nПоследен резултат: " +
+      (device.lastResult === "success" ? "✓ Успешна" : "✕ Неуспешна") +
       "\nОбщо синхронизации: " + device.totalCount +
       "\nУспешни: " + device.successCount +
       " · Неуспешни: " + device.errorCount +
@@ -1419,7 +1649,7 @@ function renderDevices(items) {
 
   setDevicesStatus(
     "Намерени устройства: " + devices.length +
-    ". Данните са обобщени от записите в историята."
+    ". Данните са обобщени от историята."
   );
 }
 
@@ -1439,9 +1669,7 @@ async function loadDevices() {
     while (true) {
       const { data, error } = await supabase
         .from("sync_history")
-        .select(
-          "id, device_id, device_name, result, created_at"
-        )
+        .select("id, device_id, device_name, result, created_at")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
@@ -1449,9 +1677,7 @@ async function loadDevices() {
 
       if (error) throw error;
 
-      if (data && data.length) {
-        allItems.push(...data);
-      }
+      if (data && data.length) allItems.push(...data);
 
       if (!data || data.length < pageSize) break;
 
@@ -1459,13 +1685,9 @@ async function loadDevices() {
     }
 
     renderDevices(allItems);
-
   } catch (error) {
-    console.error("M-GARAGE DEVICES:", error);
-
     setDevicesStatus(
-      "Устройствата не могат да бъдат заредени: " +
-      error.message
+      "Устройствата не могат да бъдат заредени: " + error.message
     );
   }
 }
@@ -1509,38 +1731,80 @@ async function syncNow() {
     const userId = session.user.id;
     historyUserId = userId;
 
-    const local = readLocalData();
-
     let cloudEvents = await fetchAllEvents(userId);
 
-    const legacy = await readLegacyData(userId);
+    /*
+      IMPORTANT:
+      Check for a newer cloud restore BEFORE
+      uploading local pending events.
+    */
 
-    const initialEvents = createInitialEvents(
-      cloudEvents,
-      local,
-      legacy
-    );
+    const latestRestore = getLatestRestore(cloudEvents);
+    const localRestoreId = localStorage.getItem(RESTORE_KEY);
 
-    if (initialEvents.length) {
-      await uploadEvents(userId, initialEvents);
-      processedChanges += initialEvents.length;
-    }
+    if (
+      latestRestore &&
+      latestRestore.event_id !== localRestoreId
+    ) {
+      savePending([]);
 
-    processedChanges += await uploadPending(userId);
+      const restored = applyEvents(cloudEvents);
 
-    cloudEvents = await fetchAllEvents(userId);
+      saveLocalData(restored);
 
-    const merged = applyEvents(cloudEvents);
+      localStorage.setItem(
+        RESTORE_KEY,
+        latestRestore.event_id
+      );
 
-    mergedCarsCount = merged.cars.length;
+      mergedCarsCount = restored.cars.length;
 
-    saveLocalData(merged);
+      if (typeof window.renderAll === "function") {
+        window.renderAll();
+      }
 
-    if (typeof window.renderAll === "function") {
-      window.renderAll();
+      processedChanges = 1;
+
     } else {
-      window.location.reload();
-      return;
+      const local = readLocalData();
+      const legacy = await readLegacyData(userId);
+
+      const initialEvents = createInitialEvents(
+        cloudEvents,
+        local,
+        legacy
+      );
+
+      if (initialEvents.length) {
+        await uploadEvents(userId, initialEvents);
+        processedChanges += initialEvents.length;
+      }
+
+      processedChanges += await uploadPending(userId);
+
+      cloudEvents = await fetchAllEvents(userId);
+
+      const merged = applyEvents(cloudEvents);
+
+      mergedCarsCount = merged.cars.length;
+
+      saveLocalData(merged);
+
+      const finalRestore = getLatestRestore(cloudEvents);
+
+      if (finalRestore) {
+        localStorage.setItem(
+          RESTORE_KEY,
+          finalRestore.event_id
+        );
+      }
+
+      if (typeof window.renderAll === "function") {
+        window.renderAll();
+      } else {
+        window.location.reload();
+        return;
+      }
     }
 
     const now = new Date();
@@ -1564,7 +1828,6 @@ async function syncNow() {
 
       await loadHistory();
       await loadDevices();
-
     } catch (historyError) {
       console.error("M-GARAGE HISTORY WRITE:", historyError);
       historyMessage = " Историята не можа да бъде записана.";
@@ -1599,12 +1862,8 @@ async function syncNow() {
 
         await loadHistory();
         await loadDevices();
-
       } catch (historyError) {
-        console.error(
-          "M-GARAGE HISTORY ERROR:",
-          historyError
-        );
+        console.error("M-GARAGE HISTORY ERROR:", historyError);
       }
     }
 
@@ -1639,7 +1898,6 @@ function scheduleAutomaticSync(delay = 1800) {
       if (error) throw error;
 
       if (session) await syncNow();
-
     } catch (error) {
       console.error("M-GARAGE AUTO SYNC:", error);
 
@@ -1689,6 +1947,8 @@ $("cloudSync").addEventListener("click", syncNow);
 $("cloudRetry").addEventListener("click", syncNow);
 $("cloudHistoryRefresh").addEventListener("click", loadHistory);
 $("cloudDevicesRefresh").addEventListener("click", loadDevices);
+$("cloudExport").addEventListener("click", exportBackup);
+$("cloudRestore").addEventListener("click", restoreBackup);
 
 /* ==========================================
    AUTH STATE
