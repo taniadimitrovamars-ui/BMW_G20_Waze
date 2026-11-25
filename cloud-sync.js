@@ -4,7 +4,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.0
+   Version: 1.1
 ========================================== */
 
 import { createClient } from
@@ -34,6 +34,8 @@ const supabase = createClient(
 
 const STORAGE_KEY = "mgu_cars";
 const ACTIVE_KEY = "mgu_active";
+const PENDING_KEY = "mgu_cloud_pending";
+const DEVICE_KEY = "mgu_cloud_device";
 
 const STEP_IDS = [
   "prep",
@@ -47,6 +49,27 @@ const STEP_IDS = [
   "recode"
 ];
 
+const DEVICE_ID = getDeviceId();
+
+let suppressLocalEvents = false;
+let syncRunning = false;
+let syncTimer = null;
+
+/* ==========================================
+   DEVICE ID
+========================================== */
+
+function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_KEY);
+
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+
+  return id;
+}
+
 /* ==========================================
    INTERFACE
 ========================================== */
@@ -59,13 +82,14 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO
+      CLOUD SYNC · M-GARAGE PRO 1.1
     </div>
 
     <div class="backup-info">
-      Синхронизирай автомобилите и прогреса
-      между iPhone, iPad и компютър.
-      Локалните данни остават запазени.
+      Автоматична синхронизация между
+      iPhone, iPad и компютър.
+      Промените се запазват и при липса
+      на интернет.
     </div>
 
     <div id="cloudUser" class="form-msg">
@@ -133,10 +157,9 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      Важно: направи Backup преди първата
-      синхронизация. При синхронизация
-      автомобилите се обединяват по VIN.
-      Завършените стъпки не се губят.
+      Cloud Sync 1.1 · Автоматично записване
+      на добавени, редактирани и изтрити
+      автомобили и промени по прогреса.
     </div>
   `;
 
@@ -145,18 +168,24 @@ function createInterface() {
   if (rules) {
     rules.after(panel);
   } else {
-    document.querySelector(".layout").prepend(panel);
+    const layout = document.querySelector(".layout");
+
+    if (layout) {
+      layout.prepend(panel);
+    }
   }
 
   return panel;
 }
 
-const panel = createInterface();
+createInterface();
 
 const $ = (id) => document.getElementById(id);
 
 function status(message, type = "") {
   const element = $("cloudStatus");
+
+  if (!element) return;
 
   element.textContent = message;
   element.className = "form-msg" + (type ? " " + type : "");
@@ -164,6 +193,8 @@ function status(message, type = "") {
 
 function userStatus(message, type = "") {
   const element = $("cloudUser");
+
+  if (!element) return;
 
   element.textContent = message;
   element.className = "form-msg" + (type ? " " + type : "");
@@ -177,37 +208,16 @@ function setBusy(busy) {
     "cloudLogout"
   ].forEach(id => {
     const button = $(id);
-    if (button) button.disabled = busy;
+
+    if (button) {
+      button.disabled = busy;
+    }
   });
 }
 
 /* ==========================================
    LOCAL DATA
 ========================================== */
-
-function readLocalData() {
-  let cars = [];
-  let activeVin = "";
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-
-    if (Array.isArray(parsed)) {
-      cars = parsed;
-    }
-
-    activeVin = localStorage.getItem(ACTIVE_KEY) || "";
-
-  } catch (error) {
-    throw new Error("Не могат да бъдат прочетени локалните данни.");
-  }
-
-  return {
-    cars: cleanCars(cars),
-    activeVin
-  };
-}
 
 function cleanCars(input) {
   if (!Array.isArray(input)) return [];
@@ -247,61 +257,240 @@ function cleanCars(input) {
   return result;
 }
 
+function readLocalData() {
+  try {
+    const rawCars = localStorage.getItem(STORAGE_KEY);
+    const parsedCars = rawCars ? JSON.parse(rawCars) : [];
+
+    return {
+      cars: cleanCars(parsedCars),
+      activeVin: localStorage.getItem(ACTIVE_KEY) || ""
+    };
+
+  } catch (error) {
+    throw new Error(
+      "Не могат да бъдат прочетени локалните данни."
+    );
+  }
+}
+
+function readPending() {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+
+  } catch (error) {
+    return [];
+  }
+}
+
+function savePending(events) {
+  localStorage.setItem(
+    PENDING_KEY,
+    JSON.stringify(events)
+  );
+}
+
+function createEvent(
+  entityType,
+  entityId,
+  operation,
+  data
+) {
+  return {
+    event_id: crypto.randomUUID(),
+    device_id: DEVICE_ID,
+    entity_type: entityType,
+    entity_id: entityId,
+    operation,
+    data
+  };
+}
+
+function enqueueEvents(events) {
+  if (!events.length) return;
+
+  const pending = readPending();
+
+  pending.push(...events);
+
+  savePending(pending);
+}
+
 /* ==========================================
-   SAFE MERGE
+   LOCAL CHANGE DETECTION
 ========================================== */
 
-function mergeCars(localCars, cloudCars) {
-  const merged = new Map();
+function compareCars(oldInput, newInput) {
+  const oldCars = cleanCars(oldInput);
+  const newCars = cleanCars(newInput);
 
-  localCars.forEach(car => {
-    merged.set(car.vin, {
-      vin: car.vin,
-      nick: car.nick,
-      done: { ...car.done }
-    });
+  const oldMap = new Map(
+    oldCars.map(car => [car.vin, car])
+  );
+
+  const newMap = new Map(
+    newCars.map(car => [car.vin, car])
+  );
+
+  const events = [];
+
+  oldMap.forEach((oldCar, vin) => {
+    if (!newMap.has(vin)) {
+      events.push(
+        createEvent("car", vin, "delete", {})
+      );
+    }
   });
 
-  cloudCars.forEach(car => {
-    if (!merged.has(car.vin)) {
-      merged.set(car.vin, {
-        vin: car.vin,
-        nick: car.nick,
-        done: { ...car.done }
+  newMap.forEach((newCar, vin) => {
+    const oldCar = oldMap.get(vin);
+
+    if (!oldCar) {
+      events.push(
+        createEvent("car", vin, "upsert", {
+          nick: newCar.nick
+        })
+      );
+
+      STEP_IDS.forEach(id => {
+        if (newCar.done[id] === true) {
+          events.push(
+            createEvent(
+              "step",
+              vin + ":" + id,
+              "set",
+              { done: true }
+            )
+          );
+        }
       });
 
       return;
     }
 
-    const existing = merged.get(car.vin);
+    if (oldCar.nick !== newCar.nick) {
+      events.push(
+        createEvent("car", vin, "upsert", {
+          nick: newCar.nick
+        })
+      );
+    }
 
     STEP_IDS.forEach(id => {
-      existing.done[id] =
-        existing.done[id] === true ||
-        car.done[id] === true;
-    });
+      const oldDone = oldCar.done[id] === true;
+      const newDone = newCar.done[id] === true;
 
-    // Запазваме локалното име,
-    // ако вече съществува такъв VIN.
+      if (oldDone !== newDone) {
+        events.push(
+          createEvent(
+            "step",
+            vin + ":" + id,
+            "set",
+            { done: newDone }
+          )
+        );
+      }
+    });
   });
 
-  return Array.from(merged.values());
+  return events;
 }
+
+/* ==========================================
+   WATCH LOCAL STORAGE
+========================================== */
+
+const originalSetItem = Storage.prototype.setItem;
+const originalGetItem = Storage.prototype.getItem;
+
+Storage.prototype.setItem = function(key, value) {
+  if (
+    this !== localStorage ||
+    suppressLocalEvents
+  ) {
+    return originalSetItem.call(this, key, value);
+  }
+
+  if (key === STORAGE_KEY) {
+    let oldCars = [];
+
+    try {
+      const oldRaw = originalGetItem.call(this, key);
+      oldCars = oldRaw ? JSON.parse(oldRaw) : [];
+    } catch (error) {
+      oldCars = [];
+    }
+
+    const result = originalSetItem.call(this, key, value);
+
+    try {
+      const newCars = JSON.parse(value);
+      enqueueEvents(compareCars(oldCars, newCars));
+      scheduleAutomaticSync();
+    } catch (error) {
+      console.error("Cloud change detection:", error);
+    }
+
+    return result;
+  }
+
+  if (key === ACTIVE_KEY) {
+    const oldVin =
+      originalGetItem.call(this, key) || "";
+
+    const result = originalSetItem.call(this, key, value);
+
+    const newVin = String(value || "");
+
+    if (oldVin !== newVin) {
+      enqueueEvents([
+        createEvent(
+          "active",
+          "active",
+          "set",
+          { vin: newVin }
+        )
+      ]);
+
+      scheduleAutomaticSync();
+    }
+
+    return result;
+  }
+
+  return originalSetItem.call(this, key, value);
+};
+
+/* ==========================================
+   SAVE LOCAL DATA
+========================================== */
 
 function saveLocalData(data) {
   try {
-    localStorage.setItem(
+    suppressLocalEvents = true;
+
+    originalSetItem.call(
+      localStorage,
       STORAGE_KEY,
       JSON.stringify(data.cars)
     );
 
-    localStorage.setItem(
+    originalSetItem.call(
+      localStorage,
       ACTIVE_KEY,
       data.activeVin || ""
     );
 
   } catch (error) {
-    throw new Error("Неуспешно запазване на локалните данни.");
+    throw new Error(
+      "Неуспешно запазване на локалните данни."
+    );
+
+  } finally {
+    suppressLocalEvents = false;
   }
 }
 
@@ -318,7 +507,7 @@ function showAuthenticated(user) {
     "ok"
   );
 
-  status("Готово за синхронизация.");
+  status("Cloud Sync е активен.");
 }
 
 function showLoggedOut() {
@@ -326,6 +515,7 @@ function showLoggedOut() {
   $("cloudActions").hidden = true;
 
   userStatus("Не си влязъл в Cloud Sync.");
+
   status("Локалните данни са налични.");
 }
 
@@ -334,7 +524,9 @@ async function register() {
   const password = $("cloudPassword").value;
 
   if (!email || password.length < 6) {
-    status("Въведи валиден имейл и парола от минимум 6 символа.");
+    status(
+      "Въведи валиден имейл и парола от минимум 6 символа."
+    );
     return;
   }
 
@@ -351,6 +543,8 @@ async function register() {
     if (data.session) {
       showAuthenticated(data.user);
       status("Регистрацията е успешна.", "ok");
+      scheduleAutomaticSync(1000);
+
     } else {
       status(
         "Регистрацията е приета. Провери имейла си и потвърди регистрацията."
@@ -388,6 +582,8 @@ async function login() {
     showAuthenticated(data.user);
     status("Входът е успешен.", "ok");
 
+    scheduleAutomaticSync(1000);
+
   } catch (error) {
     status("Грешка при вход: " + error.message);
 
@@ -416,16 +612,263 @@ async function logout() {
 }
 
 /* ==========================================
-   CLOUD SYNC
+   FETCH CLOUD EVENTS
+========================================== */
+
+async function fetchAllEvents(userId) {
+  const allEvents = [];
+  const pageSize = 1000;
+
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("user_changes")
+      .select(
+        "event_id, device_id, entity_type, entity_id, operation, data, created_at"
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .order("event_id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+
+    if (data && data.length) {
+      allEvents.push(...data);
+    }
+
+    if (!data || data.length < pageSize) {
+      break;
+    }
+
+    offset += pageSize;
+  }
+
+  return allEvents;
+}
+
+/* ==========================================
+   LEGACY DATA MIGRATION
+========================================== */
+
+async function readLegacyData(userId) {
+  const { data, error } = await supabase
+    .from("user_data")
+    .select("payload, updated_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data && data.payload
+    ? data.payload
+    : {};
+}
+
+function createInitialEvents(events, local, legacy) {
+  const knownCars = new Set();
+
+  events.forEach(event => {
+    if (event.entity_type === "car") {
+      knownCars.add(event.entity_id);
+    }
+  });
+
+  const combined = new Map();
+
+  cleanCars(legacy.cars || []).forEach(car => {
+    combined.set(car.vin, car);
+  });
+
+  cleanCars(local.cars || []).forEach(car => {
+    combined.set(car.vin, car);
+  });
+
+  const initialEvents = [];
+
+  combined.forEach(car => {
+    if (knownCars.has(car.vin)) return;
+
+    initialEvents.push(
+      createEvent("car", car.vin, "upsert", {
+        nick: car.nick
+      })
+    );
+
+    STEP_IDS.forEach(id => {
+      if (car.done[id] === true) {
+        initialEvents.push(
+          createEvent(
+            "step",
+            car.vin + ":" + id,
+            "set",
+            { done: true }
+          )
+        );
+      }
+    });
+  });
+
+  const hasActiveEvent = events.some(
+    event => event.entity_type === "active"
+  );
+
+  if (!hasActiveEvent) {
+    const activeVin =
+      local.activeVin ||
+      legacy.activeVin ||
+      "";
+
+    initialEvents.push(
+      createEvent(
+        "active",
+        "active",
+        "set",
+        { vin: activeVin }
+      )
+    );
+  }
+
+  return initialEvents;
+}
+
+/* ==========================================
+   UPLOAD EVENTS
+========================================== */
+
+async function uploadEvents(userId, events) {
+  if (!events.length) return;
+
+  const rows = events.map(event => ({
+    event_id: event.event_id,
+    user_id: userId,
+    device_id: event.device_id,
+    entity_type: event.entity_type,
+    entity_id: event.entity_id,
+    operation: event.operation,
+    data: event.data
+  }));
+
+  const { error } = await supabase
+    .from("user_changes")
+    .upsert(rows, {
+      onConflict: "event_id",
+      ignoreDuplicates: true
+    });
+
+  if (error) throw error;
+}
+
+async function uploadPending(userId) {
+  const pending = readPending();
+
+  if (!pending.length) return;
+
+  const sendingIds = new Set(
+    pending.map(event => event.event_id)
+  );
+
+  await uploadEvents(userId, pending);
+
+  const remaining = readPending().filter(
+    event => !sendingIds.has(event.event_id)
+  );
+
+  savePending(remaining);
+}
+
+/* ==========================================
+   APPLY CLOUD EVENTS
+========================================== */
+
+function applyEvents(events) {
+  const cars = new Map();
+  let activeVin = "";
+
+  events.forEach(event => {
+    const type = event.entity_type;
+    const id = event.entity_id;
+    const data = event.data || {};
+
+    if (type === "car") {
+      if (event.operation === "delete") {
+        cars.delete(id);
+        return;
+      }
+
+      if (event.operation === "upsert") {
+        const existing = cars.get(id);
+
+        cars.set(id, {
+          vin: id,
+          nick: String(data.nick || existing?.nick || "BMW")
+            .trim()
+            .slice(0, 30) || "BMW",
+          done: existing ? { ...existing.done } : {}
+        });
+      }
+
+      return;
+    }
+
+    if (type === "step") {
+      const separator = id.lastIndexOf(":");
+
+      if (separator < 0) return;
+
+      const vin = id.slice(0, separator);
+      const stepId = id.slice(separator + 1);
+
+      if (!STEP_IDS.includes(stepId)) return;
+
+      const car = cars.get(vin);
+
+      if (!car) return;
+
+      if (data.done === true) {
+        car.done[stepId] = true;
+      } else {
+        delete car.done[stepId];
+      }
+
+      return;
+    }
+
+    if (type === "active") {
+      activeVin = String(data.vin || "");
+    }
+  });
+
+  const resultCars = Array.from(cars.values());
+
+  if (!resultCars.some(car => car.vin === activeVin)) {
+    activeVin = resultCars[0]?.vin || "";
+  }
+
+  return {
+    cars: resultCars,
+    activeVin
+  };
+}
+
+/* ==========================================
+   MAIN SYNC
 ========================================== */
 
 async function syncNow() {
+  if (syncRunning) return;
+
   if (!navigator.onLine) {
-    status("Няма интернет връзка. Данните остават локални.");
+    status(
+      "Няма интернет. Промените са запазени локално и чакат синхронизация."
+    );
     return;
   }
 
+  syncRunning = true;
   setBusy(true);
+
   status("Синхронизацията започна...");
 
   try {
@@ -442,78 +885,55 @@ async function syncNow() {
     // 1. Прочитаме локалните данни.
     const local = readLocalData();
 
-    // 2. Изтегляме облачните данни.
-    const { data: cloud, error: readError } =
-      await supabase
-        .from("user_data")
-        .select("payload, updated_at")
-        .eq("user_id", userId)
-        .maybeSingle();
+    // 2. Прочитаме историята на облачните промени.
+    let cloudEvents = await fetchAllEvents(userId);
 
-    if (readError) throw readError;
+    // 3. Прочитаме стария облачен формат.
+    const legacy = await readLegacyData(userId);
 
-    const cloudPayload =
-      cloud && cloud.payload
-        ? cloud.payload
-        : {};
-
-    const cloudCars = cleanCars(
-      cloudPayload.cars || []
+    // 4. Прехвърляме липсващите стари записи.
+    const initialEvents = createInitialEvents(
+      cloudEvents,
+      local,
+      legacy
     );
 
-    // 3. Обединяваме автомобилите по VIN.
-    const mergedCars = mergeCars(
-      local.cars,
-      cloudCars
-    );
+    if (initialEvents.length) {
+      await uploadEvents(userId, initialEvents);
+    }
 
-    const requestedActive =
-      local.cars.some(c => c.vin === local.activeVin)
-        ? local.activeVin
-        : cloudPayload.activeVin;
+    // 5. Изпращаме локалните чакащи промени.
+    await uploadPending(userId);
 
-    const mergedActive = mergedCars.some(
-      c => c.vin === requestedActive
-    )
-      ? requestedActive
-      : (mergedCars[0]?.vin || "");
+    // 6. Изтегляме актуалната история.
+    cloudEvents = await fetchAllEvents(userId);
 
-    const payload = {
-      version: 1,
-      cars: mergedCars,
-      activeVin: mergedActive,
-      syncedAt: new Date().toISOString()
-    };
+    // 7. Прилагаме всички събития в реда им.
+    const merged = applyEvents(cloudEvents);
 
-    // 4. Записваме обединените данни в облака.
-    const { error: writeError } = await supabase
-      .from("user_data")
-      .upsert({
-        user_id: userId,
-        payload,
-        updated_at: new Date().toISOString()
-      });
+    // 8. Записваме резултата локално.
+    saveLocalData(merged);
 
-    if (writeError) throw writeError;
-
-    // 5. Запазваме същите данни локално.
-    saveLocalData({
-      cars: mergedCars,
-      activeVin: mergedActive
-    });
-
-    // 6. Обновяваме визуализацията на гаража.
+    // 9. Обновяваме визуализацията.
     if (typeof window.renderAll === "function") {
       window.renderAll();
     } else {
       window.location.reload();
+      return;
     }
+
+    const now = new Date();
+
+    localStorage.setItem(
+      "mgu_cloud_last_sync",
+      now.toISOString()
+    );
 
     status(
       "Синхронизацията е успешна. Автомобили: " +
-      mergedCars.length +
+      merged.cars.length +
       ". Последна синхронизация: " +
-      new Date().toLocaleString("bg-BG"),
+      now.toLocaleString("bg-BG"),
       "ok"
     );
 
@@ -525,9 +945,49 @@ async function syncNow() {
     );
 
   } finally {
+    syncRunning = false;
     setBusy(false);
   }
 }
+
+/* ==========================================
+   AUTOMATIC SYNC
+========================================== */
+
+function scheduleAutomaticSync(delay = 1800) {
+  if (syncTimer) {
+    clearTimeout(syncTimer);
+  }
+
+  syncTimer = setTimeout(async () => {
+    if (!navigator.onLine) return;
+
+    try {
+      const {
+        data: { session },
+        error
+      } = await supabase.auth.getSession();
+
+      if (error) throw error;
+
+      if (session) {
+        await syncNow();
+      }
+
+    } catch (error) {
+      console.error(
+        "M-GARAGE AUTO SYNC:",
+        error
+      );
+    }
+  }, delay);
+}
+
+window.addEventListener("online", () => {
+  status("Интернет връзката е възстановена. Синхронизация...");
+
+  scheduleAutomaticSync(500);
+});
 
 /* ==========================================
    EVENTS
@@ -541,6 +1001,15 @@ $("cloudSync").addEventListener("click", syncNow);
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     showAuthenticated(session.user);
+
+    if (
+      event === "SIGNED_IN" ||
+      event === "INITIAL_SESSION" ||
+      event === "TOKEN_REFRESHED"
+    ) {
+      scheduleAutomaticSync(1200);
+    }
+
   } else {
     showLoggedOut();
   }
@@ -561,6 +1030,8 @@ async function initializeCloud() {
 
     if (session) {
       showAuthenticated(session.user);
+      scheduleAutomaticSync(1500);
+
     } else {
       showLoggedOut();
     }
@@ -572,4 +1043,3 @@ async function initializeCloud() {
 }
 
 initializeCloud();
-
