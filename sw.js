@@ -4,20 +4,21 @@
 /* ==========================================
    M-GARAGE PRO
    Service Worker
-   Version: 1.1
+   Version: 1.2
+   CACHE UPDATE: v7
 ========================================== */
 
 const CACHE_PREFIX = "m-garage-pro-";
-const CACHE_NAME = CACHE_PREFIX + "v6";
+const CACHE_NAME = CACHE_PREFIX + "v7";
 
-/* Основни файлове – необходими за стартиране */
+/* ОСНОВНИ ФАЙЛОВЕ */
 
 const CORE_ASSETS = [
   "./",
   "./index.html"
 ];
 
-/* Допълнителни файлове */
+/* ДОПЪЛНИТЕЛНИ ФАЙЛОВЕ */
 
 const OPTIONAL_ASSETS = [
   "./manifest.json",
@@ -27,6 +28,27 @@ const OPTIONAL_ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
+
+/* ==========================================
+   CACHE RESPONSE
+========================================== */
+
+async function cacheResponse(request, response) {
+  if (
+    response &&
+    response.status === 200 &&
+    response.type === "basic"
+  ) {
+    const cache = await caches.open(CACHE_NAME);
+
+    await cache.put(
+      request,
+      response.clone()
+    );
+  }
+
+  return response;
+}
 
 /* ==========================================
    INSTALL
@@ -76,6 +98,10 @@ self.addEventListener("activate", (event) => {
       );
 
       await self.clients.claim();
+
+      console.log(
+        "M-GARAGE PRO: Service Worker v1.2 activated."
+      );
     })()
   );
 });
@@ -100,26 +126,24 @@ self.addEventListener("fetch", (event) => {
     (request.headers.get("accept") || "")
       .includes("text/html");
 
+  const isJavaScript =
+    request.destination === "script" ||
+    url.pathname.endsWith(".js");
+
+  /* ========================================
+     HTML: NETWORK FIRST
+  ======================================== */
+
   if (isNavigation) {
     event.respondWith(
       (async () => {
         try {
           const response = await fetch(request);
 
-          if (
-            response &&
-            response.status === 200 &&
-            response.type === "basic"
-          ) {
-            const cache = await caches.open(CACHE_NAME);
-
-            await cache.put(
-              "./index.html",
-              response.clone()
-            );
-          }
-
-          return response;
+          return await cacheResponse(
+            "./index.html",
+            response
+          );
 
         } catch (error) {
           const cached = await caches.match("./index.html");
@@ -142,6 +166,47 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  /* ========================================
+     JAVASCRIPT: NETWORK FIRST
+     Винаги проверява за нова версия.
+  ======================================== */
+
+  if (isJavaScript) {
+    event.respondWith(
+      (async () => {
+        try {
+          const response = await fetch(request);
+
+          return await cacheResponse(
+            request,
+            response
+          );
+
+        } catch (error) {
+          const cached = await caches.match(request);
+
+          if (cached) return cached;
+
+          return new Response(
+            "JavaScript файлът не е достъпен офлайн.",
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "text/plain; charset=utf-8"
+              }
+            }
+          );
+        }
+      })()
+    );
+
+    return;
+  }
+
+  /* ========================================
+     ОСТАНАЛИ РЕСУРСИ: CACHE FIRST
+  ======================================== */
+
   event.respondWith(
     (async () => {
       const cached = await caches.match(request);
@@ -151,20 +216,10 @@ self.addEventListener("fetch", (event) => {
       try {
         const response = await fetch(request);
 
-        if (
-          response &&
-          response.status === 200 &&
-          response.type === "basic"
-        ) {
-          const cache = await caches.open(CACHE_NAME);
-
-          await cache.put(
-            request,
-            response.clone()
-          );
-        }
-
-        return response;
+        return await cacheResponse(
+          request,
+          response
+        );
 
       } catch (error) {
         return new Response("", {
