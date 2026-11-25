@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bg" data-theme="dark">
 <head>
@@ -531,11 +532,12 @@ h1 span{color:var(--m-sky);font-weight:600}
   </div>
 
   <div class="panel" id="ioPanel">
-    <div class="section-title">Backup & Data Management</div>
+    <div class="section-title">Local Backup & Data Management</div>
 
     <div class="backup-info">
-      Създай резервно копие, преди да сменяш устройство или браузър.
-      Backup файлът съдържа автомобилите, VIN номерата и целия прогрес.
+      Локален резервен архив за офлайн защита и прехвърляне на данните.
+      Съдържа автомобилите, VIN номерата, прогреса и избраната тема.
+      Облачната синхронизация и облачното възстановяване се управляват отделно.
     </div>
 
     <div class="panel-row">
@@ -560,7 +562,7 @@ h1 span{color:var(--m-sky);font-weight:600}
   <div id="main"></div>
 
   <div class="footer">
-    M-GARAGE PRO · Local data storage · BMW Digital Workshop
+    M-GARAGE PRO · Local + Cloud Data Storage · BMW Digital Workshop
   </div>
 </div>
 
@@ -570,7 +572,7 @@ h1 span{color:var(--m-sky);font-weight:600}
 const STORAGE_KEY = "mgu_cars";
 const ACTIVE_KEY = "mgu_active";
 const THEME_KEY = "mgu_theme";
-const DATA_VERSION = 2;
+const DATA_VERSION = 3;
 
 const STEPS = [
   {
@@ -967,9 +969,11 @@ function getBackupData(){
   return {
     app:"M-GARAGE PRO",
     version:DATA_VERSION,
+    archiveType:"full",
     exportedAt:new Date().toISOString(),
     cars,
-    activeVin
+    activeVin,
+    theme:document.documentElement.getAttribute("data-theme")==="light"?"light":"dark"
   };
 }
 
@@ -989,18 +993,26 @@ function downloadBackup(){
 
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 
-  setMessage("ioMsg","Backup файлът е създаден.","ok");
+  setMessage("ioMsg","Локалният Backup файл е създаден успешно.","ok");
 }
 
 function copyBackup(event){
   const data=JSON.stringify(getBackupData(),null,2);
   document.getElementById("ioArea").value=data;
   writeClipboard(data,event.currentTarget);
-  setMessage("ioMsg","JSON данните са показани в полето.","ok");
+  setMessage("ioMsg","JSON архивът е показан в полето.","ok");
 }
 
 function parseBackup(raw){
   const parsed=JSON.parse(raw);
+
+  if(!parsed||typeof parsed!=="object"){
+    throw new Error("Невалидна структура на архива.");
+  }
+
+  if(!Array.isArray(parsed)&&parsed.app&&parsed.app!=="M-GARAGE PRO"){
+    throw new Error("Архивът не е от M-GARAGE PRO.");
+  }
 
   const list=Array.isArray(parsed)?parsed:parsed.cars;
 
@@ -1020,36 +1032,47 @@ function parseBackup(raw){
     cleaned.push(c);
   });
 
-  if(!cleaned.length){
+  if(list.length>0&&!cleaned.length){
     throw new Error("Не е намерен валиден автомобил с 17-символен VIN.");
   }
 
   const requested=normalizeVin(parsed.activeVin);
   const selected=cleaned.some(c=>c.vin===requested)
     ?requested
-    :cleaned[0].vin;
+    :(cleaned.length?cleaned[0].vin:"");
 
-  return {cars:cleaned,activeVin:selected};
+  const theme=parsed.theme==="light"?"light":"dark";
+
+  return {cars:cleaned,activeVin:selected,theme};
 }
 
 function importBackup(raw){
   const result=parseBackup(raw);
-
   const count=result.cars.length;
 
-  if(!confirm(`Ще бъдат заменени текущите данни с ${count} автомобила. Продължаваме ли?`)){
-    return false;
-  }
+  const message=count
+    ?`Ще бъдат заменени текущите локални данни с ${count} автомобила. Продължаваме ли?`
+    :"Архивът съдържа празен гараж. Всички текущи автомобили ще бъдат премахнати от това устройство. Продължаваме ли?";
+
+  if(!confirm(message))return false;
+
+  const previousCars=cars;
+  const previousActive=activeVin;
+  const previousTheme=localStorage.getItem(THEME_KEY)||"dark";
 
   cars=result.cars;
   activeVin=result.activeVin;
   openStep=null;
 
   if(!save()){
+    cars=previousCars;
+    activeVin=previousActive;
     return false;
   }
 
+  setTheme(result.theme);
   renderAll();
+
   return true;
 }
 
@@ -1064,7 +1087,7 @@ document.getElementById("saveCar").onclick=()=>{
   }
 
   if(existing){
-    if(!confirm("Този VIN вече съществува. Да актуализирам името на автомобила?"))return;
+    if(!confirm("Този VIN вече съществува. Да актуализирам ли името на автомобила?"))return;
     existing.nick=nick.slice(0,30);
   }else{
     cars.push({vin,nick:nick.slice(0,30),done:{}});
@@ -1100,7 +1123,7 @@ document.getElementById("backupFile").onchange=async event=>{
     const imported=importBackup(raw);
 
     if(imported){
-      setMessage("ioMsg","Backup файлът е импортиран успешно.","ok");
+      setMessage("ioMsg","Локалният архив е импортиран успешно.","ok");
     }
   }catch(error){
     setMessage("ioMsg","Грешка при импортиране: "+error.message);
@@ -1121,7 +1144,7 @@ document.getElementById("importJson").onclick=()=>{
     const imported=importBackup(raw);
 
     if(imported){
-      setMessage("ioMsg","Данните са импортирани успешно.","ok");
+      setMessage("ioMsg","Локалните данни са импортирани успешно.","ok");
     }
   }catch(error){
     setMessage("ioMsg","Невалиден JSON: "+error.message);
@@ -1134,14 +1157,19 @@ document.getElementById("clearArea").onclick=()=>{
 };
 
 function setTheme(theme){
-  document.documentElement.setAttribute("data-theme",theme);
-  localStorage.setItem(THEME_KEY,theme);
+  const selected=theme==="light"?"light":"dark";
+
+  document.documentElement.setAttribute("data-theme",selected);
+  localStorage.setItem(THEME_KEY,selected);
 
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta){
-    meta.content=theme==="light"?"#eef2f7":"#070b14";
+    meta.content=selected==="light"?"#eef2f7":"#070b14";
   }
 }
+
+window.renderAll=renderAll;
+window.setTheme=setTheme;
 
 const savedTheme=localStorage.getItem(THEME_KEY);
 if(savedTheme==="light"||savedTheme==="dark"){
@@ -1163,6 +1191,6 @@ save();
 </script>
 
 <script type="module" src="./cloud-sync.js"></script>
-  
+
 </body>
 </html>
