@@ -4,8 +4,9 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.1
-   EXTENDED VEHICLE DATA
+   Version: 2.2
+   EXPENSE CATEGORY FIX
+   SAFE DOCUMENT URLS
    BACKWARD COMPATIBLE EVENT SYNC
 ========================================== */
 
@@ -133,6 +134,31 @@ function safeId(value) {
 }
 
 /* ==========================================
+   SAFE DOCUMENT URL
+========================================== */
+
+function safeHttpUrl(value) {
+  const raw = safeString(value, 2000);
+
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw);
+
+    if (
+      url.protocol !== "http:" &&
+      url.protocol !== "https:"
+    ) {
+      return "";
+    }
+
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+/* ==========================================
    VEHICLE DATA MODEL
 ========================================== */
 
@@ -151,21 +177,36 @@ function cleanRecord(item, type) {
     notes: safeString(source.notes, 2000)
   };
 
+  /*
+    Категорията се запазва за:
+    - разходи
+    - напомняния
+    - модификации
+
+    Така вече не се губи при Cloud Sync.
+  */
+
+  if (
+    type === "expense" ||
+    type === "reminder" ||
+    type === "modification"
+  ) {
+    result.category = safeString(source.category, 100);
+  }
+
   if (type === "reminder") {
     result.dueDate = safeDate(source.dueDate);
     result.dueMileage = safeNumber(source.dueMileage);
     result.completed = source.completed === true;
-    result.category = safeString(source.category, 80);
   }
 
   if (type === "modification") {
-    result.category = safeString(source.category, 100);
     result.partNumber = safeString(source.partNumber, 100);
   }
 
   if (type === "document") {
     result.fileName = safeString(source.fileName, 200);
-    result.fileUrl = safeString(source.fileUrl, 2000);
+    result.fileUrl = safeHttpUrl(source.fileUrl);
     result.documentType = safeString(source.documentType, 100);
   }
 
@@ -269,7 +310,7 @@ function createInterface() {
   panel.className = "panel open";
 
   panel.innerHTML = `
-    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.1</div>
+    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.2</div>
 
     <div class="backup-info">
       Централизирана синхронизация на автомобилите,
@@ -379,7 +420,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 2.1 · EXTENDED VEHICLE DATA SYNC
+      M-GARAGE PRO 2.2 · EXTENDED VEHICLE DATA SYNC
     </div>
   `;
 
