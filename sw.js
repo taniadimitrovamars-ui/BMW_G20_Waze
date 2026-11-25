@@ -1,67 +1,183 @@
-const CACHE_NAME = 'g20-waze-helper-v3';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './favicon.ico',
-  './icons/icon-180.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+
+"use strict";
+
+/* ==========================================
+   M-GARAGE PRO
+   Service Worker
+   Version: 1.0
+========================================== */
+
+const CACHE_PREFIX = "m-garage-pro-";
+const CACHE_NAME = CACHE_PREFIX + "v1";
+
+/* Основни файлове – необходими за стартиране */
+const CORE_ASSETS = [
+  "./",
+  "./index.html"
 ];
 
-self.addEventListener('install', (event) => {
+/* Допълнителни файлове – кешират се, ако съществуват */
+const OPTIONAL_ASSETS = [
+  "./manifest.json",
+  "./favicon.ico",
+  "./icons/icon-180.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
+];
+
+/* ==========================================
+   INSTALL
+========================================== */
+
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
+      // Основните файлове трябва да се кешират успешно.
+      await cache.addAll(CORE_ASSETS);
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
-  const isHtmlRequest =
-    event.request.mode === 'navigate' ||
-    (event.request.headers.get('accept') || '').includes('text/html');
-
-  if (isHtmlRequest) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      // Липсващите допълнителни файлове не трябва
+      // да блокират инсталацията.
+      await Promise.allSettled(
+        OPTIONAL_ASSETS.map(async (asset) => {
+          try {
+            await cache.add(asset);
+          } catch (error) {
+            console.warn(
+              "M-GARAGE PRO: Optional asset not cached:",
+              asset
+            );
           }
-          return response;
         })
-        .catch(() =>
-          caches.match(event.request).then((cached) => cached || caches.match('./index.html'))
-        )
+      );
+
+      await self.skipWaiting();
+    })()
+  );
+});
+
+/* ==========================================
+   ACTIVATE
+========================================== */
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+
+      await Promise.all(
+        keys
+          .filter((key) =>
+            key.startsWith(CACHE_PREFIX) &&
+            key !== CACHE_NAME
+          )
+          .map((key) => caches.delete(key))
+      );
+
+      await self.clients.claim();
+    })()
+  );
+});
+
+/* ==========================================
+   FETCH
+========================================== */
+
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+
+  // Не обработваме POST, PUT, DELETE и други заявки.
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+
+  // Обработваме само файлове от същия домейн.
+  if (url.origin !== self.location.origin) return;
+
+  // Не кешираме заявки към API.
+  if (url.pathname.includes("/api/")) return;
+
+  const isNavigation =
+    request.mode === "navigate" ||
+    (request.headers.get("accept") || "")
+      .includes("text/html");
+
+  if (isNavigation) {
+    event.respondWith(
+      (async () => {
+        try {
+          const response = await fetch(request);
+
+          if (
+            response &&
+            response.status === 200 &&
+            response.type === "basic"
+          ) {
+            const cache = await caches.open(CACHE_NAME);
+
+            await cache.put(
+              "./index.html",
+              response.clone()
+            );
+          }
+
+          return response;
+
+        } catch (error) {
+          const cached = await caches.match("./index.html");
+
+          if (cached) return cached;
+
+          return new Response(
+            "M-GARAGE PRO не може да се зареди. Отвори приложението онлайн поне веднъж.",
+            {
+              status: 503,
+              headers: {
+                "Content-Type": "text/plain; charset=utf-8"
+              }
+            }
+          );
+        }
+      })()
     );
+
     return;
   }
 
+  // Статични ресурси: първо кеш, после мрежа.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    (async () => {
+      const cached = await caches.match(request);
+
       if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match('./index.html'));
-    })
+
+      try {
+        const response = await fetch(request);
+
+        if (
+          response &&
+          response.status === 200 &&
+          response.type === "basic"
+        ) {
+          const cache = await caches.open(CACHE_NAME);
+
+          await cache.put(
+            request,
+            response.clone()
+          );
+        }
+
+        return response;
+
+      } catch (error) {
+        // Не връщаме HTML вместо изображение,
+        // икона или друг статичен ресурс.
+        return new Response("", {
+          status: 503,
+          statusText: "Offline"
+        });
+      }
+    })()
   );
 });
