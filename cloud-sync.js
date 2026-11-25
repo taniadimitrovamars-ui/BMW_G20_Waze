@@ -4,7 +4,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.1
+   Version: 1.2
 ========================================== */
 
 import { createClient } from
@@ -36,6 +36,7 @@ const STORAGE_KEY = "mgu_cars";
 const ACTIVE_KEY = "mgu_active";
 const PENDING_KEY = "mgu_cloud_pending";
 const DEVICE_KEY = "mgu_cloud_device";
+const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 
 const STEP_IDS = [
   "prep",
@@ -54,6 +55,8 @@ const DEVICE_ID = getDeviceId();
 let suppressLocalEvents = false;
 let syncRunning = false;
 let syncTimer = null;
+let currentUser = null;
+let lastSyncError = false;
 
 /* ==========================================
    DEVICE ID
@@ -82,18 +85,85 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 1.1
+      CLOUD SYNC · M-GARAGE PRO 1.2
     </div>
 
     <div class="backup-info">
-      Автоматична синхронизация между
-      iPhone, iPad и компютър.
-      Промените се запазват и при липса
-      на интернет.
+      Централизирано управление на данните
+      между iPhone, iPad и компютър.
+    </div>
+
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin:14px 0;
+    ">
+
+      <div style="
+        background:var(--card,rgba(128,128,128,.10));
+        border:1px solid var(--border,rgba(128,128,128,.2));
+        border-radius:12px;
+        padding:12px;
+      ">
+        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
+          ИНТЕРНЕТ
+        </div>
+        <div id="dashboardNetwork"
+          style="font-weight:700;font-size:14px">
+          Проверка...
+        </div>
+      </div>
+
+      <div style="
+        background:var(--card,rgba(128,128,128,.10));
+        border:1px solid var(--border,rgba(128,128,128,.2));
+        border-radius:12px;
+        padding:12px;
+      ">
+        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
+          CLOUD СТАТУС
+        </div>
+        <div id="dashboardCloud"
+          style="font-weight:700;font-size:14px">
+          Проверка...
+        </div>
+      </div>
+
+      <div style="
+        background:var(--card,rgba(128,128,128,.10));
+        border:1px solid var(--border,rgba(128,128,128,.2));
+        border-radius:12px;
+        padding:12px;
+      ">
+        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
+          ПОСЛЕДНА СИНХРОНИЗАЦИЯ
+        </div>
+        <div id="dashboardLastSync"
+          style="font-weight:700;font-size:12px;line-height:1.5">
+          Все още няма данни
+        </div>
+      </div>
+
+      <div style="
+        background:var(--card,rgba(128,128,128,.10));
+        border:1px solid var(--border,rgba(128,128,128,.2));
+        border-radius:12px;
+        padding:12px;
+      ">
+        <div style="font-size:11px;opacity:.7;margin-bottom:7px">
+          ЧАКАЩИ ПРОМЕНИ
+        </div>
+        <div id="dashboardPending"
+          style="font-weight:700;font-size:14px">
+          0
+        </div>
+      </div>
+
     </div>
 
     <div id="cloudUser" class="form-msg">
-      Проверка на връзката...
+      Проверка на профила...
     </div>
 
     <div id="cloudAuthForm">
@@ -150,6 +220,17 @@ function createInterface() {
           Изход
         </button>
       </div>
+
+      <div class="panel-row">
+        <button
+          class="btn-secondary"
+          id="cloudRetry"
+          type="button"
+          style="width:100%"
+        >
+          ⟳ Повтори синхронизацията
+        </button>
+      </div>
     </div>
 
     <div id="cloudStatus" class="form-msg">
@@ -157,9 +238,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      Cloud Sync 1.1 · Автоматично записване
-      на добавени, редактирани и изтрити
-      автомобили и промени по прогреса.
+      M-GARAGE PRO 1.2 · CLOUD DASHBOARD
     </div>
   `;
 
@@ -182,22 +261,122 @@ createInterface();
 
 const $ = (id) => document.getElementById(id);
 
-function status(message, type = "") {
-  const element = $("cloudStatus");
+/* ==========================================
+   DASHBOARD
+========================================== */
+
+function setIndicator(id, message, color) {
+  const element = $(id);
 
   if (!element) return;
 
   element.textContent = message;
-  element.className = "form-msg" + (type ? " " + type : "");
+  element.style.color = color || "inherit";
+}
+
+function getLastSyncText() {
+  const value = localStorage.getItem(LAST_SYNC_KEY);
+
+  if (!value) {
+    return "Все още няма данни";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Невалидна дата";
+  }
+
+  return date.toLocaleDateString("bg-BG") +
+    " · " +
+    date.toLocaleTimeString("bg-BG", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+}
+
+function refreshDashboard() {
+  const online = navigator.onLine;
+
+  setIndicator(
+    "dashboardNetwork",
+    online ? "● ONLINE" : "● OFFLINE",
+    online ? "#16a34a" : "#dc2626"
+  );
+
+  const pending = readPending().length;
+
+  setIndicator(
+    "dashboardPending",
+    String(pending),
+    pending > 0 ? "#d97706" : "#16a34a"
+  );
+
+  setIndicator(
+    "dashboardLastSync",
+    getLastSyncText(),
+    "inherit"
+  );
+
+  let cloudMessage = "Не е влязъл";
+  let cloudColor = "#d97706";
+
+  if (syncRunning) {
+    cloudMessage = "Синхронизира...";
+    cloudColor = "#2563eb";
+
+  } else if (lastSyncError) {
+    cloudMessage = "Има проблем";
+    cloudColor = "#dc2626";
+
+  } else if (currentUser && !online) {
+    cloudMessage = "Изчаква интернет";
+    cloudColor = "#d97706";
+
+  } else if (currentUser && pending > 0) {
+    cloudMessage = "Чакащи промени";
+    cloudColor = "#d97706";
+
+  } else if (currentUser && localStorage.getItem(LAST_SYNC_KEY)) {
+    cloudMessage = "Синхронизиран";
+    cloudColor = "#16a34a";
+
+  } else if (currentUser) {
+    cloudMessage = "Очаква синхронизация";
+    cloudColor = "#2563eb";
+  }
+
+  setIndicator(
+    "dashboardCloud",
+    "● " + cloudMessage,
+    cloudColor
+  );
+}
+
+/* ==========================================
+   STATUS MESSAGES
+========================================== */
+
+function status(message, type = "") {
+  const element = $("cloudStatus");
+
+  if (element) {
+    element.textContent = message;
+    element.className = "form-msg" + (type ? " " + type : "");
+  }
+
+  refreshDashboard();
 }
 
 function userStatus(message, type = "") {
   const element = $("cloudUser");
 
-  if (!element) return;
+  if (element) {
+    element.textContent = message;
+    element.className = "form-msg" + (type ? " " + type : "");
+  }
 
-  element.textContent = message;
-  element.className = "form-msg" + (type ? " " + type : "");
+  refreshDashboard();
 }
 
 function setBusy(busy) {
@@ -205,7 +384,8 @@ function setBusy(busy) {
     "cloudLogin",
     "cloudRegister",
     "cloudSync",
-    "cloudLogout"
+    "cloudLogout",
+    "cloudRetry"
   ].forEach(id => {
     const button = $(id);
 
@@ -213,6 +393,8 @@ function setBusy(busy) {
       button.disabled = busy;
     }
   });
+
+  refreshDashboard();
 }
 
 /* ==========================================
@@ -291,6 +473,8 @@ function savePending(events) {
     PENDING_KEY,
     JSON.stringify(events)
   );
+
+  refreshDashboard();
 }
 
 function createEvent(
@@ -317,6 +501,7 @@ function enqueueEvents(events) {
   pending.push(...events);
 
   savePending(pending);
+  scheduleAutomaticSync();
 }
 
 /* ==========================================
@@ -429,7 +614,6 @@ Storage.prototype.setItem = function(key, value) {
     try {
       const newCars = JSON.parse(value);
       enqueueEvents(compareCars(oldCars, newCars));
-      scheduleAutomaticSync();
     } catch (error) {
       console.error("Cloud change detection:", error);
     }
@@ -454,8 +638,6 @@ Storage.prototype.setItem = function(key, value) {
           { vin: newVin }
         )
       ]);
-
-      scheduleAutomaticSync();
     }
 
     return result;
@@ -499,6 +681,8 @@ function saveLocalData(data) {
 ========================================== */
 
 function showAuthenticated(user) {
+  currentUser = user;
+
   $("cloudAuthForm").hidden = true;
   $("cloudActions").hidden = false;
 
@@ -511,6 +695,8 @@ function showAuthenticated(user) {
 }
 
 function showLoggedOut() {
+  currentUser = null;
+
   $("cloudAuthForm").hidden = false;
   $("cloudActions").hidden = true;
 
@@ -860,13 +1046,17 @@ async function syncNow() {
   if (syncRunning) return;
 
   if (!navigator.onLine) {
+    lastSyncError = true;
+
     status(
       "Няма интернет. Промените са запазени локално и чакат синхронизация."
     );
+
     return;
   }
 
   syncRunning = true;
+  lastSyncError = false;
   setBusy(true);
 
   status("Синхронизацията започна...");
@@ -882,16 +1072,12 @@ async function syncNow() {
 
     const userId = session.user.id;
 
-    // 1. Прочитаме локалните данни.
     const local = readLocalData();
 
-    // 2. Прочитаме историята на облачните промени.
     let cloudEvents = await fetchAllEvents(userId);
 
-    // 3. Прочитаме стария облачен формат.
     const legacy = await readLegacyData(userId);
 
-    // 4. Прехвърляме липсващите стари записи.
     const initialEvents = createInitialEvents(
       cloudEvents,
       local,
@@ -902,19 +1088,14 @@ async function syncNow() {
       await uploadEvents(userId, initialEvents);
     }
 
-    // 5. Изпращаме локалните чакащи промени.
     await uploadPending(userId);
 
-    // 6. Изтегляме актуалната история.
     cloudEvents = await fetchAllEvents(userId);
 
-    // 7. Прилагаме всички събития в реда им.
     const merged = applyEvents(cloudEvents);
 
-    // 8. Записваме резултата локално.
     saveLocalData(merged);
 
-    // 9. Обновяваме визуализацията.
     if (typeof window.renderAll === "function") {
       window.renderAll();
     } else {
@@ -925,9 +1106,11 @@ async function syncNow() {
     const now = new Date();
 
     localStorage.setItem(
-      "mgu_cloud_last_sync",
+      LAST_SYNC_KEY,
       now.toISOString()
     );
+
+    lastSyncError = false;
 
     status(
       "Синхронизацията е успешна. Автомобили: " +
@@ -940,6 +1123,8 @@ async function syncNow() {
   } catch (error) {
     console.error("M-GARAGE CLOUD SYNC:", error);
 
+    lastSyncError = true;
+
     status(
       "Грешка при синхронизация: " + error.message
     );
@@ -947,6 +1132,7 @@ async function syncNow() {
   } finally {
     syncRunning = false;
     setBusy(false);
+    refreshDashboard();
   }
 }
 
@@ -960,7 +1146,10 @@ function scheduleAutomaticSync(delay = 1800) {
   }
 
   syncTimer = setTimeout(async () => {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) {
+      refreshDashboard();
+      return;
+    }
 
     try {
       const {
@@ -979,14 +1168,45 @@ function scheduleAutomaticSync(delay = 1800) {
         "M-GARAGE AUTO SYNC:",
         error
       );
+
+      lastSyncError = true;
+      refreshDashboard();
     }
   }, delay);
 }
 
+/* ==========================================
+   NETWORK EVENTS
+========================================== */
+
 window.addEventListener("online", () => {
-  status("Интернет връзката е възстановена. Синхронизация...");
+  lastSyncError = false;
+
+  status(
+    "Интернетът е възстановен. Започва синхронизация..."
+  );
 
   scheduleAutomaticSync(500);
+});
+
+window.addEventListener("offline", () => {
+  status(
+    "Няма интернет. Локалните промени се запазват."
+  );
+
+  refreshDashboard();
+});
+
+/* ==========================================
+   PAGE VISIBILITY
+========================================== */
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && navigator.onLine) {
+    scheduleAutomaticSync(1000);
+  }
+
+  refreshDashboard();
 });
 
 /* ==========================================
@@ -997,6 +1217,11 @@ $("cloudLogin").addEventListener("click", login);
 $("cloudRegister").addEventListener("click", register);
 $("cloudLogout").addEventListener("click", logout);
 $("cloudSync").addEventListener("click", syncNow);
+$("cloudRetry").addEventListener("click", syncNow);
+
+/* ==========================================
+   AUTH STATE
+========================================== */
 
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
@@ -1013,6 +1238,8 @@ supabase.auth.onAuthStateChange((event, session) => {
   } else {
     showLoggedOut();
   }
+
+  refreshDashboard();
 });
 
 /* ==========================================
@@ -1020,6 +1247,8 @@ supabase.auth.onAuthStateChange((event, session) => {
 ========================================== */
 
 async function initializeCloud() {
+  refreshDashboard();
+
   try {
     const {
       data: { session },
@@ -1037,9 +1266,13 @@ async function initializeCloud() {
     }
 
   } catch (error) {
+    lastSyncError = true;
+
     userStatus("Cloud Sync не е достъпен.");
     status(error.message);
   }
+
+  refreshDashboard();
 }
 
 initializeCloud();
