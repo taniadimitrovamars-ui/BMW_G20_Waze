@@ -4,14 +4,16 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.5
-   FULL BACKUP & CLOUD RESTORE
+   Version: 2.0
+   SAFE BACKUP & CLOUD RESTORE
 ========================================== */
 
 import { createClient } from
   "https://esm.sh/@supabase/supabase-js@2";
 
-/* SUPABASE CONFIGURATION */
+/* ==========================================
+   SUPABASE CONFIGURATION
+========================================== */
 
 const SUPABASE_URL =
   "https://xmyxrxunhasoxosqlkws.supabase.co";
@@ -31,7 +33,9 @@ const supabase = createClient(
   }
 );
 
-/* LOCAL STORAGE KEYS */
+/* ==========================================
+   LOCAL STORAGE KEYS
+========================================== */
 
 const STORAGE_KEY = "mgu_cars";
 const ACTIVE_KEY = "mgu_active";
@@ -98,6 +102,8 @@ function getDeviceName() {
 ========================================== */
 
 function createInterface() {
+  if (document.getElementById("cloudSyncPanel")) return;
+
   const panel = document.createElement("section");
 
   panel.id = "cloudSyncPanel";
@@ -105,7 +111,7 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 1.5
+      CLOUD SYNC · M-GARAGE PRO 2.0
     </div>
 
     <div class="backup-info">
@@ -119,7 +125,6 @@ function createInterface() {
       gap:10px;
       margin:14px 0;
     ">
-
       <div class="cloud-card">
         <div class="cloud-label">ИНТЕРНЕТ</div>
         <div id="dashboardNetwork" class="cloud-value">
@@ -198,14 +203,13 @@ function createInterface() {
     </div>
 
     <div class="cloud-section">
-      <div class="section-title">
-        BACKUP & RESTORE
-      </div>
+      <div class="section-title">BACKUP & RESTORE</div>
 
       <div class="backup-info">
-        Създай архив на автомобилите, сервизния прогрес
-        и темата. Възстановяването замества гаража
-        в Cloud профила и на останалите устройства.
+        Създай пълен архив на автомобилите,
+        сервизния прогрес и темата.
+        Възстановяването заменя гаража в Cloud профила
+        и на останалите устройства.
       </div>
 
       <button class="btn-primary" id="cloudExport"
@@ -214,9 +218,8 @@ function createInterface() {
       </button>
 
       <div class="backup-info">
-        Възстановяването е необратима операция за
-        останалите устройства. Преди да продължиш,
-        увери се, че избраният архив е правилният.
+        Възстановяването е операция за целия Cloud профил.
+        Увери се, че избраният архив е правилният.
       </div>
 
       <input id="cloudRestoreFile"
@@ -235,13 +238,11 @@ function createInterface() {
     </div>
 
     <div class="cloud-section">
-      <div class="section-title">
-        УПРАВЛЕНИЕ НА УСТРОЙСТВАТА
-      </div>
+      <div class="section-title">УПРАВЛЕНИЕ НА УСТРОЙСТВАТА</div>
 
       <div class="backup-info">
         Устройства, които са използвали този Cloud профил
-        за синхронизация.
+        за синхронизация. Списъкът е информационен.
       </div>
 
       <div class="device-summary" id="deviceSummary">
@@ -262,9 +263,7 @@ function createInterface() {
     </div>
 
     <div class="cloud-section">
-      <div class="section-title">
-        ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ
-      </div>
+      <div class="section-title">ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ</div>
 
       <div class="backup-info">
         Централизирана история за всички устройства
@@ -285,7 +284,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 1.5 · CLOUD BACKUP & RESTORE
+      M-GARAGE PRO 2.0 · SAFE CLOUD BACKUP & RESTORE
     </div>
   `;
 
@@ -447,6 +446,18 @@ function savePending(events) {
   refreshDashboard();
 }
 
+function removePendingByIds(ids) {
+  if (!ids || !ids.length) return;
+
+  const removeSet = new Set(ids);
+
+  savePending(
+    readPending().filter(
+      event => !removeSet.has(event.event_id)
+    )
+  );
+}
+
 function refreshDashboard() {
   setIndicator(
     "dashboardNetwork",
@@ -606,7 +617,8 @@ function readLocalData() {
 
     return {
       cars: cleanCars(raw ? JSON.parse(raw) : []),
-      activeVin: localStorage.getItem(ACTIVE_KEY) || ""
+      activeVin: localStorage.getItem(ACTIVE_KEY) || "",
+      theme: localStorage.getItem(THEME_KEY) || "dark"
     };
   } catch {
     throw new Error("Не могат да бъдат прочетени локалните данни.");
@@ -773,7 +785,7 @@ function saveLocalData(data) {
       data.activeVin || ""
     );
 
-    if (data.theme) {
+    if (data.theme === "light" || data.theme === "dark") {
       originalSetItem.call(
         localStorage,
         THEME_KEY,
@@ -784,6 +796,13 @@ function saveLocalData(data) {
     throw new Error("Неуспешно запазване на локалните данни.");
   } finally {
     suppressLocalEvents = false;
+  }
+
+  if (
+    (data.theme === "light" || data.theme === "dark") &&
+    typeof window.setTheme === "function"
+  ) {
+    window.setTheme(data.theme);
   }
 }
 
@@ -801,7 +820,7 @@ function createBackup() {
     exportedAt: new Date().toISOString(),
     cars: local.cars,
     activeVin: local.activeVin,
-    theme: localStorage.getItem(THEME_KEY) || "dark"
+    theme: local.theme
   };
 }
 
@@ -827,11 +846,13 @@ function exportBackup() {
     link.click();
     link.remove();
 
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     restoreStatus("Архивът е създаден успешно.", "ok");
   } catch (error) {
-    restoreStatus("Грешка при създаване на архива: " + error.message);
+    restoreStatus(
+      "Грешка при създаване на архива: " + error.message
+    );
   }
 }
 
@@ -848,7 +869,7 @@ function validateBackup(raw) {
     throw new Error("Файлът не съдържа валиден JSON.");
   }
 
-  if (!parsed || typeof parsed !== "object") {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new Error("Невалиден архив.");
   }
 
@@ -862,19 +883,23 @@ function validateBackup(raw) {
 
   const cars = cleanCars(parsed.cars);
 
-  if (!cars.length) {
-    throw new Error("Архивът няма валидни автомобили.");
+  if (parsed.cars.length > 0 && cars.length === 0) {
+    throw new Error(
+      "Архивът съдържа автомобили, но нито един няма валиден VIN."
+    );
   }
 
   const requestedActive = String(parsed.activeVin || "");
+
   const activeVin = cars.some(car => car.vin === requestedActive)
     ? requestedActive
-    : cars[0].vin;
+    : (cars[0]?.vin || "");
 
   const theme =
     parsed.theme === "light" ? "light" : "dark";
 
   return {
+    version: Number(parsed.version) || 1,
     cars,
     activeVin,
     theme
@@ -891,7 +916,7 @@ async function restoreBackup() {
     return;
   }
 
-  const file = $("cloudRestoreFile").files[0];
+  const file = $("cloudRestoreFile")?.files?.[0];
 
   if (!file) {
     restoreStatus("Първо избери архивен JSON файл.");
@@ -899,7 +924,7 @@ async function restoreBackup() {
   }
 
   if (!navigator.onLine) {
-    restoreStatus("За пълно Cloud възстановяване е необходим интернет.");
+    restoreStatus("За Cloud възстановяване е необходим интернет.");
     return;
   }
 
@@ -919,13 +944,34 @@ async function restoreBackup() {
   if (!confirmed) return;
 
   setBusy(true);
+  syncRunning = true;
+  lastSyncError = false;
+
   restoreStatus("Проверка на архивния файл...");
+
+  let historyUserId = null;
+  let restoreUploaded = false;
+  let restored = null;
 
   try {
     const raw = await file.text();
     const backup = validateBackup(raw);
 
-    restoreStatus("Подготовка на Cloud възстановяването...");
+    if (backup.cars.length === 0) {
+      const emptyConfirmed = confirm(
+        "Архивът съдържа празен гараж.\n\n" +
+        "Ако продължиш, всички автомобили ще бъдат премахнати " +
+        "от Cloud профила и останалите устройства.\n\n" +
+        "Сигурен ли си?"
+      );
+
+      if (!emptyConfirmed) {
+        restoreStatus("Възстановяването е отказано.");
+        return;
+      }
+    }
+
+    restoreStatus("Проверка на Cloud сесията...");
 
     const {
       data: { session },
@@ -935,12 +981,25 @@ async function restoreBackup() {
     if (sessionError) throw sessionError;
     if (!session) throw new Error("Cloud сесията е изтекла.");
 
+    historyUserId = session.user.id;
+
+    /*
+      Запазваме текущата опашка.
+      Тя не се изтрива, докато Cloud не потвърди
+      успешно качването на restore събитието.
+    */
+
+    const pendingBeforeRestore = readPending();
+    const pendingIdsBeforeRestore = pendingBeforeRestore.map(
+      event => event.event_id
+    );
+
     const restoreEvent = createEvent(
       "restore",
       "snapshot",
       "set",
       {
-        archiveVersion: backup.version || 1,
+        archiveVersion: backup.version,
         cars: backup.cars,
         activeVin: backup.activeVin,
         theme: backup.theme,
@@ -948,18 +1007,25 @@ async function restoreBackup() {
       }
     );
 
-    /*
-      Clear old local pending events.
-      The restore snapshot becomes the new
-      authoritative cloud state.
-    */
-
-    savePending([]);
+    restoreStatus("Качване на архива в Cloud...");
 
     await uploadEvents(session.user.id, [restoreEvent]);
 
+    restoreUploaded = true;
+
+    /*
+      Премахваме само промените, които са били
+      в опашката преди започване на възстановяването.
+      Нови промени, добавени по време на операцията,
+      остават непокътнати.
+    */
+
+    removePendingByIds(pendingIdsBeforeRestore);
+
+    restoreStatus("Проверка на възстановените Cloud данни...");
+
     const events = await fetchAllEvents(session.user.id);
-    const restored = applyEvents(events);
+    restored = applyEvents(events);
 
     saveLocalData(restored);
 
@@ -1007,13 +1073,26 @@ async function restoreBackup() {
   } catch (error) {
     console.error("M-GARAGE RESTORE:", error);
 
-    restoreStatus(
-      "Грешка при възстановяване: " + error.message
-    );
+    lastSyncError = true;
+
+    if (restoreUploaded) {
+      restoreStatus(
+        "Архивът е качен в Cloud, но локалното прилагане не завърши: " +
+        error.message +
+        ". Натисни „Синхронизирай сега“."
+      );
+    } else {
+      restoreStatus(
+        "Грешка при възстановяване: " + error.message +
+        ". Чакащите промени са запазени."
+      );
+    }
 
     status("Възстановяването не беше завършено.");
   } finally {
+    syncRunning = false;
     setBusy(false);
+    refreshDashboard();
   }
 }
 
@@ -1301,12 +1380,6 @@ function applyEvents(events) {
     const type = event.entity_type;
     const id = event.entity_id;
     const data = event.data || {};
-
-    /*
-      RESTORE EVENT:
-      Reset the garage to the archived snapshot.
-      All earlier events are superseded.
-    */
 
     if (type === "restore") {
       cars.clear();
@@ -1734,9 +1807,8 @@ async function syncNow() {
     let cloudEvents = await fetchAllEvents(userId);
 
     /*
-      IMPORTANT:
-      Check for a newer cloud restore BEFORE
-      uploading local pending events.
+      Проверяваме за по-нов Cloud Restore
+      преди да качим локалните чакащи промени.
     */
 
     const latestRestore = getLatestRestore(cloudEvents);
@@ -1746,11 +1818,21 @@ async function syncNow() {
       latestRestore &&
       latestRestore.event_id !== localRestoreId
     ) {
-      savePending([]);
+      /*
+        Cloud Restore е авторитетен.
+        Премахваме само чакащите промени,
+        които са били налични при започване на синхронизацията.
+      */
+
+      const pendingAtStart = readPending();
+      const pendingIdsAtStart = pendingAtStart.map(
+        event => event.event_id
+      );
 
       const restored = applyEvents(cloudEvents);
 
       saveLocalData(restored);
+      removePendingByIds(pendingIdsAtStart);
 
       localStorage.setItem(
         RESTORE_KEY,
@@ -1758,12 +1840,11 @@ async function syncNow() {
       );
 
       mergedCarsCount = restored.cars.length;
+      processedChanges = 1;
 
       if (typeof window.renderAll === "function") {
         window.renderAll();
       }
-
-      processedChanges = 1;
 
     } else {
       const local = readLocalData();
