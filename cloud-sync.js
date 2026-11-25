@@ -4,8 +4,9 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.0
-   SAFE BACKUP & CLOUD RESTORE
+   Version: 2.1
+   EXTENDED VEHICLE DATA
+   BACKWARD COMPATIBLE EVENT SYNC
 ========================================== */
 
 import { createClient } from
@@ -34,7 +35,7 @@ const supabase = createClient(
 );
 
 /* ==========================================
-   LOCAL STORAGE KEYS
+   STORAGE
 ========================================== */
 
 const STORAGE_KEY = "mgu_cars";
@@ -46,15 +47,8 @@ const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 const RESTORE_KEY = "mgu_cloud_restore_id";
 
 const STEP_IDS = [
-  "prep",
-  "backup",
-  "enable",
-  "flash",
-  "persist",
-  "status",
-  "key",
-  "store",
-  "recode"
+  "prep", "backup", "enable", "flash", "persist",
+  "status", "key", "store", "recode"
 ];
 
 const DEVICE_ID = getDeviceId();
@@ -66,7 +60,7 @@ let currentUser = null;
 let lastSyncError = false;
 
 /* ==========================================
-   DEVICE ID
+   DEVICE
 ========================================== */
 
 function getDeviceId() {
@@ -88,13 +82,178 @@ function getDeviceName() {
   if (
     /iPhone/i.test(ua) ||
     (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)
-  ) {
-    return "iPhone";
-  }
+  ) return "iPhone";
 
   if (/Android/i.test(ua)) return "Android";
 
   return "Компютър";
+}
+
+/* ==========================================
+   SAFE DATA HELPERS
+========================================== */
+
+function safeString(value, max = 500) {
+  return String(value ?? "").trim().slice(0, max);
+}
+
+function safeNumber(value, min = 0, max = 999999999) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) return 0;
+
+  return Math.min(max, Math.max(min, number));
+}
+
+function safeArray(value, max = 500) {
+  return Array.isArray(value) ? value.slice(0, max) : [];
+}
+
+function safeObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : {};
+}
+
+function safeDate(value) {
+  const date = safeString(value, 40);
+
+  if (!date) return "";
+
+  const parsed = new Date(date);
+
+  return Number.isNaN(parsed.getTime())
+    ? ""
+    : parsed.toISOString();
+}
+
+function safeId(value) {
+  return safeString(value, 100) ||
+    (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+}
+
+/* ==========================================
+   VEHICLE DATA MODEL
+========================================== */
+
+function cleanRecord(item, type) {
+  const source = safeObject(item);
+
+  const result = {
+    id: safeId(source.id),
+    date: safeDate(source.date),
+    title: safeString(source.title, 150),
+    description: safeString(source.description, 2000),
+    mileage: safeNumber(source.mileage),
+    cost: safeNumber(source.cost),
+    currency: safeString(source.currency || "EUR", 5),
+    provider: safeString(source.provider, 150),
+    notes: safeString(source.notes, 2000)
+  };
+
+  if (type === "reminder") {
+    result.dueDate = safeDate(source.dueDate);
+    result.dueMileage = safeNumber(source.dueMileage);
+    result.completed = source.completed === true;
+    result.category = safeString(source.category, 80);
+  }
+
+  if (type === "modification") {
+    result.category = safeString(source.category, 100);
+    result.partNumber = safeString(source.partNumber, 100);
+  }
+
+  if (type === "document") {
+    result.fileName = safeString(source.fileName, 200);
+    result.fileUrl = safeString(source.fileUrl, 2000);
+    result.documentType = safeString(source.documentType, 100);
+  }
+
+  return result;
+}
+
+function cleanCar(item) {
+  if (!item || typeof item !== "object") return null;
+
+  const vin = safeString(item.vin, 17).toUpperCase();
+
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return null;
+
+  const done = {};
+
+  STEP_IDS.forEach(id => {
+    if (safeObject(item.done)[id] === true) {
+      done[id] = true;
+    }
+  });
+
+  const details = safeObject(item.details);
+
+  return {
+    vin,
+    nick: safeString(item.nick || "BMW", 30) || "BMW",
+    done,
+
+    details: {
+      make: safeString(details.make, 60),
+      model: safeString(details.model, 80),
+      year: safeNumber(details.year, 0, 2100),
+      engine: safeString(details.engine, 100),
+      transmission: safeString(details.transmission, 100),
+      mileage: safeNumber(details.mileage),
+      fuel: safeString(details.fuel, 40),
+      color: safeString(details.color, 60),
+      registration: safeString(details.registration, 40),
+      notes: safeString(details.notes, 4000)
+    },
+
+    serviceRecords: safeArray(item.serviceRecords)
+      .map(record => cleanRecord(record, "service")),
+
+    modifications: safeArray(item.modifications)
+      .map(record => cleanRecord(record, "modification")),
+
+    expenses: safeArray(item.expenses)
+      .map(record => cleanRecord(record, "expense")),
+
+    reminders: safeArray(item.reminders)
+      .map(record => cleanRecord(record, "reminder")),
+
+    documents: safeArray(item.documents)
+      .map(record => cleanRecord(record, "document"))
+  };
+}
+
+function cleanCars(input) {
+  if (!Array.isArray(input)) return [];
+
+  const result = [];
+  const seen = new Set();
+
+  input.forEach(item => {
+    const car = cleanCar(item);
+
+    if (!car || seen.has(car.vin)) return;
+
+    seen.add(car.vin);
+    result.push(car);
+  });
+
+  return result;
+}
+
+function stableJSON(value) {
+  if (Array.isArray(value)) {
+    return "[" + value.map(stableJSON).join(",") + "]";
+  }
+
+  if (value && typeof value === "object") {
+    return "{" + Object.keys(value).sort().map(key =>
+      JSON.stringify(key) + ":" + stableJSON(value[key])
+    ).join(",") + "}";
+  }
+
+  return JSON.stringify(value);
 }
 
 /* ==========================================
@@ -110,72 +269,45 @@ function createInterface() {
   panel.className = "panel open";
 
   panel.innerHTML = `
-    <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 2.0
-    </div>
+    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.1</div>
 
     <div class="backup-info">
-      Централизирано управление на данните
-      между iPhone, iPad и компютър.
+      Централизирана синхронизация на автомобилите,
+      сервизните записи, модификациите, разходите и напомнянията.
     </div>
 
-    <div style="
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:10px;
-      margin:14px 0;
-    ">
+    <div class="cloud-grid">
       <div class="cloud-card">
         <div class="cloud-label">ИНТЕРНЕТ</div>
-        <div id="dashboardNetwork" class="cloud-value">
-          Проверка...
-        </div>
+        <div id="dashboardNetwork" class="cloud-value">Проверка...</div>
       </div>
-
       <div class="cloud-card">
         <div class="cloud-label">CLOUD СТАТУС</div>
-        <div id="dashboardCloud" class="cloud-value">
-          Проверка...
-        </div>
+        <div id="dashboardCloud" class="cloud-value">Проверка...</div>
       </div>
-
       <div class="cloud-card">
         <div class="cloud-label">ПОСЛЕДНА СИНХРОНИЗАЦИЯ</div>
-        <div id="dashboardLastSync" class="cloud-value small">
-          Все още няма данни
-        </div>
+        <div id="dashboardLastSync" class="cloud-value small">Няма данни</div>
       </div>
-
       <div class="cloud-card">
         <div class="cloud-label">ЧАКАЩИ ПРОМЕНИ</div>
-        <div id="dashboardPending" class="cloud-value">
-          0
-        </div>
+        <div id="dashboardPending" class="cloud-value">0</div>
       </div>
     </div>
 
-    <div id="cloudUser" class="form-msg">
-      Проверка на профила...
-    </div>
+    <div id="cloudUser" class="form-msg">Проверка на профила...</div>
 
     <div id="cloudAuthForm">
       <div class="panel-row">
         <input id="cloudEmail" type="email"
           placeholder="Имейл адрес" autocomplete="email">
-
         <input id="cloudPassword" type="password"
           placeholder="Парола – минимум 6 символа"
           autocomplete="current-password">
       </div>
-
       <div class="panel-row">
-        <button class="btn-primary" id="cloudLogin" type="button">
-          Вход
-        </button>
-
-        <button class="btn-secondary" id="cloudRegister" type="button">
-          Регистрация
-        </button>
+        <button class="btn-primary" id="cloudLogin" type="button">Вход</button>
+        <button class="btn-secondary" id="cloudRegister" type="button">Регистрация</button>
       </div>
     </div>
 
@@ -184,18 +316,11 @@ function createInterface() {
         <button class="btn-primary" id="cloudSync" type="button">
           ↻ Синхронизирай сега
         </button>
-
-        <button class="btn-secondary" id="cloudLogout" type="button">
-          Изход
-        </button>
+        <button class="btn-secondary" id="cloudLogout" type="button">Изход</button>
       </div>
-
-      <div class="panel-row">
-        <button class="btn-secondary" id="cloudRetry"
-          type="button" style="width:100%">
-          ⟳ Повтори синхронизацията
-        </button>
-      </div>
+      <button class="btn-secondary" id="cloudRetry" type="button" style="width:100%">
+        ⟳ Повтори синхронизацията
+      </button>
     </div>
 
     <div id="cloudStatus" class="form-msg">
@@ -204,87 +329,57 @@ function createInterface() {
 
     <div class="cloud-section">
       <div class="section-title">BACKUP & RESTORE</div>
-
       <div class="backup-info">
-        Създай пълен архив на автомобилите,
-        сервизния прогрес и темата.
-        Възстановяването заменя гаража в Cloud профила
-        и на останалите устройства.
+        Пълният архив включва всички автомобилни профили,
+        сервизни записи, модификации, разходи, напомняния,
+        документи и избраната тема.
       </div>
-
       <button class="btn-primary" id="cloudExport"
         type="button" style="width:100%;margin:10px 0">
-        ↓ Създай архив
+        ↓ Създай пълен Cloud архив
       </button>
-
-      <div class="backup-info">
-        Възстановяването е операция за целия Cloud профил.
-        Увери се, че избраният архив е правилният.
-      </div>
-
-      <input id="cloudRestoreFile"
-        type="file"
-        accept=".json,application/json"
-        style="width:100%;margin:10px 0">
-
+      <input id="cloudRestoreFile" type="file"
+        accept=".json,application/json" style="width:100%;margin:10px 0">
       <button class="btn-secondary" id="cloudRestore"
         type="button" style="width:100%">
         ↥ Възстанови архива във всички устройства
       </button>
-
       <div id="cloudRestoreStatus" class="form-msg">
         Избери архивен JSON файл.
       </div>
     </div>
 
     <div class="cloud-section">
-      <div class="section-title">УПРАВЛЕНИЕ НА УСТРОЙСТВАТА</div>
-
+      <div class="section-title">УСТРОЙСТВА</div>
       <div class="backup-info">
-        Устройства, които са използвали този Cloud профил
-        за синхронизация. Списъкът е информационен.
+        Информационен списък на устройствата, използвали профила.
+        Това не е функция за отдалечено изключване на устройство.
       </div>
-
-      <div class="device-summary" id="deviceSummary">
-        Все още няма регистрирани устройства.
-      </div>
-
-      <button class="btn-secondary"
-        id="cloudDevicesRefresh" type="button"
-        style="width:100%;margin:10px 0">
+      <div class="device-summary" id="deviceSummary"></div>
+      <button class="btn-secondary" id="cloudDevicesRefresh"
+        type="button" style="width:100%;margin:10px 0">
         ↻ Обнови устройствата
       </button>
-
       <div id="cloudDevicesStatus" class="form-msg">
         Списъкът ще се зареди след вход.
       </div>
-
       <div id="cloudDevicesList"></div>
     </div>
 
     <div class="cloud-section">
       <div class="section-title">ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ</div>
-
-      <div class="backup-info">
-        Централизирана история за всички устройства
-        в твоя Cloud профил.
-      </div>
-
-      <button class="btn-secondary"
-        id="cloudHistoryRefresh" type="button"
-        style="width:100%;margin:10px 0">
+      <button class="btn-secondary" id="cloudHistoryRefresh"
+        type="button" style="width:100%;margin:10px 0">
         ↻ Обнови историята
       </button>
-
       <div id="cloudHistoryStatus" class="form-msg">
         Историята ще се зареди след вход.
       </div>
-
       <div id="cloudHistoryList"></div>
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 2.0 · SAFE CLOUD BACKUP & RESTORE
+      M-GARAGE PRO 2.1 · EXTENDED VEHICLE DATA SYNC
     </div>
   `;
 
@@ -293,96 +388,62 @@ function createInterface() {
   if (rules) {
     rules.after(panel);
   } else {
-    const layout = document.querySelector(".layout");
-    if (layout) layout.prepend(panel);
+    document.querySelector(".layout")?.prepend(panel);
   }
 
   const style = document.createElement("style");
 
   style.textContent = `
-    .cloud-card {
-      background:var(--card,rgba(128,128,128,.10));
-      border:1px solid var(--border,rgba(128,128,128,.2));
+    .cloud-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin:14px 0;
+    }
+    .cloud-card,.device-stat {
+      background:var(--surface-2);
+      border:1px solid var(--border);
       border-radius:12px;
       padding:12px;
       min-width:0;
     }
-
-    .cloud-label {
+    .cloud-label,.device-stat-label {
       font-size:11px;
       opacity:.7;
       margin-bottom:7px;
     }
-
     .cloud-value {
       font-weight:700;
       font-size:14px;
       overflow-wrap:anywhere;
     }
-
-    .cloud-value.small {
-      font-size:12px;
-      line-height:1.5;
-    }
-
+    .cloud-value.small {font-size:12px;line-height:1.5}
     .cloud-section {
-      border-top:1px solid var(--border,rgba(128,128,128,.2));
+      border-top:1px solid var(--border);
       margin-top:18px;
       padding-top:16px;
     }
-
     .device-summary {
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:8px;
       margin:12px 0;
     }
-
-    .device-stat {
-      background:var(--card,rgba(128,128,128,.08));
-      border:1px solid var(--border,rgba(128,128,128,.2));
-      border-radius:10px;
-      padding:11px;
-    }
-
-    .device-stat-label {
-      font-size:11px;
-      opacity:.7;
-      margin-bottom:5px;
-    }
-
-    .device-stat-value {
-      font-size:18px;
-      font-weight:700;
-    }
-
+    .device-stat-value {font-size:18px;font-weight:700}
     .device-item,.history-item {
-      border:1px solid var(--border,rgba(128,128,128,.2));
-      background:var(--card,rgba(128,128,128,.06));
+      border:1px solid var(--border);
+      background:var(--surface-2);
       border-radius:12px;
       padding:12px;
       margin:9px 0;
     }
-
     .device-heading,.history-heading {
       display:flex;
       justify-content:space-between;
-      align-items:center;
       gap:8px;
       font-weight:700;
       font-size:13px;
     }
-
-    .device-current,.history-success {
-      color:#16a34a;
-      font-size:11px;
-      font-weight:700;
-    }
-
-    .history-error {
-      color:#dc2626;
-    }
-
     .device-meta,.history-meta {
       opacity:.75;
       font-size:12px;
@@ -391,6 +452,8 @@ function createInterface() {
       overflow-wrap:anywhere;
       white-space:pre-line;
     }
+    .device-current,.history-success {color:#16a34a;font-weight:700}
+    .history-error {color:#dc2626}
   `;
 
   document.head.appendChild(style);
@@ -403,26 +466,15 @@ createInterface();
 const $ = id => document.getElementById(id);
 
 /* ==========================================
-   DASHBOARD
+   STATUS & DASHBOARD
 ========================================== */
-
-function setIndicator(id, message, color) {
-  const element = $(id);
-  if (!element) return;
-
-  element.textContent = message;
-  element.style.color = color || "inherit";
-}
 
 function formatDate(value) {
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return "Невалидна дата";
-  }
+  if (Number.isNaN(date.getTime())) return "Невалидна дата";
 
-  return date.toLocaleDateString("bg-BG") +
-    " · " +
+  return date.toLocaleDateString("bg-BG") + " · " +
     date.toLocaleTimeString("bg-BG", {
       hour: "2-digit",
       minute: "2-digit"
@@ -431,11 +483,8 @@ function formatDate(value) {
 
 function readPending() {
   try {
-    const parsed = JSON.parse(
-      localStorage.getItem(PENDING_KEY) || "[]"
-    );
-
-    return Array.isArray(parsed) ? parsed : [];
+    const data = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+    return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }
@@ -447,37 +496,44 @@ function savePending(events) {
 }
 
 function removePendingByIds(ids) {
-  if (!ids || !ids.length) return;
+  if (!ids?.length) return;
 
-  const removeSet = new Set(ids);
+  const remove = new Set(ids);
 
   savePending(
-    readPending().filter(
-      event => !removeSet.has(event.event_id)
-    )
+    readPending().filter(event => !remove.has(event.event_id))
   );
 }
 
+function setIndicator(id, value, color) {
+  const element = $(id);
+  if (!element) return;
+
+  element.textContent = value;
+  element.style.color = color || "inherit";
+}
+
 function refreshDashboard() {
+  const online = navigator.onLine;
+  const pending = readPending().length;
+
   setIndicator(
     "dashboardNetwork",
-    navigator.onLine ? "● ONLINE" : "● OFFLINE",
-    navigator.onLine ? "#16a34a" : "#dc2626"
+    online ? "● ONLINE" : "● OFFLINE",
+    online ? "#16a34a" : "#dc2626"
   );
-
-  const pending = readPending().length;
 
   setIndicator(
     "dashboardPending",
     String(pending),
-    pending > 0 ? "#d97706" : "#16a34a"
+    pending ? "#d97706" : "#16a34a"
   );
 
-  const lastSync = localStorage.getItem(LAST_SYNC_KEY);
+  const last = localStorage.getItem(LAST_SYNC_KEY);
 
   setIndicator(
     "dashboardLastSync",
-    lastSync ? formatDate(lastSync) : "Все още няма данни"
+    last ? formatDate(last) : "Все още няма данни"
   );
 
   let message = "Не е влязъл";
@@ -489,11 +545,11 @@ function refreshDashboard() {
   } else if (lastSyncError) {
     message = "Има проблем";
     color = "#dc2626";
-  } else if (currentUser && !navigator.onLine) {
+  } else if (currentUser && !online) {
     message = "Изчаква интернет";
-  } else if (currentUser && pending > 0) {
+  } else if (currentUser && pending) {
     message = "Чакащи промени";
-  } else if (currentUser && lastSync) {
+  } else if (currentUser && last) {
     message = "Синхронизиран";
     color = "#16a34a";
   } else if (currentUser) {
@@ -503,10 +559,6 @@ function refreshDashboard() {
 
   setIndicator("dashboardCloud", "● " + message, color);
 }
-
-/* ==========================================
-   STATUS
-========================================== */
 
 function status(message, type = "") {
   const element = $("cloudStatus");
@@ -526,8 +578,6 @@ function userStatus(message, type = "") {
     element.textContent = message;
     element.className = "form-msg" + (type ? " " + type : "");
   }
-
-  refreshDashboard();
 }
 
 function restoreStatus(message, type = "") {
@@ -539,29 +589,11 @@ function restoreStatus(message, type = "") {
   }
 }
 
-function setHistoryStatus(message) {
-  if ($("cloudHistoryStatus")) {
-    $("cloudHistoryStatus").textContent = message;
-  }
-}
-
-function setDevicesStatus(message) {
-  if ($("cloudDevicesStatus")) {
-    $("cloudDevicesStatus").textContent = message;
-  }
-}
-
 function setBusy(busy) {
   [
-    "cloudLogin",
-    "cloudRegister",
-    "cloudSync",
-    "cloudLogout",
-    "cloudRetry",
-    "cloudHistoryRefresh",
-    "cloudDevicesRefresh",
-    "cloudExport",
-    "cloudRestore"
+    "cloudLogin", "cloudRegister", "cloudSync", "cloudLogout",
+    "cloudRetry", "cloudHistoryRefresh", "cloudDevicesRefresh",
+    "cloudExport", "cloudRestore"
   ].forEach(id => {
     if ($(id)) $(id).disabled = busy;
   });
@@ -572,44 +604,6 @@ function setBusy(busy) {
 /* ==========================================
    LOCAL DATA
 ========================================== */
-
-function cleanCars(input) {
-  if (!Array.isArray(input)) return [];
-
-  const result = [];
-  const seen = new Set();
-
-  input.forEach(item => {
-    if (!item || typeof item !== "object") return;
-
-    const vin = String(item.vin || "")
-      .trim()
-      .toUpperCase();
-
-    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return;
-    if (seen.has(vin)) return;
-
-    seen.add(vin);
-
-    const done = {};
-
-    STEP_IDS.forEach(id => {
-      if (item.done && item.done[id] === true) {
-        done[id] = true;
-      }
-    });
-
-    result.push({
-      vin,
-      nick: String(item.nick || "BMW")
-        .trim()
-        .slice(0, 30) || "BMW",
-      done
-    });
-  });
-
-  return result;
-}
 
 function readLocalData() {
   try {
@@ -640,6 +634,7 @@ function enqueueEvents(events) {
   if (!events.length) return;
 
   const pending = readPending();
+
   pending.push(...events);
 
   savePending(pending);
@@ -668,46 +663,14 @@ function compareCars(oldInput, newInput) {
   newMap.forEach((newCar, vin) => {
     const oldCar = oldMap.get(vin);
 
-    if (!oldCar) {
+    if (!oldCar || stableJSON(oldCar) !== stableJSON(newCar)) {
       events.push(
         createEvent("car", vin, "upsert", {
-          nick: newCar.nick
-        })
-      );
-
-      STEP_IDS.forEach(id => {
-        if (newCar.done[id]) {
-          events.push(
-            createEvent("step", vin + ":" + id, "set", {
-              done: true
-            })
-          );
-        }
-      });
-
-      return;
-    }
-
-    if (oldCar.nick !== newCar.nick) {
-      events.push(
-        createEvent("car", vin, "upsert", {
+          car: newCar,
           nick: newCar.nick
         })
       );
     }
-
-    STEP_IDS.forEach(id => {
-      const oldDone = oldCar.done[id] === true;
-      const newDone = newCar.done[id] === true;
-
-      if (oldDone !== newDone) {
-        events.push(
-          createEvent("step", vin + ":" + id, "set", {
-            done: newDone
-          })
-        );
-      }
-    });
   });
 
   return events;
@@ -753,9 +716,7 @@ Storage.prototype.setItem = function(key, value) {
 
     if (oldVin !== newVin) {
       enqueueEvents([
-        createEvent("active", "active", "set", {
-          vin: newVin
-        })
+        createEvent("active", "active", "set", { vin: newVin })
       ]);
     }
 
@@ -766,7 +727,7 @@ Storage.prototype.setItem = function(key, value) {
 };
 
 /* ==========================================
-   SAVE LOCAL DATA
+   SAVE CLOUD DATA LOCALLY
 ========================================== */
 
 function saveLocalData(data) {
@@ -776,7 +737,7 @@ function saveLocalData(data) {
     originalSetItem.call(
       localStorage,
       STORAGE_KEY,
-      JSON.stringify(data.cars)
+      JSON.stringify(cleanCars(data.cars))
     );
 
     originalSetItem.call(
@@ -786,11 +747,7 @@ function saveLocalData(data) {
     );
 
     if (data.theme === "light" || data.theme === "dark") {
-      originalSetItem.call(
-        localStorage,
-        THEME_KEY,
-        data.theme
-      );
+      originalSetItem.call(localStorage, THEME_KEY, data.theme);
     }
   } catch {
     throw new Error("Неуспешно запазване на локалните данни.");
@@ -807,7 +764,7 @@ function saveLocalData(data) {
 }
 
 /* ==========================================
-   BACKUP EXPORT
+   BACKUP
 ========================================== */
 
 function createBackup() {
@@ -815,7 +772,7 @@ function createBackup() {
 
   return {
     app: "M-GARAGE PRO",
-    version: 3,
+    version: 4,
     archiveType: "full",
     exportedAt: new Date().toISOString(),
     cars: local.cars,
@@ -824,7 +781,7 @@ function createBackup() {
   };
 }
 
-function exportBackup() {
+function downloadBackup() {
   try {
     const backup = createBackup();
 
@@ -848,17 +805,11 @@ function exportBackup() {
 
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    restoreStatus("Архивът е създаден успешно.", "ok");
+    restoreStatus("Пълният архив е създаден успешно.", "ok");
   } catch (error) {
-    restoreStatus(
-      "Грешка при създаване на архива: " + error.message
-    );
+    restoreStatus("Грешка при архива: " + error.message);
   }
 }
-
-/* ==========================================
-   BACKUP VALIDATION
-========================================== */
 
 function validateBackup(raw) {
   let parsed;
@@ -869,8 +820,12 @@ function validateBackup(raw) {
     throw new Error("Файлът не съдържа валиден JSON.");
   }
 
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Невалиден архив.");
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed)
+  ) {
+    throw new Error("Невалидна структура на архива.");
   }
 
   if (parsed.app !== "M-GARAGE PRO") {
@@ -883,27 +838,537 @@ function validateBackup(raw) {
 
   const cars = cleanCars(parsed.cars);
 
-  if (parsed.cars.length > 0 && cars.length === 0) {
-    throw new Error(
-      "Архивът съдържа автомобили, но нито един няма валиден VIN."
-    );
+  if (parsed.cars.length && !cars.length) {
+    throw new Error("Не е намерен автомобил с валиден VIN.");
   }
 
-  const requestedActive = String(parsed.activeVin || "");
+  const requested = safeString(parsed.activeVin, 17).toUpperCase();
 
-  const activeVin = cars.some(car => car.vin === requestedActive)
-    ? requestedActive
+  const activeVin = cars.some(car => car.vin === requested)
+    ? requested
     : (cars[0]?.vin || "");
-
-  const theme =
-    parsed.theme === "light" ? "light" : "dark";
 
   return {
     version: Number(parsed.version) || 1,
     cars,
     activeVin,
+    theme: parsed.theme === "light" ? "light" : "dark"
+  };
+}
+
+/* ==========================================
+   CLOUD EVENT FETCH
+========================================== */
+
+async function fetchAllEvents(userId) {
+  const all = [];
+  const pageSize = 1000;
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("user_changes")
+      .select(
+        "event_id,event_order,device_id,entity_type,entity_id,operation,data,created_at"
+      )
+      .eq("user_id", userId)
+      .order("event_order", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+
+    if (data?.length) all.push(...data);
+
+    if (!data || data.length < pageSize) break;
+
+    offset += pageSize;
+  }
+
+  return all;
+}
+
+async function uploadEvents(userId, events) {
+  if (!events.length) return;
+
+  const rows = events.map(event => ({
+    event_id: event.event_id,
+    user_id: userId,
+    device_id: event.device_id,
+    entity_type: event.entity_type,
+    entity_id: event.entity_id,
+    operation: event.operation,
+    data: event.data
+  }));
+
+  const { error } = await supabase
+    .from("user_changes")
+    .upsert(rows, {
+      onConflict: "event_id",
+      ignoreDuplicates: true
+    });
+
+  if (error) throw error;
+}
+
+async function uploadPending(userId) {
+  const pending = readPending();
+
+  if (!pending.length) return 0;
+
+  const sendingIds = new Set(
+    pending.map(event => event.event_id)
+  );
+
+  await uploadEvents(userId, pending);
+
+  savePending(
+    readPending().filter(event => !sendingIds.has(event.event_id))
+  );
+
+  return pending.length;
+}
+
+/* ==========================================
+   LEGACY DATA
+========================================== */
+
+async function readLegacyData(userId) {
+  const { data, error } = await supabase
+    .from("user_data")
+    .select("payload,updated_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data?.payload || {};
+}
+
+function createInitialEvents(events, local, legacy) {
+  const knownCars = new Set();
+
+  events.forEach(event => {
+    if (event.entity_type === "car") {
+      knownCars.add(event.entity_id);
+    }
+  });
+
+  const combined = new Map();
+
+  cleanCars(legacy.cars || []).forEach(car => {
+    combined.set(car.vin, car);
+  });
+
+  cleanCars(local.cars || []).forEach(car => {
+    combined.set(car.vin, car);
+  });
+
+  const initial = [];
+
+  combined.forEach(car => {
+    if (knownCars.has(car.vin)) return;
+
+    initial.push(
+      createEvent("car", car.vin, "upsert", {
+        car,
+        nick: car.nick
+      })
+    );
+  });
+
+  const hasActive = events.some(
+    event => event.entity_type === "active"
+  );
+
+  if (!hasActive) {
+    initial.push(
+      createEvent("active", "active", "set", {
+        vin: local.activeVin || legacy.activeVin || ""
+      })
+    );
+  }
+
+  return initial;
+}
+
+/* ==========================================
+   APPLY EVENTS
+   Supports old v2.0 events and new snapshots.
+========================================== */
+
+function applyEvents(events) {
+  const cars = new Map();
+  let activeVin = "";
+  let theme = "dark";
+
+  events.forEach(event => {
+    const type = event.entity_type;
+    const id = event.entity_id;
+    const data = safeObject(event.data);
+
+    if (type === "restore") {
+      cars.clear();
+
+      cleanCars(data.cars || []).forEach(car => {
+        cars.set(car.vin, car);
+      });
+
+      activeVin = safeString(data.activeVin, 17);
+      theme = data.theme === "light" ? "light" : "dark";
+
+      return;
+    }
+
+    if (type === "car") {
+      if (event.operation === "delete") {
+        cars.delete(id);
+        return;
+      }
+
+      if (event.operation === "upsert") {
+        if (data.car) {
+          const snapshot = cleanCar(data.car);
+
+          if (snapshot && snapshot.vin === id) {
+            cars.set(id, snapshot);
+            return;
+          }
+        }
+
+        /*
+          Backward compatibility:
+          old v2.0 events only contain {nick}.
+          Do not erase profile data when replaying them.
+        */
+
+        const existing = cars.get(id) || cleanCar({
+          vin: id,
+          nick: "BMW",
+          done: {}
+        });
+
+        if (!existing) return;
+
+        existing.nick = safeString(
+          data.nick || existing.nick || "BMW",
+          30
+        ) || "BMW";
+
+        cars.set(id, existing);
+      }
+
+      return;
+    }
+
+    if (type === "step") {
+      const separator = id.lastIndexOf(":");
+
+      if (separator < 0) return;
+
+      const vin = id.slice(0, separator);
+      const stepId = id.slice(separator + 1);
+
+      if (!STEP_IDS.includes(stepId)) return;
+
+      const car = cars.get(vin);
+      if (!car) return;
+
+      if (data.done === true) {
+        car.done[stepId] = true;
+      } else {
+        delete car.done[stepId];
+      }
+
+      return;
+    }
+
+    if (type === "active") {
+      activeVin = safeString(data.vin, 17);
+    }
+  });
+
+  const resultCars = Array.from(cars.values());
+
+  if (!resultCars.some(car => car.vin === activeVin)) {
+    activeVin = resultCars[0]?.vin || "";
+  }
+
+  return {
+    cars: resultCars,
+    activeVin,
     theme
   };
+}
+
+function getLatestRestore(events) {
+  let latest = null;
+
+  events.forEach(event => {
+    if (event.entity_type === "restore") latest = event;
+  });
+
+  return latest;
+}
+
+/* ==========================================
+   HISTORY
+========================================== */
+
+async function writeHistory(
+  userId,
+  result,
+  carsCount,
+  changesCount,
+  errorMessage = ""
+) {
+  const { error } = await supabase
+    .from("sync_history")
+    .insert({
+      user_id: userId,
+      device_id: DEVICE_ID,
+      device_name: getDeviceName(),
+      result,
+      cars_count: carsCount,
+      changes_count: changesCount,
+      error_message: errorMessage
+        ? safeString(errorMessage, 500)
+        : null
+    });
+
+  if (error) throw error;
+}
+
+function renderHistory(items) {
+  const container = $("cloudHistoryList");
+  if (!container) return;
+
+  container.replaceChildren();
+
+  if (!items.length) {
+    $("cloudHistoryStatus").textContent =
+      "Все още няма записи в историята.";
+    return;
+  }
+
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "history-item";
+
+    const heading = document.createElement("div");
+    heading.className = "history-heading";
+
+    const result = document.createElement("span");
+    result.className = item.result === "success"
+      ? "history-success"
+      : "history-error";
+
+    result.textContent = item.result === "success"
+      ? "✓ Успешна синхронизация"
+      : "✕ Неуспешна синхронизация";
+
+    const device = document.createElement("span");
+    device.textContent = item.device_name || "Устройство";
+
+    heading.append(result, device);
+
+    const meta = document.createElement("div");
+    meta.className = "history-meta";
+    meta.textContent =
+      formatDate(item.created_at) +
+      "\nАвтомобили: " + item.cars_count +
+      " · Промени: " + item.changes_count;
+
+    card.append(heading, meta);
+
+    if (item.error_message) {
+      const error = document.createElement("div");
+      error.className = "history-meta history-error";
+      error.textContent = "Причина: " + item.error_message;
+      card.append(error);
+    }
+
+    container.append(card);
+  });
+
+  $("cloudHistoryStatus").textContent =
+    "Показани са последните " + items.length + " записа.";
+}
+
+async function loadHistory() {
+  if (!currentUser) return;
+
+  $("cloudHistoryStatus").textContent = "Зареждане...";
+
+  try {
+    const { data, error } = await supabase
+      .from("sync_history")
+      .select(
+        "id,device_id,device_name,result,cars_count,changes_count,error_message,created_at"
+      )
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    renderHistory(data || []);
+  } catch (error) {
+    $("cloudHistoryStatus").textContent =
+      "Грешка при зареждане: " + error.message;
+  }
+}
+
+/* ==========================================
+   DEVICES
+========================================== */
+
+function renderDevices(items) {
+  const container = $("cloudDevicesList");
+  const summary = $("deviceSummary");
+
+  if (!container || !summary) return;
+
+  container.replaceChildren();
+  summary.replaceChildren();
+
+  const map = new Map();
+
+  items.forEach(item => {
+    if (!item.device_id) return;
+
+    let device = map.get(item.device_id);
+
+    if (!device) {
+      device = {
+        device_id: item.device_id,
+        name: item.device_name || "Старо устройство",
+        lastSeen: item.created_at,
+        lastResult: item.result,
+        total: 0,
+        success: 0,
+        errors: 0
+      };
+
+      map.set(item.device_id, device);
+    }
+
+    device.total++;
+
+    if (item.result === "success") device.success++;
+    if (item.result === "error") device.errors++;
+
+    if (new Date(item.created_at) > new Date(device.lastSeen)) {
+      device.lastSeen = item.created_at;
+      device.lastResult = item.result;
+      device.name = item.device_name || device.name;
+    }
+  });
+
+  const devices = Array.from(map.values()).sort(
+    (a, b) => new Date(b.lastSeen) - new Date(a.lastSeen)
+  );
+
+  const stats = [
+    ["УСТРОЙСТВА", devices.length],
+    ["ТЕКУЩО", devices.filter(d => d.device_id === DEVICE_ID).length],
+    ["УСПЕШНИ", devices.reduce((sum, d) => sum + d.success, 0)],
+    ["ГРЕШКИ", devices.reduce((sum, d) => sum + d.errors, 0)]
+  ];
+
+  stats.forEach(([label, value]) => {
+    const card = document.createElement("div");
+    card.className = "device-stat";
+
+    const title = document.createElement("div");
+    title.className = "device-stat-label";
+    title.textContent = label;
+
+    const number = document.createElement("div");
+    number.className = "device-stat-value";
+    number.textContent = String(value);
+
+    card.append(title, number);
+    summary.append(card);
+  });
+
+  if (!devices.length) {
+    container.textContent = "Все още няма регистрирани устройства.";
+    $("cloudDevicesStatus").textContent = "Няма намерени записи.";
+    return;
+  }
+
+  devices.forEach(device => {
+    const card = document.createElement("div");
+    card.className = "device-item";
+
+    const heading = document.createElement("div");
+    heading.className = "device-heading";
+
+    const name = document.createElement("span");
+    name.textContent = device.name;
+
+    const current = document.createElement("span");
+
+    if (device.device_id === DEVICE_ID) {
+      current.className = "device-current";
+      current.textContent = "ТЕКУЩО";
+    }
+
+    heading.append(name, current);
+
+    const meta = document.createElement("div");
+    meta.className = "device-meta";
+
+    meta.textContent =
+      "Последна активност: " + formatDate(device.lastSeen) +
+      "\nОбщо: " + device.total +
+      " · Успешни: " + device.success +
+      " · Грешки: " + device.errors +
+      "\nID: " + device.device_id;
+
+    card.append(heading, meta);
+    container.append(card);
+  });
+
+  $("cloudDevicesStatus").textContent =
+    "Намерени устройства: " + devices.length +
+    ". Данните са обобщени от историята.";
+}
+
+async function loadDevices() {
+  if (!currentUser) return;
+
+  $("cloudDevicesStatus").textContent = "Зареждане...";
+
+  try {
+    const all = [];
+    const pageSize = 1000;
+    let offset = 0;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("sync_history")
+        .select("id,device_id,device_name,result,created_at")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(offset, offset + pageSize - 1);
+
+      if (error) throw error;
+
+      if (data?.length) all.push(...data);
+
+      if (!data || data.length < pageSize) break;
+
+      offset += pageSize;
+    }
+
+    renderDevices(all);
+  } catch (error) {
+    $("cloudDevicesStatus").textContent =
+      "Грешка при зареждане: " + error.message;
+  }
 }
 
 /* ==========================================
@@ -929,49 +1394,35 @@ async function restoreBackup() {
   }
 
   if (!currentUser) {
-    restoreStatus("Първо влез в Cloud профила си.");
+    restoreStatus("Първо влез в Cloud профила.");
     return;
   }
 
-  const confirmed = confirm(
+  if (!confirm(
     "ВНИМАНИЕ!\n\n" +
-    "Ще замениш текущия гараж в Cloud профила с данните от архива.\n\n" +
-    "Останалите устройства ще получат възстановеното състояние " +
-    "при следващата си синхронизация.\n\n" +
-    "Сигурен ли си, че искаш да продължиш?"
-  );
-
-  if (!confirmed) return;
+    "Архивът ще замени текущия гараж в Cloud профила " +
+    "и на останалите устройства.\n\nПродължаваме ли?"
+  )) return;
 
   setBusy(true);
   syncRunning = true;
   lastSyncError = false;
 
-  restoreStatus("Проверка на архивния файл...");
-
-  let historyUserId = null;
-  let restoreUploaded = false;
-  let restored = null;
+  let uploaded = false;
 
   try {
-    const raw = await file.text();
-    const backup = validateBackup(raw);
+    const backup = validateBackup(await file.text());
 
-    if (backup.cars.length === 0) {
-      const emptyConfirmed = confirm(
-        "Архивът съдържа празен гараж.\n\n" +
-        "Ако продължиш, всички автомобили ще бъдат премахнати " +
-        "от Cloud профила и останалите устройства.\n\n" +
-        "Сигурен ли си?"
-      );
-
-      if (!emptyConfirmed) {
-        restoreStatus("Възстановяването е отказано.");
-        return;
-      }
+    if (
+      backup.cars.length === 0 &&
+      !confirm(
+        "Архивът е с празен гараж.\n" +
+        "Всички автомобили ще бъдат премахнати от Cloud профила.\n\nСигурен ли си?"
+      )
+    ) {
+      restoreStatus("Възстановяването е отказано.");
+      return;
     }
-
-    restoreStatus("Проверка на Cloud сесията...");
 
     const {
       data: { session },
@@ -981,18 +1432,7 @@ async function restoreBackup() {
     if (sessionError) throw sessionError;
     if (!session) throw new Error("Cloud сесията е изтекла.");
 
-    historyUserId = session.user.id;
-
-    /*
-      Запазваме текущата опашка.
-      Тя не се изтрива, докато Cloud не потвърди
-      успешно качването на restore събитието.
-    */
-
-    const pendingBeforeRestore = readPending();
-    const pendingIdsBeforeRestore = pendingBeforeRestore.map(
-      event => event.event_id
-    );
+    const pendingIds = readPending().map(event => event.event_id);
 
     const restoreEvent = createEvent(
       "restore",
@@ -1011,37 +1451,21 @@ async function restoreBackup() {
 
     await uploadEvents(session.user.id, [restoreEvent]);
 
-    restoreUploaded = true;
+    uploaded = true;
 
-    /*
-      Премахваме само промените, които са били
-      в опашката преди започване на възстановяването.
-      Нови промени, добавени по време на операцията,
-      остават непокътнати.
-    */
+    removePendingByIds(pendingIds);
 
-    removePendingByIds(pendingIdsBeforeRestore);
-
-    restoreStatus("Проверка на възстановените Cloud данни...");
+    restoreStatus("Прилагане на възстановените данни...");
 
     const events = await fetchAllEvents(session.user.id);
-    restored = applyEvents(events);
+    const restored = applyEvents(events);
 
     saveLocalData(restored);
 
-    localStorage.setItem(
-      RESTORE_KEY,
-      restoreEvent.event_id
-    );
+    localStorage.setItem(RESTORE_KEY, restoreEvent.event_id);
+    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
 
-    localStorage.setItem(
-      LAST_SYNC_KEY,
-      new Date().toISOString()
-    );
-
-    if (typeof window.renderAll === "function") {
-      window.renderAll();
-    }
+    window.renderAll?.();
 
     try {
       await writeHistory(
@@ -1053,40 +1477,31 @@ async function restoreBackup() {
 
       await loadHistory();
       await loadDevices();
-    } catch (historyError) {
-      console.error("Restore history:", historyError);
+    } catch (error) {
+      console.error("Restore history:", error);
     }
 
     restoreStatus(
       "Архивът е възстановен успешно. Автомобили: " +
-      restored.cars.length +
-      ".",
+      restored.cars.length + ".",
       "ok"
     );
 
     status(
-      "Cloud възстановяването е успешно. " +
-      "Останалите устройства ще получат новото състояние при синхронизация.",
+      "Cloud възстановяването е успешно. Останалите устройства ще получат данните при следваща синхронизация.",
       "ok"
     );
 
   } catch (error) {
     console.error("M-GARAGE RESTORE:", error);
-
     lastSyncError = true;
 
-    if (restoreUploaded) {
-      restoreStatus(
-        "Архивът е качен в Cloud, но локалното прилагане не завърши: " +
-        error.message +
-        ". Натисни „Синхронизирай сега“."
-      );
-    } else {
-      restoreStatus(
-        "Грешка при възстановяване: " + error.message +
-        ". Чакащите промени са запазени."
-      );
-    }
+    restoreStatus(
+      uploaded
+        ? "Архивът е качен в Cloud, но локалното прилагане не завърши. Натисни синхронизация."
+        : "Грешка при възстановяване: " + error.message +
+          ". Чакащите промени са запазени."
+    );
 
     status("Възстановяването не беше завършено.");
   } finally {
@@ -1121,14 +1536,15 @@ function showLoggedOut() {
 
   userStatus("Не си влязъл в Cloud Sync.");
 
-  setHistoryStatus("Влез в профила си, за да видиш историята.");
-  setDevicesStatus("Влез в профила си, за да видиш устройствата.");
+  $("cloudHistoryStatus").textContent =
+    "Влез в профила си, за да видиш историята.";
+
+  $("cloudDevicesStatus").textContent =
+    "Влез в профила си, за да видиш устройствата.";
 
   $("cloudHistoryList").replaceChildren();
   $("cloudDevicesList").replaceChildren();
-
-  $("deviceSummary").textContent =
-    "Все още няма регистрирани устройства.";
+  $("deviceSummary").replaceChildren();
 
   status("Локалните данни са налични.");
 }
@@ -1214,558 +1630,6 @@ async function logout() {
 }
 
 /* ==========================================
-   CLOUD EVENT FETCH
-========================================== */
-
-async function fetchAllEvents(userId) {
-  const allEvents = [];
-  const pageSize = 1000;
-  let offset = 0;
-
-  while (true) {
-    const { data, error } = await supabase
-      .from("user_changes")
-      .select(
-        "event_id, event_order, device_id, entity_type, entity_id, operation, data, created_at"
-      )
-      .eq("user_id", userId)
-      .order("event_order", { ascending: true })
-      .range(offset, offset + pageSize - 1);
-
-    if (error) throw error;
-
-    if (data && data.length) {
-      allEvents.push(...data);
-    }
-
-    if (!data || data.length < pageSize) break;
-
-    offset += pageSize;
-  }
-
-  return allEvents;
-}
-
-/* ==========================================
-   LEGACY DATA
-========================================== */
-
-async function readLegacyData(userId) {
-  const { data, error } = await supabase
-    .from("user_data")
-    .select("payload, updated_at")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  return data && data.payload ? data.payload : {};
-}
-
-function createInitialEvents(events, local, legacy) {
-  const knownCars = new Set();
-
-  events.forEach(event => {
-    if (event.entity_type === "car") {
-      knownCars.add(event.entity_id);
-    }
-  });
-
-  const combined = new Map();
-
-  cleanCars(legacy.cars || []).forEach(car => {
-    combined.set(car.vin, car);
-  });
-
-  cleanCars(local.cars || []).forEach(car => {
-    combined.set(car.vin, car);
-  });
-
-  const initialEvents = [];
-
-  combined.forEach(car => {
-    if (knownCars.has(car.vin)) return;
-
-    initialEvents.push(
-      createEvent("car", car.vin, "upsert", {
-        nick: car.nick
-      })
-    );
-
-    STEP_IDS.forEach(id => {
-      if (car.done[id]) {
-        initialEvents.push(
-          createEvent("step", car.vin + ":" + id, "set", {
-            done: true
-          })
-        );
-      }
-    });
-  });
-
-  const hasActiveEvent = events.some(
-    event => event.entity_type === "active"
-  );
-
-  if (!hasActiveEvent) {
-    const activeVin = local.activeVin || legacy.activeVin || "";
-
-    initialEvents.push(
-      createEvent("active", "active", "set", {
-        vin: activeVin
-      })
-    );
-  }
-
-  return initialEvents;
-}
-
-/* ==========================================
-   UPLOAD EVENTS
-========================================== */
-
-async function uploadEvents(userId, events) {
-  if (!events.length) return;
-
-  const rows = events.map(event => ({
-    event_id: event.event_id,
-    user_id: userId,
-    device_id: event.device_id,
-    entity_type: event.entity_type,
-    entity_id: event.entity_id,
-    operation: event.operation,
-    data: event.data
-  }));
-
-  const { error } = await supabase
-    .from("user_changes")
-    .upsert(rows, {
-      onConflict: "event_id",
-      ignoreDuplicates: true
-    });
-
-  if (error) throw error;
-}
-
-async function uploadPending(userId) {
-  const pending = readPending();
-
-  if (!pending.length) return 0;
-
-  const sendingIds = new Set(
-    pending.map(event => event.event_id)
-  );
-
-  await uploadEvents(userId, pending);
-
-  const remaining = readPending().filter(
-    event => !sendingIds.has(event.event_id)
-  );
-
-  savePending(remaining);
-
-  return pending.length;
-}
-
-/* ==========================================
-   APPLY CLOUD EVENTS
-========================================== */
-
-function applyEvents(events) {
-  const cars = new Map();
-  let activeVin = "";
-  let theme = "";
-
-  events.forEach(event => {
-    const type = event.entity_type;
-    const id = event.entity_id;
-    const data = event.data || {};
-
-    if (type === "restore") {
-      cars.clear();
-
-      cleanCars(data.cars || []).forEach(car => {
-        cars.set(car.vin, {
-          vin: car.vin,
-          nick: car.nick,
-          done: { ...car.done }
-        });
-      });
-
-      activeVin = String(data.activeVin || "");
-      theme = data.theme === "light" ? "light" : "dark";
-
-      return;
-    }
-
-    if (type === "car") {
-      if (event.operation === "delete") {
-        cars.delete(id);
-        return;
-      }
-
-      if (event.operation === "upsert") {
-        const existing = cars.get(id);
-
-        cars.set(id, {
-          vin: id,
-          nick: String(data.nick || existing?.nick || "BMW")
-            .trim()
-            .slice(0, 30) || "BMW",
-          done: existing ? { ...existing.done } : {}
-        });
-      }
-
-      return;
-    }
-
-    if (type === "step") {
-      const separator = id.lastIndexOf(":");
-
-      if (separator < 0) return;
-
-      const vin = id.slice(0, separator);
-      const stepId = id.slice(separator + 1);
-
-      if (!STEP_IDS.includes(stepId)) return;
-
-      const car = cars.get(vin);
-      if (!car) return;
-
-      if (data.done === true) {
-        car.done[stepId] = true;
-      } else {
-        delete car.done[stepId];
-      }
-
-      return;
-    }
-
-    if (type === "active") {
-      activeVin = String(data.vin || "");
-    }
-  });
-
-  const resultCars = Array.from(cars.values());
-
-  if (!resultCars.some(car => car.vin === activeVin)) {
-    activeVin = resultCars[0]?.vin || "";
-  }
-
-  return {
-    cars: resultCars,
-    activeVin,
-    theme
-  };
-}
-
-function getLatestRestore(events) {
-  let latest = null;
-
-  events.forEach(event => {
-    if (event.entity_type === "restore") {
-      latest = event;
-    }
-  });
-
-  return latest;
-}
-
-/* ==========================================
-   CLOUD SYNC HISTORY
-========================================== */
-
-async function writeHistory(
-  userId,
-  result,
-  carsCount,
-  changesCount,
-  errorMessage = ""
-) {
-  const { error } = await supabase
-    .from("sync_history")
-    .insert({
-      user_id: userId,
-      device_id: DEVICE_ID,
-      device_name: getDeviceName(),
-      result,
-      cars_count: carsCount,
-      changes_count: changesCount,
-      error_message: errorMessage
-        ? String(errorMessage).slice(0, 500)
-        : null
-    });
-
-  if (error) throw error;
-}
-
-function renderHistory(items) {
-  const container = $("cloudHistoryList");
-  if (!container) return;
-
-  container.replaceChildren();
-
-  if (!items.length) {
-    setHistoryStatus("Все още няма записи в историята.");
-    return;
-  }
-
-  items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "history-item";
-
-    const heading = document.createElement("div");
-    heading.className = "history-heading";
-
-    const result = document.createElement("span");
-    result.className =
-      item.result === "success"
-        ? "history-success"
-        : "history-error";
-
-    result.textContent =
-      item.result === "success"
-        ? "✓ Успешна синхронизация"
-        : "✕ Неуспешна синхронизация";
-
-    const device = document.createElement("span");
-    device.textContent =
-      item.device_name ||
-      (item.device_id === DEVICE_ID
-        ? getDeviceName()
-        : "Стар запис");
-
-    heading.append(result, device);
-
-    const meta = document.createElement("div");
-    meta.className = "history-meta";
-
-    meta.textContent =
-      formatDate(item.created_at) +
-      "\nАвтомобили: " + item.cars_count +
-      " · Промени: " + item.changes_count;
-
-    card.append(heading, meta);
-
-    if (item.error_message) {
-      const error = document.createElement("div");
-      error.className = "history-meta history-error";
-      error.textContent = "Причина: " + item.error_message;
-      card.append(error);
-    }
-
-    container.append(card);
-  });
-
-  setHistoryStatus("Показани са последните " + items.length + " записа.");
-}
-
-async function loadHistory() {
-  if (!currentUser) {
-    setHistoryStatus("Влез в профила си, за да видиш историята.");
-    return;
-  }
-
-  setHistoryStatus("Зареждане на историята...");
-
-  try {
-    const { data, error } = await supabase
-      .from("sync_history")
-      .select(
-        "id, device_id, device_name, result, cars_count, changes_count, error_message, created_at"
-      )
-      .eq("user_id", currentUser.id)
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: false })
-      .limit(30);
-
-    if (error) throw error;
-
-    renderHistory(data || []);
-  } catch (error) {
-    setHistoryStatus(
-      "Историята не може да бъде заредена: " + error.message
-    );
-  }
-}
-
-/* ==========================================
-   DEVICE MANAGEMENT
-========================================== */
-
-function renderDeviceSummary(devices) {
-  const container = $("deviceSummary");
-  if (!container) return;
-
-  container.replaceChildren();
-
-  const stats = [
-    ["УСТРОЙСТВА", devices.length],
-    ["ТЕКУЩО УСТРОЙСТВО",
-      devices.filter(d => d.device_id === DEVICE_ID).length],
-    ["УСПЕШНИ СИНХРОНИЗАЦИИ",
-      devices.reduce((sum, d) => sum + d.successCount, 0)],
-    ["НЕУСПЕШНИ СИНХРОНИЗАЦИИ",
-      devices.reduce((sum, d) => sum + d.errorCount, 0)]
-  ];
-
-  stats.forEach(([label, value]) => {
-    const card = document.createElement("div");
-    card.className = "device-stat";
-
-    const title = document.createElement("div");
-    title.className = "device-stat-label";
-    title.textContent = label;
-
-    const number = document.createElement("div");
-    number.className = "device-stat-value";
-    number.textContent = String(value);
-
-    card.append(title, number);
-    container.append(card);
-  });
-}
-
-function renderDevices(items) {
-  const container = $("cloudDevicesList");
-  if (!container) return;
-
-  container.replaceChildren();
-
-  const deviceMap = new Map();
-
-  items.forEach(item => {
-    if (!item.device_id) return;
-
-    let device = deviceMap.get(item.device_id);
-
-    if (!device) {
-      device = {
-        device_id: item.device_id,
-        device_name: item.device_name || "Старо устройство",
-        lastSeen: item.created_at,
-        lastResult: item.result,
-        totalCount: 0,
-        successCount: 0,
-        errorCount: 0
-      };
-
-      deviceMap.set(item.device_id, device);
-    }
-
-    device.totalCount++;
-
-    if (item.result === "success") device.successCount++;
-    if (item.result === "error") device.errorCount++;
-
-    if (
-      new Date(item.created_at).getTime() >
-      new Date(device.lastSeen).getTime()
-    ) {
-      device.lastSeen = item.created_at;
-      device.lastResult = item.result;
-
-      if (item.device_name) {
-        device.device_name = item.device_name;
-      }
-    }
-  });
-
-  const devices = Array.from(deviceMap.values()).sort(
-    (a, b) =>
-      new Date(b.lastSeen).getTime() -
-      new Date(a.lastSeen).getTime()
-  );
-
-  renderDeviceSummary(devices);
-
-  if (!devices.length) {
-    container.textContent = "Все още няма регистрирани устройства.";
-    setDevicesStatus("Няма намерени записи.");
-    return;
-  }
-
-  devices.forEach(device => {
-    const card = document.createElement("div");
-    card.className = "device-item";
-
-    const heading = document.createElement("div");
-    heading.className = "device-heading";
-
-    const name = document.createElement("span");
-    name.textContent = device.device_name;
-
-    const current = document.createElement("span");
-
-    if (device.device_id === DEVICE_ID) {
-      current.className = "device-current";
-      current.textContent = "ТЕКУЩО";
-    }
-
-    heading.append(name, current);
-
-    const meta = document.createElement("div");
-    meta.className = "device-meta";
-
-    meta.textContent =
-      "Последна активност: " + formatDate(device.lastSeen) +
-      "\nПоследен резултат: " +
-      (device.lastResult === "success" ? "✓ Успешна" : "✕ Неуспешна") +
-      "\nОбщо синхронизации: " + device.totalCount +
-      "\nУспешни: " + device.successCount +
-      " · Неуспешни: " + device.errorCount +
-      "\nID: " + device.device_id;
-
-    card.append(heading, meta);
-    container.append(card);
-  });
-
-  setDevicesStatus(
-    "Намерени устройства: " + devices.length +
-    ". Данните са обобщени от историята."
-  );
-}
-
-async function loadDevices() {
-  if (!currentUser) {
-    setDevicesStatus("Влез в профила си, за да видиш устройствата.");
-    return;
-  }
-
-  setDevicesStatus("Зареждане на устройствата...");
-
-  try {
-    const allItems = [];
-    const pageSize = 1000;
-    let offset = 0;
-
-    while (true) {
-      const { data, error } = await supabase
-        .from("sync_history")
-        .select("id, device_id, device_name, result, created_at")
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false })
-        .range(offset, offset + pageSize - 1);
-
-      if (error) throw error;
-
-      if (data && data.length) allItems.push(...data);
-
-      if (!data || data.length < pageSize) break;
-
-      offset += pageSize;
-    }
-
-    renderDevices(allItems);
-  } catch (error) {
-    setDevicesStatus(
-      "Устройствата не могат да бъдат заредени: " + error.message
-    );
-  }
-}
-
-/* ==========================================
    MAIN SYNC
 ========================================== */
 
@@ -1774,11 +1638,9 @@ async function syncNow() {
 
   if (!navigator.onLine) {
     lastSyncError = true;
-
     status(
       "Няма интернет. Промените са запазени локално и чакат синхронизация."
     );
-
     return;
   }
 
@@ -1804,80 +1666,53 @@ async function syncNow() {
     const userId = session.user.id;
     historyUserId = userId;
 
-    let cloudEvents = await fetchAllEvents(userId);
+    let events = await fetchAllEvents(userId);
 
-    /*
-      Проверяваме за по-нов Cloud Restore
-      преди да качим локалните чакащи промени.
-    */
-
-    const latestRestore = getLatestRestore(cloudEvents);
+    const latestRestore = getLatestRestore(events);
     const localRestoreId = localStorage.getItem(RESTORE_KEY);
 
     if (
       latestRestore &&
       latestRestore.event_id !== localRestoreId
     ) {
-      /*
-        Cloud Restore е авторитетен.
-        Премахваме само чакащите промени,
-        които са били налични при започване на синхронизацията.
-      */
-
-      const pendingAtStart = readPending();
-      const pendingIdsAtStart = pendingAtStart.map(
-        event => event.event_id
-      );
-
-      const restored = applyEvents(cloudEvents);
+      const pendingIds = readPending().map(event => event.event_id);
+      const restored = applyEvents(events);
 
       saveLocalData(restored);
-      removePendingByIds(pendingIdsAtStart);
+      removePendingByIds(pendingIds);
 
-      localStorage.setItem(
-        RESTORE_KEY,
-        latestRestore.event_id
-      );
+      localStorage.setItem(RESTORE_KEY, latestRestore.event_id);
 
       mergedCarsCount = restored.cars.length;
       processedChanges = 1;
 
-      if (typeof window.renderAll === "function") {
-        window.renderAll();
-      }
+      window.renderAll?.();
 
     } else {
       const local = readLocalData();
       const legacy = await readLegacyData(userId);
 
-      const initialEvents = createInitialEvents(
-        cloudEvents,
-        local,
-        legacy
-      );
+      const initial = createInitialEvents(events, local, legacy);
 
-      if (initialEvents.length) {
-        await uploadEvents(userId, initialEvents);
-        processedChanges += initialEvents.length;
+      if (initial.length) {
+        await uploadEvents(userId, initial);
+        processedChanges += initial.length;
       }
 
       processedChanges += await uploadPending(userId);
 
-      cloudEvents = await fetchAllEvents(userId);
+      events = await fetchAllEvents(userId);
 
-      const merged = applyEvents(cloudEvents);
+      const merged = applyEvents(events);
 
       mergedCarsCount = merged.cars.length;
 
       saveLocalData(merged);
 
-      const finalRestore = getLatestRestore(cloudEvents);
+      const finalRestore = getLatestRestore(events);
 
       if (finalRestore) {
-        localStorage.setItem(
-          RESTORE_KEY,
-          finalRestore.event_id
-        );
+        localStorage.setItem(RESTORE_KEY, finalRestore.event_id);
       }
 
       if (typeof window.renderAll === "function") {
@@ -1890,10 +1725,7 @@ async function syncNow() {
 
     const now = new Date();
 
-    localStorage.setItem(
-      LAST_SYNC_KEY,
-      now.toISOString()
-    );
+    localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
 
     lastSyncError = false;
 
@@ -1981,7 +1813,6 @@ function scheduleAutomaticSync(delay = 1800) {
       if (session) await syncNow();
     } catch (error) {
       console.error("M-GARAGE AUTO SYNC:", error);
-
       lastSyncError = true;
       refreshDashboard();
     }
@@ -1989,14 +1820,12 @@ function scheduleAutomaticSync(delay = 1800) {
 }
 
 /* ==========================================
-   NETWORK EVENTS
+   NETWORK & VISIBILITY
 ========================================== */
 
 window.addEventListener("online", () => {
   lastSyncError = false;
-
   status("Интернетът е възстановен. Започва синхронизация...");
-
   scheduleAutomaticSync(500);
 });
 
@@ -2004,10 +1833,6 @@ window.addEventListener("offline", () => {
   status("Няма интернет. Локалните промени се запазват.");
   refreshDashboard();
 });
-
-/* ==========================================
-   PAGE VISIBILITY
-========================================== */
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && navigator.onLine) {
@@ -2028,7 +1853,7 @@ $("cloudSync").addEventListener("click", syncNow);
 $("cloudRetry").addEventListener("click", syncNow);
 $("cloudHistoryRefresh").addEventListener("click", loadHistory);
 $("cloudDevicesRefresh").addEventListener("click", loadDevices);
-$("cloudExport").addEventListener("click", exportBackup);
+$("cloudExport").addEventListener("click", downloadBackup);
 $("cloudRestore").addEventListener("click", restoreBackup);
 
 /* ==========================================
@@ -2076,7 +1901,6 @@ async function initializeCloud() {
     }
   } catch (error) {
     lastSyncError = true;
-
     userStatus("Cloud Sync не е достъпен.");
     status(error.message);
   }
