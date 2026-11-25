@@ -23,6 +23,8 @@
   --done-bg:#0d2b24;
   --warn:#f59e0b;
   --warn-bg:#291d08;
+  --danger:#f43f5e;
+  --danger-bg:#2e0f19;
   --cmd-bg:#050811;
   --cmd-ink:#bae6fd;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -42,6 +44,8 @@
   --done-bg:#d1fae5;
   --warn:#b45309;
   --warn-bg:#fef3c7;
+  --danger:#be123c;
+  --danger-bg:#ffe4e6;
   --cmd-bg:#0b1120;
   --cmd-ink:#e0f2fe;
   color-scheme: light;
@@ -114,18 +118,21 @@ body{
 h1{font-size:1rem;margin:0;font-weight:750;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
 h1 span{color:var(--m-sky);font-weight:600;}
 .sub-tag{font-size:.72rem;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase;}
-.themebtn{
+.top-actions{display:flex;align-items:center;gap:.45rem;}
+.iconbtn{
   border:1px solid var(--border);
   background:var(--surface);
   color:var(--ink);
   border-radius:10px;
-  width:36px;
   height:36px;
-  font-size:1rem;
+  padding:0 .65rem;
+  font-size:.82rem;
+  font-weight:600;
   cursor:pointer;
   flex:0 0 auto;
 }
-.themebtn:hover{border-color:var(--m-sky);}
+.iconbtn.square{width:36px;padding:0;font-size:1rem;}
+.iconbtn:hover{border-color:var(--m-sky);}
 
 .layout{max-width:940px;margin:0 auto;padding:1rem 1rem 3.5rem;display:flex;flex-direction:column;gap:1rem;}
 
@@ -175,17 +182,18 @@ h1 span{color:var(--m-sky);font-weight:600;}
 }
 .add-chip:hover{border-color:var(--m-sky);color:var(--m-sky);}
 
-.addform{
+.panel{
   display:none;
-  gap:.55rem;
-  flex-wrap:wrap;
+  flex-direction:column;
+  gap:.65rem;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:14px;
   padding:.9rem;
 }
-.addform.open{display:flex;}
-.addform input{
+.panel.open{display:flex;}
+.panel-row{display:flex;gap:.55rem;flex-wrap:wrap;}
+.panel input,.panel textarea{
   flex:1 1 170px;
   background:var(--surface-2);
   border:1px solid var(--border);
@@ -195,8 +203,15 @@ h1 span{color:var(--m-sky);font-weight:600;}
   font-size:.9rem;
   font-family:var(--sans);
 }
-.addform input.vin{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;}
-.addform button{
+.panel textarea{
+  width:100%;
+  min-height:110px;
+  font-family:var(--mono);
+  font-size:.76rem;
+  resize:vertical;
+}
+.panel input.vin{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;}
+.btn-primary{
   border:none;
   background:linear-gradient(135deg,var(--m-blue),var(--m-sky));
   color:#ffffff;
@@ -205,20 +220,49 @@ h1 span{color:var(--m-sky);font-weight:600;}
   font-weight:700;
   cursor:pointer;
 }
+.btn-secondary{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  border-radius:10px;
+  padding:.52rem .85rem;
+  font-size:.82rem;
+  font-weight:650;
+  cursor:pointer;
+}
+.btn-secondary:hover{border-color:var(--m-sky);}
+.btn-danger{
+  border:1px solid color-mix(in srgb, var(--danger) 50%, transparent);
+  background:var(--danger-bg);
+  color:var(--danger);
+  border-radius:10px;
+  padding:.52rem .85rem;
+  font-size:.82rem;
+  font-weight:650;
+  cursor:pointer;
+}
+.form-msg{font-size:.8rem;color:var(--warn);min-height:1.1em;}
+.form-msg.ok{color:var(--done);}
 
 .cockpit-banner{
+  display:flex;
+  flex-direction:column;
+  gap:.8rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:.9rem 1rem;
+}
+.cockpit-top{
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   justify-content:space-between;
   gap:.75rem;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:.85rem 1rem;
 }
-.car-meta{display:flex;flex-direction:column;gap:.2rem;min-width:0;}
-.car-meta-title{font-weight:750;font-size:1rem;}
+.car-meta{display:flex;flex-direction:column;gap:.35rem;min-width:0;}
+.car-meta-title{font-weight:750;font-size:1.02rem;}
+.vin-line{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;}
 .vin-badge{
   display:inline-flex;
   align-items:center;
@@ -229,10 +273,22 @@ h1 span{color:var(--m-sky);font-weight:600;}
   background:var(--surface-2);
   border:1px solid var(--border);
   border-radius:8px;
-  padding:.25rem .55rem;
+  padding:.28rem .58rem;
   letter-spacing:.06em;
-  width:fit-content;
 }
+.mini-btn{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  border-radius:8px;
+  padding:.28rem .55rem;
+  font-size:.74rem;
+  font-weight:650;
+  cursor:pointer;
+}
+.mini-btn:hover{border-color:var(--m-sky);}
+.mini-btn.copied{background:var(--done-bg);color:var(--done);border-color:transparent;}
+.car-controls{display:flex;flex-wrap:wrap;gap:.45rem;}
 
 .empty{color:var(--ink-dim);font-size:.92rem;padding:1.8rem 1rem;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
 
@@ -275,7 +331,18 @@ h1 span{color:var(--m-sky);font-weight:600;}
 .step.open .chev{transform:rotate(90deg);color:var(--m-sky);}
 .step-body{display:none;padding-top:.85rem;margin-top:.65rem;border-top:1px solid var(--border);}
 .step.open .step-body{display:block;}
-.step-body p{font-size:.86rem;line-height:1.55;margin:0 0 .75rem;color:var(--ink);}
+.step-body p{font-size:.86rem;line-height:1.55;margin:0 0 .7rem;color:var(--ink);}
+.risk-note{
+  background:var(--warn-bg);
+  border:1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  color:var(--ink);
+  border-radius:9px;
+  padding:.55rem .75rem;
+  font-size:.8rem;
+  line-height:1.45;
+  margin-bottom:.7rem;
+}
+.risk-note strong{color:var(--warn);}
 .cmd{
   background:var(--cmd-bg);
   color:var(--cmd-ink);
@@ -331,7 +398,10 @@ h1 span{color:var(--m-sky);font-weight:600;}
         <div class="sub-tag">ID7 / ID8 SSH &amp; STORE</div>
       </div>
     </div>
-    <button class="themebtn" id="themeBtn" title="Смяна на тема">◐</button>
+    <div class="top-actions">
+      <button class="iconbtn" id="ioBtn" type="button" title="Експорт / Импорт на данните">JSON</button>
+      <button class="iconbtn square" id="themeBtn" type="button" title="Смяна на тема">◐</button>
+    </div>
   </div>
 </div>
 
@@ -348,15 +418,27 @@ h1 span{color:var(--m-sky);font-weight:600;}
 
   <div class="garage" id="garage"></div>
 
-  <div class="addform" id="addForm">
-    <input class="nick" id="newNick" placeholder="Име (напр. 330i xDrive)" maxlength="30">
-    <input class="vin" id="newVin" placeholder="VIN (17 знака)" maxlength="17">
-    <button id="saveCar" type="button">Добави кола</button>
+  <div class="panel" id="addForm">
+    <div class="panel-row">
+      <input class="nick" id="newNick" placeholder="Име (напр. 330i xDrive)" maxlength="30">
+      <input class="vin" id="newVin" placeholder="VIN (17 знака, без I, O, Q)" maxlength="17">
+      <button class="btn-primary" id="saveCar" type="button">Добави кола</button>
+    </div>
+    <div class="form-msg" id="addMsg"></div>
+  </div>
+
+  <div class="panel" id="ioPanel">
+    <div class="panel-row">
+      <button class="btn-secondary" id="exportJson" type="button">Копирай / Покажи JSON</button>
+      <button class="btn-primary" id="importJson" type="button">Импортирай JSON</button>
+    </div>
+    <textarea id="ioArea" placeholder="Тук ще се появи JSON-ът при експорт или постави JSON за импорт..."></textarea>
+    <div class="form-msg" id="ioMsg"></div>
   </div>
 
   <div id="main"></div>
 
-  <div class="footer">Прогресът се пази само в този браузър, за всяка кола поотделно.</div>
+  <div class="footer">Прогресът се пази локално в този браузър, за всяка кола поотделно.</div>
 </div>
 
 <script>
@@ -371,9 +453,11 @@ const STEPS = [
    cmd:'python3 ssh_enable.py enable'},
   {id:'flash', title:'Flash', sub:'записва root ключа — с VIN-а на тази кола',
    body:'Записва root SSH ключа за конкретния автомобил. VIN-ът по-долу е на избраната сега кола.',
+   risk:'Критична стъпка: провери 17-символния VIN преди изпълнение и не прекъсвай захранването или ENET връзката.',
    cmd:v=>`python3 ssh_enable.py flash --vin ${v}`},
   {id:'persist', title:'Persist', sub:'прави промяната трайна',
    body:'Прави root достъпа устойчив на рестарт/ъпдейт на модула.',
+   risk:'Важно: изпълнявай след успешен Flash и изчакай пълното завършване на командата.',
    cmd:'python3 ssh_enable.py persist'},
   {id:'status', title:'Проверка на статус', sub:'потвърждение, че всичко е минало',
    body:'Проверява дали root SSH е активен и устойчив.',
@@ -394,12 +478,35 @@ let openStep = null;
 function esc(v){
   return String(v??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 }
+function normalizeVin(v){
+  return String(v||'').trim().toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g,'');
+}
+function isValidVin(v){
+  return /^[A-HJ-NPR-Z0-9]{17}$/.test(v);
+}
 function save(){
   localStorage.setItem('mgu_cars', JSON.stringify(cars));
   localStorage.setItem('mgu_active', activeVin);
 }
 function car(vin){ return cars.find(c=>c.vin===vin); }
 function progress(c){ return STEPS.filter(s=>c.done&&c.done[s.id]).length; }
+
+function setFlashFeedback(btn, text){
+  if(!btn)return;
+  const orig = btn.textContent;
+  btn.classList.add('copied');
+  btn.textContent = text;
+  setTimeout(()=>{ btn.classList.remove('copied'); btn.textContent = orig; }, 1300);
+}
+
+function writeClipboard(text, btn, okLabel){
+  const done = ()=>setFlashFeedback(btn, okLabel);
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(done).catch(done);
+  }else{
+    done();
+  }
+}
 
 function renderGarage(){
   const g = document.getElementById('garage');
@@ -418,7 +525,11 @@ function renderGarage(){
   add.className = 'add-chip';
   add.textContent = '+';
   add.title = 'Добави автомобил';
-  add.onclick = ()=>document.getElementById('addForm').classList.toggle('open');
+  add.onclick = ()=>{
+    document.getElementById('ioPanel').classList.remove('open');
+    document.getElementById('addForm').classList.toggle('open');
+    document.getElementById('addMsg').textContent = '';
+  };
   g.appendChild(add);
 }
 
@@ -433,13 +544,23 @@ function renderMain(){
   const pct = Math.round(done/STEPS.length*100);
   let html = `
     <div class="cockpit-banner">
-      <div class="car-meta">
-        <div class="car-meta-title">${esc(c.nick)}</div>
-        <div class="vin-badge">VIN · ${esc(c.vin)}</div>
+      <div class="cockpit-top">
+        <div class="car-meta">
+          <div class="car-meta-title">${esc(c.nick)}</div>
+          <div class="vin-line">
+            <span class="vin-badge">VIN · ${esc(c.vin)}</span>
+            <button type="button" class="mini-btn" id="copyVinBtn" onclick="copyVin(event)">Копирай VIN</button>
+          </div>
+        </div>
+        <div class="progresswrap">
+          <div class="track"><i style="width:${pct}%"></i></div>
+          <span class="pct">${done}/${STEPS.length} (${pct}%)</span>
+        </div>
       </div>
-      <div class="progresswrap">
-        <div class="track"><i style="width:${pct}%"></i></div>
-        <span class="pct">${done}/${STEPS.length} (${pct}%)</span>
+      <div class="car-controls">
+        <button type="button" class="btn-secondary" onclick="renameCar()">Преименувай</button>
+        <button type="button" class="btn-secondary" onclick="resetProgress()">Нулирай прогреса</button>
+        <button type="button" class="btn-danger" onclick="deleteCar()">Изтрий колата</button>
       </div>
     </div>
     <div class="steps">`;
@@ -456,6 +577,7 @@ function renderMain(){
       </div>
       <div class="step-body">
         <p>${esc(s.body)}</p>
+        ${s.risk?`<div class="risk-note"><strong>Внимание:</strong> ${esc(s.risk)}</div>`:''}
         ${cmdText?`<div class="cmdrow"><div class="cmd">${esc(cmdText)}</div><button type="button" class="copybtn" onclick="copyCmd(event,'${esc(s.id)}')">Копирай</button></div>`:''}
         <button type="button" class="markbtn" onclick="toggleDone(event,'${esc(s.id)}')">${isDone?'Отбелязано като готово':'Маркирай като готово'}</button>
       </div>
@@ -477,37 +599,126 @@ function toggleDone(e,id){
   save();
   renderAll();
 }
+function copyVin(e){
+  e.stopPropagation();
+  const c = car(activeVin);
+  if(!c)return;
+  writeClipboard(c.vin, e.currentTarget, 'Копирано');
+}
 function copyCmd(e,id){
   e.stopPropagation();
   const s = STEPS.find(x=>x.id===id);
   const c = car(activeVin);
   if(!s||!c)return;
   const text = typeof s.cmd==='function' ? s.cmd(c.vin) : s.cmd;
-  const btn = e.currentTarget;
-  const done = ()=>{
-    btn.classList.add('copied');
-    btn.textContent='Копирано';
-    setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Копирай';},1300);
-  };
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(done).catch(done);
-  }else{
-    done();
-  }
+  writeClipboard(text, e.currentTarget, 'Копирано');
+}
+function renameCar(){
+  const c = car(activeVin);
+  if(!c)return;
+  const next = prompt('Ново име за колата:', c.nick);
+  if(next === null)return;
+  const trimmed = next.trim();
+  if(!trimmed)return;
+  c.nick = trimmed.slice(0,30);
+  save();
+  renderAll();
+}
+function resetProgress(){
+  const c = car(activeVin);
+  if(!c)return;
+  if(!confirm(`Да нулирам ли отметките за ${c.nick} (${c.vin})?`))return;
+  c.done = {};
+  save();
+  renderAll();
+}
+function deleteCar(){
+  const c = car(activeVin);
+  if(!c)return;
+  if(!confirm(`Да изтрия ли ${c.nick} (${c.vin}) от гаража?`))return;
+  cars = cars.filter(x=>x.vin!==c.vin);
+  activeVin = cars.length ? cars[0].vin : '';
+  openStep = null;
+  save();
+  renderAll();
 }
 
 document.getElementById('saveCar').onclick = ()=>{
   const nick = document.getElementById('newNick').value.trim() || 'BMW G20';
-  const vin = document.getElementById('newVin').value.trim().toUpperCase();
-  if(vin.length < 5){ return; }
-  if(!car(vin)){ cars.push({vin, nick, done:{}}); }
+  const vin = normalizeVin(document.getElementById('newVin').value);
+  const msg = document.getElementById('addMsg');
+  if(!isValidVin(vin)){
+    msg.className = 'form-msg';
+    msg.textContent = 'VIN трябва да е точно 17 символа (латински букви без I, O, Q и цифри).';
+    return;
+  }
+  if(!car(vin)){
+    cars.push({vin, nick, done:{}});
+  }else{
+    car(vin).nick = nick;
+  }
   activeVin = vin;
   openStep = null;
+  msg.textContent = '';
   document.getElementById('newNick').value='';
   document.getElementById('newVin').value='';
   document.getElementById('addForm').classList.remove('open');
   save();
   renderAll();
+};
+
+document.getElementById('ioBtn').onclick = ()=>{
+  document.getElementById('addForm').classList.remove('open');
+  document.getElementById('ioPanel').classList.toggle('open');
+  document.getElementById('ioMsg').textContent = '';
+};
+
+document.getElementById('exportJson').onclick = (e)=>{
+  const payload = JSON.stringify({cars, activeVin}, null, 2);
+  const area = document.getElementById('ioArea');
+  area.value = payload;
+  writeClipboard(payload, e.currentTarget, 'Копирано');
+  const msg = document.getElementById('ioMsg');
+  msg.className = 'form-msg ok';
+  msg.textContent = 'JSON данните са показани и копирани.';
+};
+
+document.getElementById('importJson').onclick = ()=>{
+  const area = document.getElementById('ioArea');
+  const msg = document.getElementById('ioMsg');
+  try{
+    const parsed = JSON.parse(area.value);
+    const list = Array.isArray(parsed) ? parsed : parsed.cars;
+    if(!Array.isArray(list))throw new Error('invalid');
+    const cleaned = [];
+    for(const item of list){
+      const v = normalizeVin(item.vin);
+      if(!isValidVin(v))continue;
+      const doneObj = {};
+      if(item.done && typeof item.done === 'object'){
+        for(const s of STEPS){
+          if(item.done[s.id])doneObj[s.id] = true;
+        }
+      }
+      cleaned.push({
+        vin: v,
+        nick: String(item.nick || 'BMW G20').trim().slice(0,30) || 'BMW G20',
+        done: doneObj
+      });
+    }
+    if(!cleaned.length)throw new Error('empty');
+    cars = cleaned;
+    const requestedActive = normalizeVin(parsed.activeVin);
+    activeVin = car(requestedActive) ? requestedActive : cars[0].vin;
+    openStep = null;
+    save();
+    renderAll();
+    msg.className = 'form-msg ok';
+    msg.textContent = `Импортирани са ${cars.length} автомобила.`;
+  }catch(_){
+    msg.className = 'form-msg';
+    msg.textContent = 'Невалиден JSON или липсва валиден 17-символен VIN.';
+  }
 };
 
 document.getElementById('themeBtn').onclick = ()=>{
