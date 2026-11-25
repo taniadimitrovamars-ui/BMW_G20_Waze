@@ -4,7 +4,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 1.3
+   Version: 1.4
 ========================================== */
 
 import { createClient } from
@@ -102,7 +102,7 @@ function createInterface() {
 
   panel.innerHTML = `
     <div class="section-title">
-      CLOUD SYNC · M-GARAGE PRO 1.3
+      CLOUD SYNC · M-GARAGE PRO 1.4
     </div>
 
     <div class="backup-info">
@@ -201,11 +201,39 @@ function createInterface() {
       Данните се съхраняват локално.
     </div>
 
-    <div style="
-      border-top:1px solid var(--border,rgba(128,128,128,.2));
-      margin-top:18px;
-      padding-top:16px;
-    ">
+    <div class="cloud-section">
+
+      <div class="section-title">
+        УПРАВЛЕНИЕ НА УСТРОЙСТВАТА
+      </div>
+
+      <div class="backup-info">
+        Устройства, които са използвали този Cloud профил
+        за синхронизация.
+      </div>
+
+      <div class="device-summary" id="deviceSummary">
+        Все още няма регистрирани устройства.
+      </div>
+
+      <button
+        class="btn-secondary"
+        id="cloudDevicesRefresh"
+        type="button"
+        style="width:100%;margin:10px 0"
+      >
+        ↻ Обнови устройствата
+      </button>
+
+      <div id="cloudDevicesStatus" class="form-msg">
+        Списъкът ще се зареди след вход.
+      </div>
+
+      <div id="cloudDevicesList"></div>
+
+    </div>
+
+    <div class="cloud-section">
 
       <div class="section-title">
         ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ
@@ -234,7 +262,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 1.3 · CLOUD DASHBOARD
+      M-GARAGE PRO 1.4 · CLOUD DASHBOARD
     </div>
   `;
 
@@ -274,6 +302,69 @@ function createInterface() {
     .cloud-value.small {
       font-size:12px;
       line-height:1.5;
+    }
+
+    .cloud-section {
+      border-top:1px solid var(--border,rgba(128,128,128,.2));
+      margin-top:18px;
+      padding-top:16px;
+    }
+
+    .device-summary {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin:12px 0;
+    }
+
+    .device-stat {
+      background:var(--card,rgba(128,128,128,.08));
+      border:1px solid var(--border,rgba(128,128,128,.2));
+      border-radius:10px;
+      padding:11px;
+    }
+
+    .device-stat-label {
+      font-size:11px;
+      opacity:.7;
+      margin-bottom:5px;
+    }
+
+    .device-stat-value {
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .device-item {
+      border:1px solid var(--border,rgba(128,128,128,.2));
+      background:var(--card,rgba(128,128,128,.06));
+      border-radius:12px;
+      padding:13px;
+      margin:9px 0;
+    }
+
+    .device-heading {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .device-current {
+      color:#16a34a;
+      font-size:11px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .device-meta {
+      opacity:.7;
+      font-size:12px;
+      line-height:1.7;
+      margin-top:8px;
+      overflow-wrap:anywhere;
     }
 
     .history-item {
@@ -438,6 +529,12 @@ function setHistoryStatus(message) {
   if (element) element.textContent = message;
 }
 
+function setDevicesStatus(message) {
+  const element = $("cloudDevicesStatus");
+
+  if (element) element.textContent = message;
+}
+
 function setBusy(busy) {
   [
     "cloudLogin",
@@ -445,7 +542,8 @@ function setBusy(busy) {
     "cloudSync",
     "cloudLogout",
     "cloudRetry",
-    "cloudHistoryRefresh"
+    "cloudHistoryRefresh",
+    "cloudDevicesRefresh"
   ].forEach(id => {
     const button = $(id);
 
@@ -711,6 +809,7 @@ function showAuthenticated(user) {
   status("Cloud Sync е активен.");
 
   loadHistory();
+  loadDevices();
 }
 
 function showLoggedOut() {
@@ -722,8 +821,12 @@ function showLoggedOut() {
   userStatus("Не си влязъл в Cloud Sync.");
 
   setHistoryStatus("Влез в профила си, за да видиш историята.");
+  setDevicesStatus("Влез в профила си, за да видиш устройствата.");
 
   $("cloudHistoryList").replaceChildren();
+  $("cloudDevicesList").replaceChildren();
+  $("deviceSummary").textContent =
+    "Все още няма регистрирани устройства.";
 
   status("Локалните данни са налични.");
 }
@@ -1053,6 +1156,7 @@ async function writeHistory(
     .insert({
       user_id: userId,
       device_id: DEVICE_ID,
+      device_name: getDeviceName(),
       result,
       cars_count: carsCount,
       changes_count: changesCount,
@@ -1096,9 +1200,10 @@ function renderHistory(items) {
 
     const device = document.createElement("span");
     device.textContent =
-      item.device_id === DEVICE_ID
+      item.device_name ||
+      (item.device_id === DEVICE_ID
         ? getDeviceName()
-        : "Друго устройство";
+        : "Стар запис");
 
     heading.append(result, device);
 
@@ -1137,7 +1242,7 @@ async function loadHistory() {
     const { data, error } = await supabase
       .from("sync_history")
       .select(
-        "id, device_id, result, cars_count, changes_count, error_message, created_at"
+        "id, device_id, device_name, result, cars_count, changes_count, error_message, created_at"
       )
       .eq("user_id", currentUser.id)
       .order("created_at", { ascending: false })
@@ -1152,6 +1257,215 @@ async function loadHistory() {
 
     setHistoryStatus(
       "Историята не може да бъде заредена: " + error.message
+    );
+  }
+}
+
+/* ==========================================
+   DEVICE MANAGEMENT
+========================================== */
+
+function renderDeviceSummary(devices) {
+  const container = $("deviceSummary");
+
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const total = devices.length;
+
+  const active = devices.filter(device =>
+    device.device_id === DEVICE_ID
+  ).length;
+
+  const successful = devices.reduce(
+    (sum, device) => sum + device.successCount,
+    0
+  );
+
+  const failed = devices.reduce(
+    (sum, device) => sum + device.errorCount,
+    0
+  );
+
+  const stats = [
+    ["УСТРОЙСТВА", total],
+    ["ТЕКУЩО УСТРОЙСТВО", active],
+    ["УСПЕШНИ СИНХРОНИЗАЦИИ", successful],
+    ["НЕУСПЕШНИ СИНХРОНИЗАЦИИ", failed]
+  ];
+
+  stats.forEach(([label, value]) => {
+    const card = document.createElement("div");
+    card.className = "device-stat";
+
+    const title = document.createElement("div");
+    title.className = "device-stat-label";
+    title.textContent = label;
+
+    const number = document.createElement("div");
+    number.className = "device-stat-value";
+    number.textContent = String(value);
+
+    card.append(title, number);
+    container.append(card);
+  });
+}
+
+function renderDevices(items) {
+  const container = $("cloudDevicesList");
+
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const deviceMap = new Map();
+
+  items.forEach(item => {
+    if (!item.device_id) return;
+
+    let device = deviceMap.get(item.device_id);
+
+    if (!device) {
+      device = {
+        device_id: item.device_id,
+        device_name: item.device_name || "Старо устройство",
+        lastSeen: item.created_at,
+        lastResult: item.result,
+        totalCount: 0,
+        successCount: 0,
+        errorCount: 0
+      };
+
+      deviceMap.set(item.device_id, device);
+    }
+
+    device.totalCount++;
+
+    if (item.result === "success") {
+      device.successCount++;
+    } else if (item.result === "error") {
+      device.errorCount++;
+    }
+
+    if (
+      new Date(item.created_at).getTime() >
+      new Date(device.lastSeen).getTime()
+    ) {
+      device.lastSeen = item.created_at;
+      device.lastResult = item.result;
+
+      if (item.device_name) {
+        device.device_name = item.device_name;
+      }
+    }
+  });
+
+  const devices = Array.from(deviceMap.values()).sort(
+    (a, b) =>
+      new Date(b.lastSeen).getTime() -
+      new Date(a.lastSeen).getTime()
+  );
+
+  renderDeviceSummary(devices);
+
+  if (!devices.length) {
+    container.textContent =
+      "Все още няма регистрирани устройства.";
+    setDevicesStatus("Няма намерени записи.");
+    return;
+  }
+
+  devices.forEach(device => {
+    const card = document.createElement("div");
+    card.className = "device-item";
+
+    const heading = document.createElement("div");
+    heading.className = "device-heading";
+
+    const name = document.createElement("span");
+    name.textContent = device.device_name;
+
+    const current = document.createElement("span");
+
+    if (device.device_id === DEVICE_ID) {
+      current.className = "device-current";
+      current.textContent = "ТЕКУЩО";
+    } else {
+      current.textContent = "";
+    }
+
+    heading.append(name, current);
+
+    const meta = document.createElement("div");
+    meta.className = "device-meta";
+
+    const statusText =
+      device.lastResult === "success"
+        ? "✓ Успешна"
+        : "✕ Неуспешна";
+
+    meta.textContent =
+      "Последна активност: " + formatDate(device.lastSeen) +
+      "\nПоследен резултат: " + statusText +
+      "\nОбщо синхронизации: " + device.totalCount +
+      "\nУспешни: " + device.successCount +
+      " · Неуспешни: " + device.errorCount +
+      "\nID: " + device.device_id;
+
+    card.append(heading, meta);
+    container.append(card);
+  });
+
+  setDevicesStatus(
+    "Намерени устройства: " + devices.length +
+    ". Данните са обобщени от записите в историята."
+  );
+}
+
+async function loadDevices() {
+  if (!currentUser) {
+    setDevicesStatus("Влез в профила си, за да видиш устройствата.");
+    return;
+  }
+
+  setDevicesStatus("Зареждане на устройствата...");
+
+  try {
+    const allItems = [];
+    const pageSize = 1000;
+    let offset = 0;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("sync_history")
+        .select(
+          "id, device_id, device_name, result, created_at"
+        )
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(offset, offset + pageSize - 1);
+
+      if (error) throw error;
+
+      if (data && data.length) {
+        allItems.push(...data);
+      }
+
+      if (!data || data.length < pageSize) break;
+
+      offset += pageSize;
+    }
+
+    renderDevices(allItems);
+
+  } catch (error) {
+    console.error("M-GARAGE DEVICES:", error);
+
+    setDevicesStatus(
+      "Устройствата не могат да бъдат заредени: " +
+      error.message
     );
   }
 }
@@ -1249,6 +1563,8 @@ async function syncNow() {
       );
 
       await loadHistory();
+      await loadDevices();
+
     } catch (historyError) {
       console.error("M-GARAGE HISTORY WRITE:", historyError);
       historyMessage = " Историята не можа да бъде записана.";
@@ -1282,6 +1598,8 @@ async function syncNow() {
         );
 
         await loadHistory();
+        await loadDevices();
+
       } catch (historyError) {
         console.error(
           "M-GARAGE HISTORY ERROR:",
@@ -1370,6 +1688,7 @@ $("cloudLogout").addEventListener("click", logout);
 $("cloudSync").addEventListener("click", syncNow);
 $("cloudRetry").addEventListener("click", syncNow);
 $("cloudHistoryRefresh").addEventListener("click", loadHistory);
+$("cloudDevicesRefresh").addEventListener("click", loadDevices);
 
 /* ==========================================
    AUTH STATE
