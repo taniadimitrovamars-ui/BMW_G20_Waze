@@ -20,6 +20,7 @@ const CORE_ASSETS = [
 const OPTIONAL_ASSETS = [
   "./manifest.json",
   "./favicon.ico",
+  "./cloud-sync.js",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
