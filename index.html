@@ -1,119 +1,341 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Работилница · MGU Root</title>
+<title>M PERFORMANCE · MGU Root</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#161a1f">
+<meta name="theme-color" content="#070b14">
 <style>
 :root{
-  --bg:#f3f1ec; --surface:#ffffff; --surface-2:#eae7df; --border:#d8d4c8;
-  --ink:#1c1b18; --ink-dim:#6b6757;
-  --accent:#b5651d; --accent-ink:#ffffff;
-  --done:#2f6e4e; --done-bg:#e3eee6;
-  --warn:#9a5b12; --warn-bg:#f3e6d2;
+  --bg:#070b14;
+  --surface:#0e1524;
+  --surface-2:#141e33;
+  --border:#23324d;
+  --ink:#f1f5f9;
+  --ink-dim:#8fa1bc;
+  --m-blue:#0066b1;
+  --m-sky:#38bdf8;
+  --m-red:#e11d48;
+  --accent:#38bdf8;
+  --accent-ink:#05101d;
+  --done:#10b981;
+  --done-bg:#0d2b24;
+  --warn:#f59e0b;
+  --warn-bg:#291d08;
+  --cmd-bg:#050811;
+  --cmd-ink:#bae6fd;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#15171a; --surface:#1d2024; --surface-2:#24282d; --border:#32373d;
-    --ink:#e9e7e0; --ink-dim:#959183;
-    --accent:#d98a3d; --accent-ink:#1a1206;
-    --done:#6fd39c; --done-bg:#1c3029;
-    --warn:#e3b05c; --warn-bg:#352a15;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#15171a; --surface:#1d2024; --surface-2:#24282d; --border:#32373d;
-  --ink:#e9e7e0; --ink-dim:#959183;
-  --accent:#d98a3d; --accent-ink:#1a1206;
-  --done:#6fd39c; --done-bg:#1c3029;
-  --warn:#e3b05c; --warn-bg:#352a15;
   color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --bg:#eef2f7;
+  --surface:#ffffff;
+  --surface-2:#e2e8f0;
+  --border:#cbd5e1;
+  --ink:#0f172a;
+  --ink-dim:#475569;
+  --accent:#0066b1;
+  --accent-ink:#ffffff;
+  --done:#059669;
+  --done-bg:#d1fae5;
+  --warn:#b45309;
+  --warn-bg:#fef3c7;
+  --cmd-bg:#0b1120;
+  --cmd-ink:#e0f2fe;
+  color-scheme: light;
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
 body{
-  margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  margin:0;
+  background:
+    radial-gradient(circle at 12% 0%, #0066b12b, transparent 38%),
+    radial-gradient(circle at 88% 4%, #e11d481c, transparent 35%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
   -webkit-font-smoothing:antialiased;
 }
 .topbar{
-  display:flex; align-items:baseline; gap:.6rem; justify-content:space-between;
-  padding:1.1rem 1.1rem .9rem; border-bottom:1px solid var(--border);
-  position:sticky; top:0; background:var(--bg); z-index:5;
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:.75rem 1rem;
 }
-.topbar::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10;}
-h1{font-size:1.05rem; margin:0; font-weight:650; letter-spacing:.01em;}
-h1 span{color:var(--ink-dim); font-weight:450;}
-.themebtn{border:1px solid var(--border); background:var(--surface); color:var(--ink-dim); border-radius:8px; width:34px; height:34px; font-size:.95rem; cursor:pointer;}
-.layout{max-width:920px; margin:0 auto; padding:0 1.1rem 3rem; display:flex; flex-direction:column; gap:1.1rem;}
+.topbar::before{
+  content:"";
+  position:fixed;
+  inset:0 0 auto;
+  height:env(safe-area-inset-top,0px);
+  background:var(--bg);
+  z-index:12;
+}
+.topbar::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:2px;
+  background:linear-gradient(90deg, var(--m-blue) 0%, var(--m-sky) 50%, var(--m-red) 100%);
+}
+.topbar-inner{
+  max-width:940px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+}
+.brand{display:flex;align-items:center;gap:.75rem;min-width:0;}
+.m-stripes{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  height:28px;
+  padding:4px 6px;
+  border-radius:8px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  transform:skewX(-14deg);
+  flex:0 0 auto;
+}
+.m-stripes i{display:block;width:4px;height:100%;border-radius:1px;}
+.m-stripes .s1{background:#0066b1;}
+.m-stripes .s2{background:#38bdf8;}
+.m-stripes .s3{background:#e11d48;}
+h1{font-size:1rem;margin:0;font-weight:750;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
+h1 span{color:var(--m-sky);font-weight:600;}
+.sub-tag{font-size:.72rem;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase;}
+.themebtn{
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--ink);
+  border-radius:10px;
+  width:36px;
+  height:36px;
+  font-size:1rem;
+  cursor:pointer;
+  flex:0 0 auto;
+}
+.themebtn:hover{border-color:var(--m-sky);}
 
-/* garage / car switcher */
-.garage{display:flex; gap:.5rem; overflow-x:auto; padding:1rem 0 .2rem; -webkit-overflow-scrolling:touch;}
+.layout{max-width:940px;margin:0 auto;padding:1rem 1rem 3.5rem;display:flex;flex-direction:column;gap:1rem;}
+
+.rules{
+  background:var(--warn-bg);
+  border:1px solid color-mix(in srgb, var(--warn) 50%, transparent);
+  border-left:4px solid var(--warn);
+  border-radius:12px;
+  padding:.85rem 1rem;
+  font-size:.85rem;
+}
+.rules summary{cursor:pointer;font-weight:700;color:var(--warn);}
+.rules ul{margin:.6rem 0 0;padding-left:1.15rem;line-height:1.55;}
+
+.garage{display:flex;gap:.55rem;overflow-x:auto;padding:.15rem 0 .25rem;-webkit-overflow-scrolling:touch;}
 .car-chip{
-  flex:0 0 auto; border:1px solid var(--border); background:var(--surface); border-radius:11px;
-  padding:.55rem .8rem; cursor:pointer; min-width:132px; text-align:left;
+  flex:0 0 auto;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--ink);
+  border-radius:12px;
+  padding:.6rem .85rem;
+  cursor:pointer;
+  min-width:154px;
+  text-align:left;
+  transition:border-color .15s, transform .15s;
 }
-.car-chip.active{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent);}
-.car-chip .nick{font-weight:600; font-size:.92rem; display:block;}
-.car-chip .vin{font-family:var(--mono); font-size:.68rem; color:var(--ink-dim); display:block; margin-top:.15rem;}
-.car-chip .bar{height:3px; background:var(--surface-2); border-radius:2px; margin-top:.5rem; overflow:hidden;}
-.car-chip .bar i{display:block; height:100%; background:var(--accent);}
-.add-chip{flex:0 0 auto; border:1px dashed var(--border); background:transparent; color:var(--ink-dim); border-radius:11px; min-width:84px; cursor:pointer; font-size:1.3rem;}
+.car-chip:hover{border-color:var(--m-sky);}
+.car-chip.active{
+  border-color:var(--m-sky);
+  background:linear-gradient(165deg, color-mix(in srgb, var(--m-blue) 22%, var(--surface)), var(--surface));
+  box-shadow:0 4px 16px #00000055, inset 0 0 0 1px color-mix(in srgb, var(--m-sky) 45%, transparent);
+}
+.car-chip .nick{font-weight:700;font-size:.92rem;display:block;}
+.car-chip .vin{font-family:var(--mono);font-size:.7rem;color:var(--ink-dim);display:block;margin-top:.2rem;letter-spacing:.04em;}
+.car-chip .bar{height:4px;background:var(--surface-2);border-radius:99px;margin-top:.55rem;overflow:hidden;}
+.car-chip .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--m-blue),var(--m-sky));}
+.add-chip{
+  flex:0 0 auto;
+  border:1px dashed var(--border);
+  background:transparent;
+  color:var(--ink-dim);
+  border-radius:12px;
+  min-width:68px;
+  cursor:pointer;
+  font-size:1.35rem;
+}
+.add-chip:hover{border-color:var(--m-sky);color:var(--m-sky);}
 
-.addform{display:none; gap:.5rem; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.9rem;}
+.addform{
+  display:none;
+  gap:.55rem;
+  flex-wrap:wrap;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:.9rem;
+}
 .addform.open{display:flex;}
-.addform input{flex:1 1 160px; background:var(--surface-2); border:1px solid var(--border); color:var(--ink); border-radius:8px; padding:.55rem .7rem; font-size:.9rem; font-family:var(--sans);}
-.addform input.vin{font-family:var(--mono); text-transform:uppercase;}
-.addform button{border:none; background:var(--accent); color:var(--accent-ink); border-radius:8px; padding:.55rem 1rem; font-weight:600; cursor:pointer;}
+.addform input{
+  flex:1 1 170px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  border-radius:10px;
+  padding:.6rem .75rem;
+  font-size:.9rem;
+  font-family:var(--sans);
+}
+.addform input.vin{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;}
+.addform button{
+  border:none;
+  background:linear-gradient(135deg,var(--m-blue),var(--m-sky));
+  color:#ffffff;
+  border-radius:10px;
+  padding:.6rem 1.05rem;
+  font-weight:700;
+  cursor:pointer;
+}
 
-.empty{color:var(--ink-dim); font-size:.92rem; padding:1.5rem 0; text-align:center;}
+.cockpit-banner{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:.85rem 1rem;
+}
+.car-meta{display:flex;flex-direction:column;gap:.2rem;min-width:0;}
+.car-meta-title{font-weight:750;font-size:1rem;}
+.vin-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  font-family:var(--mono);
+  font-size:.76rem;
+  color:var(--m-sky);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.25rem .55rem;
+  letter-spacing:.06em;
+  width:fit-content;
+}
 
-.rules{background:var(--warn-bg); border:1px solid color-mix(in srgb, var(--warn) 45%, transparent); border-radius:12px; padding:.9rem 1rem; font-size:.85rem; color:var(--ink);}
-.rules summary{cursor:pointer; font-weight:650; color:var(--warn);}
-.rules ul{margin:.6rem 0 0; padding-left:1.1rem; line-height:1.55;}
+.empty{color:var(--ink-dim);font-size:.92rem;padding:1.8rem 1rem;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
 
-.progresswrap{display:flex; align-items:center; gap:.7rem;}
-.progresswrap .track{flex:1; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
-.progresswrap .track i{display:block; height:100%; background:var(--done); transition:width .25s;}
-.progresswrap .pct{font-family:var(--mono); font-size:.8rem; color:var(--ink-dim); white-space:nowrap;}
+.progresswrap{display:flex;align-items:center;gap:.75rem;flex:1 1 240px;max-width:380px;}
+.progresswrap .track{flex:1;height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;}
+.progresswrap .track i{display:block;height:100%;background:linear-gradient(90deg,var(--m-blue),var(--done));transition:width .25s;}
+.progresswrap .pct{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--ink-dim);white-space:nowrap;}
 
-.steps{display:flex; flex-direction:column; gap:.6rem;}
-.step{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.9rem 1rem;}
-.step.done{border-color:color-mix(in srgb, var(--done) 50%, var(--border));}
-.step-head{display:flex; align-items:flex-start; gap:.7rem; cursor:pointer;}
-.num{flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--surface-2); color:var(--ink-dim); font-family:var(--mono); font-size:.78rem; display:flex; align-items:center; justify-content:center;}
-.step.done .num{background:var(--done-bg); color:var(--done);}
-.step-title{flex:1; font-weight:600; font-size:.93rem; line-height:1.35; padding-top:.1rem;}
-.step-sub{color:var(--ink-dim); font-weight:450; font-size:.82rem; display:block; margin-top:.15rem;}
-.chev{color:var(--ink-dim); font-size:.8rem; padding-top:.3rem; transition:transform .15s;}
-.step.open .chev{transform:rotate(90deg);}
-.step-body{display:none; padding-top:.8rem; margin-top:.6rem; border-top:1px solid var(--border);}
+.steps{display:flex;flex-direction:column;gap:.65rem;}
+.step{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:3px solid var(--m-blue);
+  border-radius:12px;
+  padding:.9rem 1rem;
+  transition:border-color .15s;
+}
+.step.open{border-color:color-mix(in srgb, var(--m-sky) 60%, var(--border));border-left-color:var(--m-sky);}
+.step.done{border-color:color-mix(in srgb, var(--done) 45%, var(--border));border-left-color:var(--done);}
+.step-head{display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;}
+.num{
+  flex:0 0 auto;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--m-sky);
+  font-family:var(--mono);
+  font-size:.8rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.step.done .num{background:var(--done-bg);border-color:transparent;color:var(--done);}
+.step-title{flex:1;font-weight:650;font-size:.94rem;line-height:1.35;padding-top:.12rem;}
+.step-sub{color:var(--ink-dim);font-weight:450;font-size:.82rem;display:block;margin-top:.15rem;}
+.chev{color:var(--ink-dim);font-size:.95rem;padding-top:.2rem;transition:transform .15s;}
+.step.open .chev{transform:rotate(90deg);color:var(--m-sky);}
+.step-body{display:none;padding-top:.85rem;margin-top:.65rem;border-top:1px solid var(--border);}
 .step.open .step-body{display:block;}
-.step-body p{font-size:.85rem; line-height:1.55; margin:0 0 .7rem; color:var(--ink);}
-.cmd{background:#0e0f11; color:#d9f0e2; font-family:var(--mono); font-size:.78rem; border-radius:9px; padding:.7rem .8rem; position:relative; overflow-x:auto; white-space:pre;}
-.cmdrow{display:flex; gap:.5rem; align-items:stretch; margin-bottom:.6rem;}
+.step-body p{font-size:.86rem;line-height:1.55;margin:0 0 .75rem;color:var(--ink);}
+.cmd{
+  background:var(--cmd-bg);
+  color:var(--cmd-ink);
+  border:1px solid var(--border);
+  font-family:var(--mono);
+  font-size:.78rem;
+  border-radius:10px;
+  padding:.72rem .85rem;
+  overflow-x:auto;
+  white-space:pre;
+}
+.cmdrow{display:flex;gap:.5rem;align-items:stretch;margin-bottom:.65rem;}
 .cmdrow .cmd{flex:1;}
-.copybtn{border:1px solid var(--border); background:var(--surface-2); color:var(--ink); border-radius:9px; padding:0 .7rem; font-size:.78rem; cursor:pointer; white-space:nowrap;}
-.copybtn.copied{background:var(--done-bg); color:var(--done); border-color:transparent;}
-.markbtn{border:1px solid var(--border); background:transparent; color:var(--ink-dim); border-radius:8px; padding:.45rem .8rem; font-size:.82rem; cursor:pointer; font-weight:600;}
-.step.done .markbtn{background:var(--done-bg); color:var(--done); border-color:transparent;}
-.footer{color:var(--ink-dim); font-size:.76rem; text-align:center; padding-top:.5rem;}
+.copybtn{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  border-radius:10px;
+  padding:0 .75rem;
+  font-size:.78rem;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.copybtn:hover{border-color:var(--m-sky);}
+.copybtn.copied{background:var(--done-bg);color:var(--done);border-color:transparent;}
+.markbtn{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  border-radius:9px;
+  padding:.5rem .85rem;
+  font-size:.82rem;
+  cursor:pointer;
+  font-weight:650;
+}
+.markbtn:hover{border-color:var(--m-sky);}
+.step.done .markbtn{background:var(--done-bg);color:var(--done);border-color:transparent;}
+.footer{color:var(--ink-dim);font-size:.76rem;text-align:center;padding-top:.5rem;}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <h1>Работилница <span>· MGU root &amp; store</span></h1>
-  <button class="themebtn" id="themeBtn" title="Смяна на тема">◐</button>
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="m-stripes" aria-hidden="true">
+        <i class="s1"></i>
+        <i class="s2"></i>
+        <i class="s3"></i>
+      </div>
+      <div>
+        <h1>M-GARAGE <span>· MGU ROOT</span></h1>
+        <div class="sub-tag">ID7 / ID8 SSH &amp; STORE</div>
+      </div>
+    </div>
+    <button class="themebtn" id="themeBtn" title="Смяна на тема">◐</button>
+  </div>
 </div>
 
 <div class="layout">
-
   <details class="rules">
     <summary>Преди да започнеш — 4 правила</summary>
     <ul>
@@ -127,9 +349,9 @@ h1 span{color:var(--ink-dim); font-weight:450;}
   <div class="garage" id="garage"></div>
 
   <div class="addform" id="addForm">
-    <input class="nick" id="newNick" placeholder="Име (напр. Моето 330i)" maxlength="30">
+    <input class="nick" id="newNick" placeholder="Име (напр. 330i xDrive)" maxlength="30">
     <input class="vin" id="newVin" placeholder="VIN (17 знака)" maxlength="17">
-    <button id="saveCar">Добави кола</button>
+    <button id="saveCar" type="button">Добави кола</button>
   </div>
 
   <div id="main"></div>
@@ -158,7 +380,7 @@ const STEPS = [
    cmd:'python3 ssh_enable.py status'},
   {id:'key', title:'Ключ за SSH достъп', sub:'копира ключа локално',
    body:'Взима генерирания ключ, за да може Mac-ът да се логва по SSH без парола.',
-   cmd:v=>`ssh && cp data/enrollments/${v}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key`},
+   cmd:v=>`mkdir -p ~/.ssh && cp data/enrollments/${v}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key`},
   {id:'store', title:'Инсталирай mgu-store и Waze', sub:'приложения на централния екран и клъстера',
    body:'През mgu-store инсталирай желаните приложения, вкл. Waze за показване на клъстера.'},
   {id:'recode', title:'Прекодирай Headunit-а', sub:'връща Sport+ и другите кодирания',
@@ -169,9 +391,15 @@ let cars = JSON.parse(localStorage.getItem('mgu_cars')||'[]');
 let activeVin = localStorage.getItem('mgu_active')||'';
 let openStep = null;
 
-function save(){ localStorage.setItem('mgu_cars', JSON.stringify(cars)); localStorage.setItem('mgu_active', activeVin); }
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+}
+function save(){
+  localStorage.setItem('mgu_cars', JSON.stringify(cars));
+  localStorage.setItem('mgu_active', activeVin);
+}
 function car(vin){ return cars.find(c=>c.vin===vin); }
-function progress(c){ return STEPS.filter(s=>c.done[s.id]).length; }
+function progress(c){ return STEPS.filter(s=>c.done&&c.done[s.id]).length; }
 
 function renderGarage(){
   const g = document.getElementById('garage');
@@ -179,13 +407,17 @@ function renderGarage(){
   cars.forEach(c=>{
     const pct = Math.round(progress(c)/STEPS.length*100);
     const b = document.createElement('button');
+    b.type = 'button';
     b.className = 'car-chip' + (c.vin===activeVin?' active':'');
-    b.innerHTML = `<span class="nick">${c.nick}</span><span class="vin">${c.vin}</span><div class="bar"><i style="width:${pct}%"></i></div>`;
+    b.innerHTML = `<span class="nick">${esc(c.nick)}</span><span class="vin">${esc(c.vin)}</span><div class="bar"><i style="width:${pct}%"></i></div>`;
     b.onclick = ()=>{ activeVin=c.vin; openStep=null; save(); renderAll(); };
     g.appendChild(b);
   });
   const add = document.createElement('button');
-  add.className='add-chip'; add.textContent='+';
+  add.type = 'button';
+  add.className = 'add-chip';
+  add.textContent = '+';
+  add.title = 'Добави автомобил';
   add.onclick = ()=>document.getElementById('addForm').classList.toggle('open');
   g.appendChild(add);
 }
@@ -193,23 +425,39 @@ function renderGarage(){
 function renderMain(){
   const m = document.getElementById('main');
   const c = car(activeVin);
-  if(!c){ m.innerHTML = '<div class="empty">Добави кола, за да започнеш процедурата.</div>'; return; }
-  const done = progress(c), pct = Math.round(done/STEPS.length*100);
-  let html = `<div class="progresswrap"><div class="track"><i style="width:${pct}%"></i></div><span class="pct">${done}/${STEPS.length}</span></div><div class="steps">`;
+  if(!c){
+    m.innerHTML = '<div class="empty">Добави кола с <b>+</b>, за да започнеш процедурата.</div>';
+    return;
+  }
+  const done = progress(c);
+  const pct = Math.round(done/STEPS.length*100);
+  let html = `
+    <div class="cockpit-banner">
+      <div class="car-meta">
+        <div class="car-meta-title">${esc(c.nick)}</div>
+        <div class="vin-badge">VIN · ${esc(c.vin)}</div>
+      </div>
+      <div class="progresswrap">
+        <div class="track"><i style="width:${pct}%"></i></div>
+        <span class="pct">${done}/${STEPS.length} (${pct}%)</span>
+      </div>
+    </div>
+    <div class="steps">`;
+
   STEPS.forEach((s,i)=>{
-    const isDone = !!c.done[s.id];
+    const isDone = !!(c.done&&c.done[s.id]);
     const isOpen = openStep===s.id;
     const cmdText = typeof s.cmd==='function' ? s.cmd(c.vin) : s.cmd;
-    html += `<div class="step ${isDone?'done':''} ${isOpen?'open':''}" data-id="${s.id}">
-      <div class="step-head" onclick="toggleStep('${s.id}')">
+    html += `<div class="step ${isDone?'done':''} ${isOpen?'open':''}" data-id="${esc(s.id)}">
+      <div class="step-head" onclick="toggleStep('${esc(s.id)}')">
         <div class="num">${isDone?'✓':i+1}</div>
-        <div class="step-title">${s.title}<span class="step-sub">${s.sub}</span></div>
+        <div class="step-title">${esc(s.title)}<span class="step-sub">${esc(s.sub)}</span></div>
         <div class="chev">›</div>
       </div>
       <div class="step-body">
-        <p>${s.body}</p>
-        ${cmdText?`<div class="cmdrow"><div class="cmd">${cmdText}</div><button class="copybtn" onclick="copyCmd(event,'${s.id}')">Копирай</button></div>`:''}
-        <button class="markbtn" onclick="toggleDone(event,'${s.id}')">${isDone?'Отбелязано като готово':'Маркирай като готово'}</button>
+        <p>${esc(s.body)}</p>
+        ${cmdText?`<div class="cmdrow"><div class="cmd">${esc(cmdText)}</div><button type="button" class="copybtn" onclick="copyCmd(event,'${esc(s.id)}')">Копирай</button></div>`:''}
+        <button type="button" class="markbtn" onclick="toggleDone(event,'${esc(s.id)}')">${isDone?'Отбелязано като готово':'Маркирай като готово'}</button>
       </div>
     </div>`;
   });
@@ -220,31 +468,52 @@ function renderMain(){
 function renderAll(){ renderGarage(); renderMain(); }
 
 function toggleStep(id){ openStep = openStep===id ? null : id; renderMain(); }
-function toggleDone(e,id){ e.stopPropagation(); const c=car(activeVin); c.done[id]=!c.done[id]; save(); renderMain(); }
+function toggleDone(e,id){
+  e.stopPropagation();
+  const c = car(activeVin);
+  if(!c)return;
+  c.done = c.done || {};
+  c.done[id] = !c.done[id];
+  save();
+  renderAll();
+}
 function copyCmd(e,id){
   e.stopPropagation();
-  const s = STEPS.find(x=>x.id===id); const c = car(activeVin);
+  const s = STEPS.find(x=>x.id===id);
+  const c = car(activeVin);
+  if(!s||!c)return;
   const text = typeof s.cmd==='function' ? s.cmd(c.vin) : s.cmd;
   const btn = e.currentTarget;
-  const done = ()=>{ btn.classList.add('copied'); btn.textContent='Копирано'; setTimeout(()=>{btn.classList.remove('copied'); btn.textContent='Копирай';},1300); };
-  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(done).catch(done); } else { done(); }
+  const done = ()=>{
+    btn.classList.add('copied');
+    btn.textContent='Копирано';
+    setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Копирай';},1300);
+  };
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(done).catch(done);
+  }else{
+    done();
+  }
 }
 
 document.getElementById('saveCar').onclick = ()=>{
-  const nick = document.getElementById('newNick').value.trim() || 'Без име';
+  const nick = document.getElementById('newNick').value.trim() || 'BMW G20';
   const vin = document.getElementById('newVin').value.trim().toUpperCase();
   if(vin.length < 5){ return; }
   if(!car(vin)){ cars.push({vin, nick, done:{}}); }
-  activeVin = vin; openStep=null;
-  document.getElementById('newNick').value=''; document.getElementById('newVin').value='';
+  activeVin = vin;
+  openStep = null;
+  document.getElementById('newNick').value='';
+  document.getElementById('newVin').value='';
   document.getElementById('addForm').classList.remove('open');
-  save(); renderAll();
+  save();
+  renderAll();
 };
 
 document.getElementById('themeBtn').onclick = ()=>{
   const r = document.documentElement;
   const cur = r.getAttribute('data-theme');
-  r.setAttribute('data-theme', cur==='dark' ? 'light' : 'dark');
+  r.setAttribute('data-theme', cur==='light' ? 'dark' : 'light');
 };
 
 if(!activeVin && cars.length){ activeVin = cars[0].vin; }
