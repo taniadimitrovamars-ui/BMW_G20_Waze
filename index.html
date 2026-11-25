@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="G20 Waze" />
+  <title>BMW G20 MGU & Waze Helper</title>
+  <link rel="icon" href="./favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="manifest" href="./manifest.json" />
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #121926;
+      --panel-2: #182234;
+      --border: #26344d;
+      --text: #e6edf7;
+      --muted: #93a4be;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 48px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+      background: rgba(11, 15, 23, 0.9);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .brand p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 210px;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--panel-2);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.25s ease;
+    }
+    .progress-text {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    main {
+      max-width: 1040px;
+      margin: 18px auto 0;
+      padding: 0 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      background: var(--panel);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: var(--panel-2);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card h2, .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 6px 10px;
+      font-size: 13px;
+    }
+    .kv .k { color: var(--muted); }
+    .kv .v { font-family: var(--mono); word-break: break-word; }
+    .rules-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+    }
+    .rules-list li { margin-bottom: 6px; }
+    .rules-list strong { color: var(--warn); }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--panel-2);
+      white-space: nowrap;
+    }
+    .badge.danger {
+      color: #fecaca;
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.14);
+    }
+    .badge.warn {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.5);
+      background: rgba(245, 158, 11, 0.14);
+    }
+    .step-item {
+      border-top: 1px solid rgba(38, 52, 77, 0.65);
+      padding: 12px 0;
+    }
+    .step-item:first-of-type { border-top: none; padding-top: 4px; }
+    .step-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .step-top input[type="checkbox"] {
+      margin-top: 3px;
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent-2);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .step-done .step-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .step-desc {
+      margin: 4px 0 0 27px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .cmd-box {
+      margin: 8px 0 0 27px;
+      background: #070a10;
+      border: 1px solid #2b3b57;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .cmd-box code {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: #fde68a;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .copy-btn, .btn-secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover, .btn-secondary:hover { border-color: var(--accent); }
+    .expected {
+      margin: 8px 0 0 27px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--accent);
+      background: rgba(56, 189, 248, 0.07);
+      border-radius: 0 8px 8px 0;
+      font-size: 12.5px;
+      color: #cbd5e1;
+      white-space: pre-line;
+    }
+    textarea, input[type="text"], input[type="file"] {
+      width: 100%;
+      background: #0b1019;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .file-label:hover { border-color: var(--accent); }
+    .file-label input { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-icon" src="./icons/icon-192.png" alt="G20 Icon" />
+        <div>
+          <h1>BMW G20 330i xDrive — MGU & Waze Helper</h1>
+          <p>Телефон + MacBook чеклист • iDrive 7 (11/2021.61) • ENET / SSH</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-text" id="progressText">0 / 0</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="checklist">Процедура (0–9)</button>
+      <button class="tab-btn" data-tab="overview">Данни и правила</button>
+      <button class="tab-btn" data-tab="coding">Sport+ и бележки</button>
+      <button class="tab-btn" data-tab="troubleshoot">Грешки и възстановяване</button>
+    </div>
+
+    <section id="tab-overview" class="hidden">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Данни за автомобила</h2>
+          <div class="kv">
+            <div class="k">Модел</div><div class="v">BMW G20 330i xDrive (2019)</div>
+            <div class="k">VIN</div><div class="v">WBA5R7C51KAJ84645</div>
+            <div class="k">iDrive / iStep</div><div class="v">11/2021.61 (iStep 21-11)</div>
+            <div class="k">SVK</div><div class="v">BTLD 00003F36_020.014.038<br/>SWFL 020.014.007 (020.014.005)<br/>CAFD 00003E52_008.010.029</div>
+            <div class="k">ENET / MGU IP</div><div class="v">GW: 169.254.57.20 | MGU: 169.254.83.114</div>
+            <div class="k">Root репо</div><div class="v">cauliflowermossgrape/idrive7-8-ssh-root</div>
+            <div class="k">Store / Apps</div><div class="v">robertnisipeanu/mgu-store<br/>robertnisipeanu/idrive-apps</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Златни правила</h2>
+          <ol class="rules-list">
+            <li><strong>flash</strong> се пуска <strong>САМО ВЕДНЪЖ</strong>. Никога втори път „за всеки случай“.</li>
+            <li>При всяка грешка: <strong>спри, направи снимка, не повтаряй</strong>.</li>
+            <li>Зарядно на акумулатора (≥ 13 V) и MacBook на зарядно през цялото време.</li>
+            <li>Не пипай ENET кабела, не гаси колата и не затваряй Terminal по време на флаш и инсталация.</li>
+            <li>Ключовете (<code>data/enrollments/...</code>) пази на <strong>ДВЕ места</strong> и не ги споделяй.</li>
+            <li>Не публикувай логове или снимки с VIN-а.</li>
+            <li>Не форсирай нищо, ако Waze on cluster пише <strong>Not supported</strong>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Бекъп и управление на състоянието</h2>
+        <p style="margin:0 0 8px;font-size:13px;color:var(--muted);">
+          Експортирай или импортирай отметките, Sport+ стойностите и бележките си като JSON файл, за да ги прехвърляш между телефон и MacBook.
+        </p>
+        <div class="actions-row">
+          <button class="btn-secondary" id="exportJsonBtn">Експорт (.json)</button>
+          <label class="file-label">
+            Импорт (.json)
+            <input type="file" id="importJsonInput" accept="application/json,.json" />
+          </label>
+          <button class="btn-danger" id="resetProgressBtn">Нулирай отметките</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-checklist">
+      <div id="phasesContainer"></div>
+    </section>
+
+    <section id="tab-coding" class="hidden">
+      <div class="card">
+        <h2>Sport+ в Headunit (HU_MGU) — след възстановяване</h2>
+        <p style="font-size:13px;color:var(--muted);margin-top:0;">
+          Първо направи нов бекъп в BimmerCode, след това направи <strong>RECOVERY</strong> с бекъпа от първото четене и чак тогава въведи промените.
+        </p>
+        <div class="kv" style="margin-bottom:12px;">
+          <div class="k">HU_MGU → Expert</div><div class="v">3008 FES → FES_SPORT_EXPERT: nicht_aktiv → aktiv</div>
+          <div class="k">Окачване</div><div class="v">SPORT_CONF_ATTENUATION_SPORTPLUS: aktiv</div>
+          <div class="k">Волан</div><div class="v">SPORT_CONF_STEERING_SPORTPLUS: aktiv</div>
+          <div class="k">BDC (провери)</div><div class="v">3221 PfFesMaster → FesSportWorldMode1 → SportExpert</div>
+        </div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">
+          Допълнително кодирани опции в Headunit (записват се автоматично)
+        </label>
+        <textarea id="extraCodingNotes" placeholder="Напиши тук всички други промени в Headunit..."></textarea>
+      </div>
+
+      <div class="card">
+        <h2>Лични бележки и наблюдения по тестовете</h2>
+        <textarea id="generalNotes" placeholder="Бележки за 11/2021.61, BimmerCode, Waze on cluster, поведение след заспиване..."></textarea>
+      </div>
+    </section>
+
+    <section id="tab-troubleshoot" class="hidden">
+      <div class="card">
+        <h2>Чести ситуации и какво да правиш</h2>
+        <div class="step-item">
+          <div class="step-title">Boot loop (лого, черен екран, лого...)</div>
+          <p class="step-desc">Не действай в паника. Виж <code>issue #63</code> в <code>idrive-apps</code> — възстановяването е през root SSH, който се появява за кратки прозорци (~5 сек) на цикъл при свързан ENET и ключ.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-title">OSError: [Errno 65] No route to host</div>
+          <p class="step-desc">Изключи Wi-Fi на MacBook-а, провери ENET кабела и адаптера и се убеди, че колата е будна (запалване включено).</p>
+        </div>
+        <div class="step-item">
+          <div class="step-title">Permission denied (publickey)</div>
+          <p class="step-desc">Спри и не пускай втори флаш автоматично. Провери кой ключ ползваш (<code>id_rsa.pkcs1.pem</code>) и запази изхода.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-title">mgu-store: nothing was installed / status 2</div>
+          <p class="step-desc">Нищо не е променено по софтуера на главното устройство. Запази пълния изход от терминала.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-title">Waze on cluster: "Not supported on this car"</div>
+          <p class="step-desc">Спри. Не форсирай и не пипай ръчно <code>/usr/bin/carplay</code>. Следи / пиши в <code>issue #99</code>.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-title">Грешка B7F8E5 (Mode: Debugging active) не се трие</div>
+          <p class="step-desc">Изпълни <code>python3 ssh_enable.py persist</code> (Част 5), провери със <code>status</code> дали е <code>absent</code> и тогава изчисти грешките.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Копирано</div>
+
+  <script>
+    const PHASES = [
+      {
+        id: "p0",
+        title: "Част 0 — Подготовка преди включване",
+        badge: "Задължително",
+        badgeClass: "warn",
+        steps: [
+          { id: "0.1", title: "0.1 Оценка на риска и време", desc: "Предвиди 2–3 часа спокойно време без нужда от колата." },
+          { id: "0.2", title: "0.2 Хардуер и захранване", desc: "ENET кабел + USB-C адаптер, зарядно за акумулатора (≥ 13 V) и MacBook на зарядно." },
+          { id: "0.3", title: "0.3 Бекъп от BimmerCode", desc: "Connect -> Headunit -> Backup files -> Export. Запази папката BimmerCode на две места (Google Drive и Mac) и провери днешните .dat и FSC_AJ84645_*.FSC файлове." },
+          { id: "0.4", title: "0.4 Запиши кодираните промени", desc: "Отбележи си какво е променяно в Headunit (вкл. Sport+)." },
+          { id: "0.5", title: "0.5 Резервен план за boot loop", desc: "Отвори предварително issue #63 в idrive-apps." },
+          { id: "0.6", title: "0.6 Контрол на Wi-Fi на MacBook-а", desc: "Wi-Fi ИЗКЛЮЧЕН при ENET/flash (ако дава No route to host), ВКЛЮЧЕН при инсталация на Store-а." }
+        ]
+      },
+      {
+        id: "p1",
+        title: "Част 1 — Инструмент за root на MacBook",
+        badge: "Mac Terminal",
+        steps: [
+          { id: "1.1", title: "1.1 Сваляне и разархивиране", desc: "Свали ZIP от cauliflowermossgrape/idrive7-8-ssh-root и разархивирай на Desktop (idrive7-8-ssh-root-main)." },
+          { id: "1.2", title: "1.2 Влизане в папката в Terminal", desc: "Напиши cd и интервал, плъзни папката idrive7-8-ssh-root-main в Terminal и натисни Enter." },
+          {
+            id: "1.3",
+            title: "1.3 Инсталиране на Python зависимости",
+            cmd: "python3 -m pip install -r requirements.txt",
+            expected: "Успешна инсталация на cryptography, cffi, pycparser."
+          }
+        ]
+      },
+      {
+        id: "p2",
+        title: "Част 2 — Проверка в колата (само четене)",
+        badge: "Диагностика",
+        steps: [
+          { id: "2.1", title: "2.1 Захранване и запалване", desc: "Зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН." },
+          { id: "2.2", title: "2.2 Свързване на ENET", desc: "Свържи OBD буксата с адаптера към MacBook-а." },
+          {
+            id: "2.3",
+            title: "2.3 Проверка на статус и VIN",
+            cmd: "python3 ssh_enable.py status",
+            expected: "Намерен 1 ENET gateway, VIN WBA5R7C51KAJ84645, MGU IP 169.254.83.114."
+          }
+        ]
+      },
+      {
+        id: "p3",
+        title: "Част 3 — Флаш (САМО ВЕДНЪЖ!)",
+        badge: "Критично — 1 път",
+        badgeClass: "danger",
+        steps: [
+          {
+            id: "3.2",
+            title: "3.2 Стартиране на flash за VIN WBA5R7C51KAJ84645",
+            cmd: "python3 ssh_enable.py flash --vin WBA5R7C51KAJ84645",
+            expected: "Потвърди с y само ако всичко е готово. Очаква се SSH OK as root: uid=0(root) и DONE."
+          },
+          { id: "3.4", title: "3.4 Изчакай рестарта без намеса", desc: "Не пипай кабела, колата или Terminal, докато приключи и провери дали iDrive пали нормално." }
+        ]
+      },
+      {
+        id: "p4",
+        title: "Част 4 — Запазване на root ключовете",
+        badge: "Поверително",
+        badgeClass: "warn",
+        steps: [
+          {
+            id: "4.2",
+            title: "4.2 Отвори data/enrollments и копирай на 2 места",
+            cmd: "open data/enrollments",
+            expected: "Отваря се Finder с папка WBA5R7C51KAJ84645 (включително id_rsa.pkcs1.pem). Пази на 2 места." }
+          }
+        ]
+      },
+      {
+        id: "p5",
+        title: "Част 5 — Постоянен SSH (persist) и B7F8E5",
+        badge: "SSH / DTC",
+        steps: [
+          {
+            id: "5.3",
+            title: "5.3 Активиране на persist режим",
+            cmd: "python3 ssh_enable.py persist",
+            expected: "Приключва без грешка/Traceback; оставя root SSH достъп."
+          },
+          {
+            id: "5.4",
+            title: "5.4 Проверка след persist",
+            cmd: "python3 ssh_enable.py status",
+            expected: "Порт 22 отворен, DTC B7F8E5 да може да се изчисти без да се връща."
+          },
+          {
+            id: "5.6",
+            title: "5.6 Проверка на SSH без нов флаш (при нужда)",
+            cmd: "python3 ssh_enable.py enable",
+            expected: "SSH OK as root: uid=0(root)..."
+          }
+        ]
+      },
+      {
+        id: "p6",
+        title: "Част 6 — Инсталиране на mgu-store",
+        badge: "Wi-Fi ON",
+        steps: [
+          {
+            id: "6.2",
+            title: "6.2 Подготовка на ~/.ssh/mgu_root_key",
+            cmd: "mkdir -p ~/.ssh && cp data/enrollments/WBA5R7C51KAJ84645/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key",
+            expected: "Ключът е копиран с права 600."
+          },
+          {
+            id: "6.3",
+            title: "6.3 Пускане на инсталатора на mgu-store",
+            cmd: "curl -fsSL https://raw.githubusercontent.com/robertnisipeanu/mgu-store/main/deploy/install.sh | sh -s -- first-install --identity ~/.ssh/mgu_root_key",
+            expected: "Инсталира app-privacy и robertn_store; при въпрос за рестарт на head unit-а отговори y."
+          }
+        ]
+      },
+      {
+        id: "p7",
+        title: "Част 7 — Waze on cluster",
+        badge: "iDrive / CarPlay",
+        steps: [
+          { id: "7.1", title: "7.1 Добави източник в Store", desc: "В Store на iDrive добави robertnisipeanu/idrive-apps." },
+          { id: "7.2", title: "7.2 Инсталирай Waze on cluster и рестартирай", desc: "Инсталирай пакета и рестартирай head unit-а при подкана." },
+          { id: "7.4", title: "7.4 Настройка на таблото и тест с CarPlay", desc: "Instrument cluster -> Central display area -> Map view. Отвори Waze on cluster; ако пише Not supported — спри и виж issue #99." }
+        ]
+      },
+      {
+        id: "p8",
+        title: "Част 8 — Връщане на кодирането",
+        badge: "BimmerCode",
+        steps: [
+          { id: "8.1", title: "8.1 Нов бекъп -> RECOVERY -> Спорт+ и опции", desc: "Направи текущ бекъп, възстанови оригиналния от първото четене (RECOVERY) и върни Sport+ и останалите настройки." },
+          { id: "8.4", title: "8.4 Пълна проверка на системите", desc: "Провери радио, Bluetooth, камери, навигация, Sport+ и картата на таблото." }
+        ]
+      },
+      {
+        id: "p9",
+        title: "Част 9 — След процедурата",
+        badge: "Поддръжка",
+        steps: [
+          { id: "9.1", title: "9.1 Тест в реално каране (няколко дни)", desc: "Следи за рестарти, изчезване на картата и поведение след заспиване на колата." },
+          {
+            id: "9.2",
+            title: "9.2 По желание по-късно: затваряне на SSH",
+            cmd: "python3 ssh_enable.py close",
+            expected: "Затваря root SSH входа (остави отворен поне първите дни за възстановяване)."
+          }
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = "g20_mgu_waze_helper_v1";
+    const defaultState = {
+      checked: {},
+      extraCoding: "",
+      generalNotes: ""
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        return {
+          checked: parsed.checked || {},
+          extraCoding: parsed.extraCoding || "",
+          generalNotes: parsed.generalNotes || ""
+        };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateProgress();
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast("Копирано в клипборда")).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast("Копирано");
+    }
+
+    function updateProgress() {
+      const allIds = PHASES.flatMap(p => p.steps.map(s => s.id));
+      const doneCount = allIds.filter(id => !!state.checked[id]).length;
+      const pct = allIds.length ? Math.round((doneCount / allIds.length) * 100) : 0;
+      document.getElementById("progressFill").style.width = pct + "%";
+      document.getElementById("progressText").textContent = `${doneCount} / ${allIds.length} (${pct}%)`;
+    }
+
+    function renderPhases() {
+      const container = document.getElementById("phasesContainer");
+      container.innerHTML = "";
+      PHASES.forEach(phase => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const header = document.createElement("div");
+        header.className = "phase-header";
+        const h2 = document.createElement("h2");
+        h2.textContent = phase.title;
+        const badge = document.createElement("span");
+        badge.className = "badge" + (phase.badgeClass ? " " + phase.badgeClass : "");
+        badge.textContent = phase.badge;
+        header.append(h2, badge);
+        card.appendChild(header);
+
+        phase.steps.forEach(step => {
+          const item = document.createElement("div");
+          const isChecked = !!state.checked[step.id];
+          item.className = "step-item" + (isChecked ? " step-done" : "");
+
+          const top = document.createElement("div");
+          top.className = "step-top";
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = isChecked;
+          cb.addEventListener("change", () => {
+            state.checked[step.id] = cb.checked;
+            item.classList.toggle("step-done", cb.checked);
+            saveState();
+          });
+
+          const title = document.createElement("div");
+          title.className = "step-title";
+          title.textContent = step.title;
+
+          top.append(cb, title);
+          item.appendChild(top);
+
+          if (step.desc) {
+            const desc = document.createElement("p");
+            desc.className = "step-desc";
+            desc.textContent = step.desc;
+            item.appendChild(desc);
+          }
+
+          if (step.cmd) {
+            const cmdBox = document.createElement("div");
+            cmdBox.className = "cmd-box";
+            const code = document.createElement("code");
+            code.textContent = step.cmd;
+            const copyBtn = document.createElement("button");
+            copyBtn.type = "button";
+            copyBtn.className = "copy-btn";
+            copyBtn.textContent = "Копирай";
+            copyBtn.addEventListener("click", () => copyText(step.cmd));
+            cmdBox.append(code, copyBtn);
+            item.appendChild(cmdBox);
+          }
+
+          if (step.expected) {
+            const exp = document.createElement("div");
+            exp.className = "expected";
+            exp.textContent = "Очакван резултат: " + step.expected;
+            item.appendChild(exp);
+          }
+
+          card.appendChild(item);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.tab;
+        ["checklist", "overview", "coding", "troubleshoot"].forEach(tab => {
+          document.getElementById("tab-" + tab).classList.toggle("hidden", tab !== target);
+        });
+      });
+    });
+
+    const extraCodingEl = document.getElementById("extraCodingNotes");
+    const generalNotesEl = document.getElementById("generalNotes");
+    extraCodingEl.value = state.extraCoding;
+    generalNotesEl.value = state.generalNotes;
+
+    extraCodingEl.addEventListener("input", () => {
+      state.extraCoding = extraCodingEl.value;
+      saveState();
+    });
+    generalNotesEl.addEventListener("input", () => {
+      state.generalNotes = generalNotesEl.value;
+      saveState();
+    });
+
+    document.getElementById("exportJsonBtn").addEventListener("click", () => {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        vehicle: "BMW G20 330i xDrive (WBA5R7C51KAJ84645)",
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "g20-waze-helper-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Експортиран JSON");
+    });
+
+    document.getElementById("importJsonInput").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result || "{}"));
+          const next = data.state && typeof data.state === "object" ? data.state : data;
+          state = {
+            checked: next.checked && typeof next.checked === "object" ? next.checked : {},
+            extraCoding: typeof next.extraCoding === "string" ? next.extraCoding : "",
+            generalNotes: typeof next.generalNotes === "string" ? next.generalNotes : ""
+          };
+          extraCodingEl.value = state.extraCoding;
+          generalNotesEl.value = state.generalNotes;
+          saveState();
+          renderPhases();
+          showToast("Импортирано успешно");
+        } catch {
+          showToast("Невалиден JSON файл");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    document.getElementById("resetProgressBtn").addEventListener("click", () => {
+      if (!confirm("Да изчистя ли всички отметки по стъпките?")) return;
+      state.checked = {};
+      saveState();
+      renderPhases();
+      showToast("Отметките са нулирани");
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    renderPhases();
+    updateProgress();
+  </script>
+</body>
+</html>
