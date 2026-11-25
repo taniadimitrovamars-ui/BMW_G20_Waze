@@ -4,10 +4,9 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.2
-   EXPENSE CATEGORY FIX
-   SAFE DOCUMENT URLS
-   BACKWARD COMPATIBLE EVENT SYNC
+   Version: 2.3
+   DATA SAFETY & ACCOUNT PROTECTION
+   BACKWARD COMPATIBLE
 ========================================== */
 
 import { createClient } from
@@ -59,20 +58,29 @@ let syncRunning = false;
 let syncTimer = null;
 let currentUser = null;
 let lastSyncError = false;
+let authInitialized = false;
 
 /* ==========================================
    DEVICE
 ========================================== */
 
 function getDeviceId() {
-  let id = localStorage.getItem(DEVICE_KEY);
+  try {
+    let id = localStorage.getItem(DEVICE_KEY);
 
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(DEVICE_KEY, id);
+    if (!id) {
+      id = crypto.randomUUID
+        ? crypto.randomUUID()
+        : "mgu-" + Date.now() + "-" +
+          Math.random().toString(36).slice(2);
+
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+
+    return id;
+  } catch {
+    return "mgu-" + Date.now();
   }
-
-  return id;
 }
 
 function getDeviceName() {
@@ -130,7 +138,9 @@ function safeDate(value) {
 
 function safeId(value) {
   return safeString(value, 100) ||
-    (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    (crypto.randomUUID
+      ? crypto.randomUUID()
+      : String(Date.now()));
 }
 
 /* ==========================================
@@ -177,15 +187,6 @@ function cleanRecord(item, type) {
     notes: safeString(source.notes, 2000)
   };
 
-  /*
-    Категорията се запазва за:
-    - разходи
-    - напомняния
-    - модификации
-
-    Така вече не се губи при Cloud Sync.
-  */
-
   if (
     type === "expense" ||
     type === "reminder" ||
@@ -220,12 +221,11 @@ function cleanCar(item) {
 
   if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return null;
 
+  const sourceDone = safeObject(item.done);
   const done = {};
 
   STEP_IDS.forEach(id => {
-    if (safeObject(item.done)[id] === true) {
-      done[id] = true;
-    }
+    if (sourceDone[id] === true) done[id] = true;
   });
 
   const details = safeObject(item.details);
@@ -310,7 +310,7 @@ function createInterface() {
   panel.className = "panel open";
 
   panel.innerHTML = `
-    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.2</div>
+    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.3</div>
 
     <div class="backup-info">
       Централизирана синхронизация на автомобилите,
@@ -361,6 +361,15 @@ function createInterface() {
       </div>
       <button class="btn-secondary" id="cloudRetry" type="button" style="width:100%">
         ⟳ Повтори синхронизацията
+      </button>
+    </div>
+
+    <div id="pendingOwnership" class="form-msg" hidden>
+      Има стари чакащи промени, чийто Cloud профил не може да бъде установен.
+      Те няма да бъдат изпратени автоматично.
+      <button class="btn-secondary" id="cloudAssignPending"
+        type="button" style="width:100%;margin-top:10px">
+        Свържи чакащите промени с този профил
       </button>
     </div>
 
@@ -420,7 +429,7 @@ function createInterface() {
     </div>
 
     <div class="backup-info">
-      M-GARAGE PRO 2.2 · EXTENDED VEHICLE DATA SYNC
+      M-GARAGE PRO 2.3 · DATA SAFETY & ACCOUNT PROTECTION
     </div>
   `;
 
@@ -495,6 +504,15 @@ function createInterface() {
     }
     .device-current,.history-success {color:#16a34a;font-weight:700}
     .history-error {color:#dc2626}
+    #pendingOwnership {
+      border:1px solid #d97706;
+      border-radius:10px;
+      padding:12px;
+      margin:12px 0;
+    }
+    #pendingOwnership button {
+      white-space:normal;
+    }
   `;
 
   document.head.appendChild(style);
@@ -525,14 +543,31 @@ function formatDate(value) {
 function readPending() {
   try {
     const data = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
+
+    if (!Array.isArray(data)) return [];
+
+    return data.filter(event =>
+      event &&
+      typeof event === "object" &&
+      typeof event.event_id === "string" &&
+      typeof event.entity_type === "string" &&
+      typeof event.entity_id === "string"
+    );
   } catch {
     return [];
   }
 }
 
 function savePending(events) {
-  localStorage.setItem(PENDING_KEY, JSON.stringify(events));
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify(events));
+  } catch (error) {
+    console.error("M-GARAGE PENDING STORAGE:", error);
+    throw new Error(
+      "Не могат да бъдат запазени чакащите промени. Освободи място в устройството."
+    );
+  }
+
   refreshDashboard();
 }
 
@@ -544,6 +579,45 @@ function removePendingByIds(ids) {
   savePending(
     readPending().filter(event => !remove.has(event.event_id))
   );
+}
+
+function pendingForUser(userId) {
+  return readPending().filter(
+    event => event.owner_user_id === userId
+  );
+}
+
+function unassignedPending() {
+  return readPending().filter(
+    event => !event.owner_user_id
+  );
+}
+
+function foreignPending(userId) {
+  return readPending().filter(
+    event => event.owner_user_id &&
+      event.owner_user_id !== userId
+  );
+}
+
+function refreshPendingOwnership() {
+  const box = $("pendingOwnership");
+
+  if (!box) return;
+
+  const unassigned = unassignedPending();
+
+  box.hidden = !currentUser || unassigned.length === 0;
+
+  if (unassigned.length) {
+    const button = $("cloudAssignPending");
+
+    if (button) {
+      button.textContent =
+        "Свържи " + unassigned.length +
+        " чакащи промени с този профил";
+    }
+  }
 }
 
 function setIndicator(id, value, color) {
@@ -599,6 +673,8 @@ function refreshDashboard() {
   }
 
   setIndicator("dashboardCloud", "● " + message, color);
+
+  refreshPendingOwnership();
 }
 
 function status(message, type = "") {
@@ -634,7 +710,7 @@ function setBusy(busy) {
   [
     "cloudLogin", "cloudRegister", "cloudSync", "cloudLogout",
     "cloudRetry", "cloudHistoryRefresh", "cloudDevicesRefresh",
-    "cloudExport", "cloudRestore"
+    "cloudExport", "cloudRestore", "cloudAssignPending"
   ].forEach(id => {
     if ($(id)) $(id).disabled = busy;
   });
@@ -662,12 +738,16 @@ function readLocalData() {
 
 function createEvent(entityType, entityId, operation, data) {
   return {
-    event_id: crypto.randomUUID(),
+    event_id: crypto.randomUUID
+      ? crypto.randomUUID()
+      : "evt-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2),
     device_id: DEVICE_ID,
     entity_type: entityType,
     entity_id: entityId,
     operation,
-    data
+    data,
+    owner_user_id: currentUser?.id || null
   };
 }
 
@@ -675,11 +755,77 @@ function enqueueEvents(events) {
   if (!events.length) return;
 
   const pending = readPending();
+  const ownerId = currentUser?.id || null;
 
-  pending.push(...events);
+  const tagged = events.map(event => ({
+    ...event,
+    owner_user_id: ownerId
+  }));
+
+  pending.push(...tagged);
 
   savePending(pending);
   scheduleAutomaticSync();
+}
+
+/* ==========================================
+   PENDING ACCOUNT PROTECTION
+========================================== */
+
+function assignPendingToCurrentUser() {
+  if (!currentUser) {
+    status("Първо влез в Cloud профила.");
+    return;
+  }
+
+  const pending = readPending();
+  const unassigned = pending.filter(event => !event.owner_user_id);
+
+  if (!unassigned.length) {
+    status("Няма неприсвоени чакащи промени.");
+    return;
+  }
+
+  const foreign = foreignPending(currentUser.id);
+
+  if (foreign.length) {
+    status(
+      "Има промени, свързани с друг Cloud профил. Те няма да бъдат прехвърлени."
+    );
+    return;
+  }
+
+  if (!confirm(
+    "Ще свържеш " + unassigned.length +
+    " стари чакащи промени с профила:\n\n" +
+    currentUser.email +
+    "\n\nПродължаваме ли?"
+  )) return;
+
+  const updated = pending.map(event => {
+    if (!event.owner_user_id) {
+      return {
+        ...event,
+        owner_user_id: currentUser.id
+      };
+    }
+
+    return event;
+  });
+
+  try {
+    savePending(updated);
+    refreshPendingOwnership();
+
+    status(
+      "Чакащите промени са свързани с текущия профил.",
+      "ok"
+    );
+
+    scheduleAutomaticSync(500);
+  } catch (error) {
+    status(error.message);
+  }
 }
 
 /* ==========================================
@@ -758,6 +904,25 @@ Storage.prototype.setItem = function(key, value) {
     if (oldVin !== newVin) {
       enqueueEvents([
         createEvent("active", "active", "set", { vin: newVin })
+      ]);
+    }
+
+    return result;
+  }
+
+  if (key === THEME_KEY) {
+    const oldTheme = originalGetItem.call(this, key) || "dark";
+    const result = originalSetItem.call(this, key, value);
+    const newTheme = String(value || "dark");
+
+    if (
+      oldTheme !== newTheme &&
+      (newTheme === "light" || newTheme === "dark")
+    ) {
+      enqueueEvents([
+        createEvent("theme", "theme", "set", {
+          theme: newTheme
+        })
       ]);
     }
 
@@ -956,17 +1121,37 @@ async function uploadPending(userId) {
 
   if (!pending.length) return 0;
 
+  const foreign = foreignPending(userId);
+
+  if (foreign.length) {
+    throw new Error(
+      "Има " + foreign.length +
+      " чакащи промени от друг Cloud профил. Те са запазени и няма да бъдат изпратени."
+    );
+  }
+
+  const unassigned = unassignedPending();
+
+  if (unassigned.length) {
+    throw new Error(
+      "Има " + unassigned.length +
+      " стари неприсвоени промени. Свържи ги с текущия профил от панела Cloud Sync."
+    );
+  }
+
+  const owned = pendingForUser(userId);
+
+  if (!owned.length) return 0;
+
   const sendingIds = new Set(
-    pending.map(event => event.event_id)
+    owned.map(event => event.event_id)
   );
 
-  await uploadEvents(userId, pending);
+  await uploadEvents(userId, owned);
 
-  savePending(
-    readPending().filter(event => !sendingIds.has(event.event_id))
-  );
+  removePendingByIds(Array.from(sendingIds));
 
-  return pending.length;
+  return owned.length;
 }
 
 /* ==========================================
@@ -1029,12 +1214,24 @@ function createInitialEvents(events, local, legacy) {
     );
   }
 
+  const hasTheme = events.some(
+    event => event.entity_type === "theme"
+  );
+
+  if (!hasTheme) {
+    initial.push(
+      createEvent("theme", "theme", "set", {
+        theme: local.theme || "dark"
+      })
+    );
+  }
+
   return initial;
 }
 
 /* ==========================================
    APPLY EVENTS
-   Supports old v2.0 events and new snapshots.
+   Supports old v2.0 events and snapshots.
 ========================================== */
 
 function applyEvents(events) {
@@ -1075,12 +1272,6 @@ function applyEvents(events) {
             return;
           }
         }
-
-        /*
-          Backward compatibility:
-          old v2.0 events only contain {nick}.
-          Do not erase profile data when replaying them.
-        */
 
         const existing = cars.get(id) || cleanCar({
           vin: id,
@@ -1125,6 +1316,13 @@ function applyEvents(events) {
 
     if (type === "active") {
       activeVin = safeString(data.vin, 17);
+      return;
+    }
+
+    if (type === "theme") {
+      if (data.theme === "light" || data.theme === "dark") {
+        theme = data.theme;
+      }
     }
   });
 
@@ -1374,7 +1572,7 @@ function renderDevices(items) {
 
   $("cloudDevicesStatus").textContent =
     "Намерени устройства: " + devices.length +
-    ". Данните са обобщени от историята.";
+    ". Данните са обобщени от последните записи.";
 }
 
 async function loadDevices() {
@@ -1383,29 +1581,17 @@ async function loadDevices() {
   $("cloudDevicesStatus").textContent = "Зареждане...";
 
   try {
-    const all = [];
-    const pageSize = 1000;
-    let offset = 0;
+    const { data, error } = await supabase
+      .from("sync_history")
+      .select("id,device_id,device_name,result,created_at")
+      .eq("user_id", currentUser.id)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(3000);
 
-    while (true) {
-      const { data, error } = await supabase
-        .from("sync_history")
-        .select("id,device_id,device_name,result,created_at")
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false })
-        .range(offset, offset + pageSize - 1);
+    if (error) throw error;
 
-      if (error) throw error;
-
-      if (data?.length) all.push(...data);
-
-      if (!data || data.length < pageSize) break;
-
-      offset += pageSize;
-    }
-
-    renderDevices(all);
+    renderDevices(data || []);
   } catch (error) {
     $("cloudDevicesStatus").textContent =
       "Грешка при зареждане: " + error.message;
@@ -1473,7 +1659,27 @@ async function restoreBackup() {
     if (sessionError) throw sessionError;
     if (!session) throw new Error("Cloud сесията е изтекла.");
 
-    const pendingIds = readPending().map(event => event.event_id);
+    if (session.user.id !== currentUser.id) {
+      throw new Error(
+        "Cloud профилът се промени. Влез отново и повтори операцията."
+      );
+    }
+
+    const foreign = foreignPending(session.user.id);
+    const unassigned = unassignedPending();
+
+    if (foreign.length || unassigned.length) {
+      throw new Error(
+        "Има чакащи промени, които не са свързани с този профил. " +
+        "Първо провери собствеността им."
+      );
+    }
+
+    restoreStatus("Качване на чакащите промени...");
+
+    await uploadPending(session.user.id);
+
+    restoreStatus("Качване на архива в Cloud...");
 
     const restoreEvent = createEvent(
       "restore",
@@ -1488,13 +1694,9 @@ async function restoreBackup() {
       }
     );
 
-    restoreStatus("Качване на архива в Cloud...");
-
     await uploadEvents(session.user.id, [restoreEvent]);
 
     uploaded = true;
-
-    removePendingByIds(pendingIds);
 
     restoreStatus("Прилагане на възстановените данни...");
 
@@ -1557,16 +1759,24 @@ async function restoreBackup() {
 ========================================== */
 
 function showAuthenticated(user) {
+  if (!user) return;
+
+  const changedUser = currentUser?.id !== user.id;
+
   currentUser = user;
 
   $("cloudAuthForm").hidden = true;
   $("cloudActions").hidden = false;
 
   userStatus("Влязъл потребител: " + user.email, "ok");
-  status("Cloud Sync е активен.");
 
-  loadHistory();
-  loadDevices();
+  if (changedUser) {
+    status("Cloud профилът е активен.");
+    loadHistory();
+    loadDevices();
+  }
+
+  refreshPendingOwnership();
 }
 
 function showLoggedOut() {
@@ -1586,6 +1796,8 @@ function showLoggedOut() {
   $("cloudHistoryList").replaceChildren();
   $("cloudDevicesList").replaceChildren();
   $("deviceSummary").replaceChildren();
+
+  refreshPendingOwnership();
 
   status("Локалните данни са налични.");
 }
@@ -1654,6 +1866,14 @@ async function login() {
 }
 
 async function logout() {
+  if (readPending().length) {
+    if (!confirm(
+      "Има чакащи локални промени.\n\n" +
+      "Те ще останат на това устройство и няма да бъдат изтрити.\n\n" +
+      "Сигурен ли си, че искаш да излезеш?"
+    )) return;
+  }
+
   setBusy(true);
 
   try {
@@ -1707,6 +1927,28 @@ async function syncNow() {
     const userId = session.user.id;
     historyUserId = userId;
 
+    if (currentUser && currentUser.id !== userId) {
+      throw new Error(
+        "Активният Cloud профил се промени. Влез отново."
+      );
+    }
+
+    const foreign = foreignPending(userId);
+
+    if (foreign.length) {
+      throw new Error(
+        "Има " + foreign.length +
+        " чакащи промени от друг Cloud профил. Те са запазени."
+      );
+    }
+
+    if (unassignedPending().length) {
+      throw new Error(
+        "Има стари чакащи промени без собственик. " +
+        "Провери ги и ги свържи с текущия профил."
+      );
+    }
+
     let events = await fetchAllEvents(userId);
 
     const latestRestore = getLatestRestore(events);
@@ -1716,16 +1958,42 @@ async function syncNow() {
       latestRestore &&
       latestRestore.event_id !== localRestoreId
     ) {
-      const pendingIds = readPending().map(event => event.event_id);
+      const pending = pendingForUser(userId);
+
+      if (pending.length) {
+        const proceed = confirm(
+          "Открит е архив, възстановен от друго устройство.\n\n" +
+          "Има " + pending.length +
+          " локални чакащи промени.\n\n" +
+          "Ако продължиш, първо ще се приложи архивът, " +
+          "след което локалните чакащи промени ще бъдат изпратени " +
+          "като по-нови събития.\n\nПродължаваме ли?"
+        );
+
+        if (!proceed) {
+          status(
+            "Синхронизацията е спряна. Локалните промени са запазени."
+          );
+          return;
+        }
+      }
+
       const restored = applyEvents(events);
 
       saveLocalData(restored);
-      removePendingByIds(pendingIds);
-
       localStorage.setItem(RESTORE_KEY, latestRestore.event_id);
 
       mergedCarsCount = restored.cars.length;
       processedChanges = 1;
+
+      processedChanges += await uploadPending(userId);
+
+      events = await fetchAllEvents(userId);
+
+      const merged = applyEvents(events);
+
+      saveLocalData(merged);
+      mergedCarsCount = merged.cars.length;
 
       window.renderAll?.();
 
@@ -1851,7 +2119,15 @@ function scheduleAutomaticSync(delay = 1800) {
 
       if (error) throw error;
 
-      if (session) await syncNow();
+      if (session) {
+        if (!currentUser) {
+          showAuthenticated(session.user);
+        }
+
+        if (currentUser?.id === session.user.id) {
+          await syncNow();
+        }
+      }
     } catch (error) {
       console.error("M-GARAGE AUTO SYNC:", error);
       lastSyncError = true;
@@ -1896,6 +2172,10 @@ $("cloudHistoryRefresh").addEventListener("click", loadHistory);
 $("cloudDevicesRefresh").addEventListener("click", loadDevices);
 $("cloudExport").addEventListener("click", downloadBackup);
 $("cloudRestore").addEventListener("click", restoreBackup);
+$("cloudAssignPending").addEventListener(
+  "click",
+  assignPendingToCurrentUser
+);
 
 /* ==========================================
    AUTH STATE
@@ -1903,19 +2183,25 @@ $("cloudRestore").addEventListener("click", restoreBackup);
 
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
+    const changedUser = currentUser?.id !== session.user.id;
+
     showAuthenticated(session.user);
 
     if (
       event === "SIGNED_IN" ||
-      event === "INITIAL_SESSION" ||
-      event === "TOKEN_REFRESHED"
+      event === "INITIAL_SESSION"
     ) {
       scheduleAutomaticSync(1200);
+    }
+
+    if (changedUser) {
+      refreshPendingOwnership();
     }
   } else {
     showLoggedOut();
   }
 
+  authInitialized = true;
   refreshDashboard();
 });
 
@@ -1936,7 +2222,10 @@ async function initializeCloud() {
 
     if (session) {
       showAuthenticated(session.user);
-      scheduleAutomaticSync(1500);
+
+      if (!authInitialized) {
+        scheduleAutomaticSync(1500);
+      }
     } else {
       showLoggedOut();
     }
