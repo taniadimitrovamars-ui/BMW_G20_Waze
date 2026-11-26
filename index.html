@@ -534,12 +534,11 @@ a{color:var(--accent)}
  max-width:100%;
  box-shadow:0 10px 26px rgba(0,0,0,.22);
 }
-.qr-box canvas{
+.qr-box img,.qr-box canvas{
  display:block;
  width:188px;
  height:188px;
  max-width:100%;
- image-rendering:pixelated;
 }
 .qr-caption{
  margin-top:10px;
@@ -1008,7 +1007,7 @@ details[open] > summary{
 
  <div class="garage-bar" id="garageBar" aria-label="Автомобили в гаража"></div>
 
- <div id="garageEmpty" class="panel empty hidden">
+ <div id="garageEmpty" class="panel empty">
   Все още няма добавени автомобили.<br>
   <button class="btn small" id="emptyAddCarBtn" type="button" style="margin-top:12px">＋ Добави автомобил</button>
  </div>
@@ -1225,12 +1224,11 @@ details[open] > summary{
      <input id="shareUrlInput" type="url" placeholder="https://...">
     </div>
     <div class="qr-box">
-     <canvas id="qrCanvas" width="188" height="188" aria-label="QR код за споделяне на приложението"></canvas>
+     <img id="qrImg" alt="QR код за споделяне на приложението" width="188" height="188">
      <div class="qr-caption" id="qrCaption"></div>
     </div>
     <div class="btn-row">
      <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
-     <button class="btn secondary small" id="downloadQrBtn" type="button">Свали QR (PNG)</button>
      <button class="btn secondary small" id="resetShareUrlBtn" type="button">Текущ адрес</button>
     </div>
    </details>
@@ -1366,7 +1364,7 @@ details[open] > summary{
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<button class="fab" id="fabAdd" type="button">＋ Добави</button>
+<button class="fab hidden" id="fabAdd" type="button">＋ Добави</button>
 
 <div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
  <div class="sheet">
@@ -1542,13 +1540,13 @@ const STEPS=[
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
 {id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
-{id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
+{id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
 {id:"store_key",title:"6. SSH ключ за Store инсталацията",description:"Копирай ключа на стандартно място, за да го ползва инсталаторът на mgu-store.",explanation:"Wi-Fi на Mac-а ВКЛЮЧЕН (трябва интернет). ENET свързан. Колата на зарядно.",warning:"При „No such file or directory“ — не си в папката на инструмента (cd отново) или VIN-папката е друга (ls data/enrollments).",command:"mkdir -p ~/.ssh && cp data/enrollments/{VIN}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ: няма изход. Проверка по желание: „ls -l ~/.ssh/mgu_root_key“ → ред, започващ с -rw------- и завършващ на mgu_root_key."},
 {id:"store",title:"7. Инсталирай mgu-store",description:"Пуска официалния инсталатор на mgu-store (от README на проекта) и рестартира head unit-а.",explanation:"Ако не намери устройството, добави в края „--host 169.254.83.114 --port 22“ (адресът на твоята кола, провери със status). На въпроса „Restart the head unit now? [y/N]“ отговори y. Може да мълчи 5+ минути — не прекъсвай.",warning:"Ако видиш „nothing was installed“ / „ended with status 2“ — НИЩО не е променено в колата, направи снимка на целия изход и не повтаряй сляпо.",command:"curl -fsSL https://raw.githubusercontent.com/robertnisipeanu/mgu-store/main/deploy/install.sh | sh -s -- first-install --identity ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ [ДРУГИ, може да е различно]: „app-privacy … installed“, „installing app robertn_store …“, след рестарт — плочка на Store сред приложенията на iDrive."},
 {id:"waze",title:"8. Waze on cluster",description:"Добави източника idrive-apps в Store-а, инсталирай „Waze on cluster“ и провери на таблото.",explanation:"В Store-а на iDrive добави GitHub източник robertnisipeanu/idrive-apps, инсталирай „Waze on cluster“, рестартирай при нужда. В колата: Instrument cluster → Central display area → Map view. Отвори приложението и провери статуса: ако е наред — включи картата (Enable map / Patch) и рестартирай. Тествай с iPhone по CarPlay (Waze или Google Maps) и провери стабилността след рестарт на колата и на CarPlay връзката.",warning:"Ако статусът пише „Not supported on this car“ или грешка за билда — СПРИ. Не форсирай нищо, не пипай /usr/bin/carplay. Пиши на автора (issue #99 в idrive-apps).",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: таблото показва област за карта; при свързан CarPlay картата (маршрут/стрелки) се вижда на инструменталния клъстер и се връща сама след рестарт."},
 {id:"recode",title:"9. Връщане на кодирането (BimmerCode)",description:"Нов backup на текущото състояние, после Restore на ОРИГИНАЛНОТО кодиране от самото начало, после ръчно въвеждане на промените отново.",explanation:"BimmerCode → Headunit → Backup files → Export (нов файл с днешна дата). После Connect → Headunit → иконата за възстановяване → RECOVERY → избери файла от ПЪРВОТО четене (оригиналното кодиране, не текущия бекъп). След Restore въведи наново промените, напр. Sport+ в Headunit (HU_MGU → Expert mode → 3008 FES: FES_SPORT_EXPERT → aktiv, SPORT_CONF_ATTENUATION_SPORTPLUS → aktiv, SPORT_CONF_STEERING_SPORTPLUS → aktiv). Провери BDC отделно (3221 PfFesMaster → FesSportWorldMode1 → SportExpert) — най-вероятно не е засегнат от флаша, но провери.",warning:"Не приемай процедурата за приключена, докато оригиналното кодиране не е възстановено и всички функции не са проверени: радио, Bluetooth, камери, навигация, Sport+, Waze на таблото.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ [по форуми]: съобщение за успех в BimmerCode; след рестарт в iDrive до Sport и Sport Individual се появява PLUS."},
-{id:"after",title:"10. След това — следващите дни",description:"Няколко дни нормално каране, следи за рестарти на екрана, изчезваща карта и странности след изгасяне.",explanation:"Остави постоянния root вход поне първите дни — това е пътят за възстановяване при проблем. По-късно, по желание, може да се затвори. Пази папката data/enrollments/VIN/ и BimmerCode бекъпите на две места за постоянно.",warning:"Рискът от оставен root вход е нисък (достъпът е само през ENET/OBD), но ключът вероятно е общ за инструмента.",command:"python3 ssh_enable.py close",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка. Не е потвърдено дали затварянето пречи на обновяванията на Store-а."},
+{id:"after",title:"10. След това — следващите дни",description:"Няколко дни нормално каране, следи за рестарти на екрана, изчезваща карта и странности след изгасяне.",explanation:"Остави постоянния root вход поне първите дни — това е пътят за възстановяване при проблем. По-късно, по желание, може да се затвори. Пази папката data/enrollments/VIN/ и BimmerCode бекъпите на две места за постоянно.",warning:"Рискът от оставен root вход е нисък (достъпът е само през ENET/OBD), но ключът вероятно е общ за инструмента.",command:"python3 ssh_enable.py close",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка. Не е потвърдено дали затварянето пречи на обновяванията на Store-а."}
 ];
 
 let cars=[];
@@ -1631,261 +1629,22 @@ function safeHttpUrl(value){
  catch(error){return""}
 }
 
-/* Компактен локален QR матричен генератор (байтов режим, ниво L, версии 1–6) без външни зависимости */
-const QR_GF_EXP=new Uint8Array(512);
-const QR_GF_LOG=new Uint8Array(256);
-(()=>{
- let x=1;
- for(let i=0;i<255;i++){
-  QR_GF_EXP[i]=x;
-  QR_GF_LOG[x]=i;
-  x<<=1;
-  if(x&256)x^=285;
- }
- for(let i=255;i<512;i++)QR_GF_EXP[i]=QR_GF_EXP[i-255];
-})();
-
-function qrGfMul(a,b){return(a===0||b===0)?0:QR_GF_EXP[(QR_GF_LOG[a]+QR_GF_LOG[b])%255]}
-function qrRsPoly(nsym){
- let poly=[1];
- for(let i=0;i<nsym;i++){
-  const next=new Array(poly.length+1).fill(0);
-  const factor=QR_GF_EXP[i];
-  for(let j=0;j<poly.length;j++){
-   next[j]^=poly[j];
-   next[j+1]^=qrGfMul(poly[j],factor);
-  }
-  poly=next;
- }
- return poly.slice(1);
-}
-function qrRsEncode(data,nsym){
- const gen=qrRsPoly(nsym);
- const msg=new Array(data.length+nsym).fill(0);
- for(let i=0;i<data.length;i++)msg[i]=data[i];
- for(let i=0;i<data.length;i++){
-  const coef=msg[i];
-  if(coef!==0){
-   for(let j=0;j<gen.length;j++){
-    msg[i+j+1]^=qrGfMul(gen[j],coef);
-   }
-  }
- }
- return msg.slice(data.length);
-}
-
-const QR_VERSIONS=[
- null,
- {ver:1,size:21,totalBytes:26,ecBytes:7,align:[]},
- {ver:2,size:25,totalBytes:44,ecBytes:10,align:[6,18]},
- {ver:3,size:29,totalBytes:70,ecBytes:15,align:[6,22]},
- {ver:4,size:33,totalBytes:100,ecBytes:20,align:[6,26]},
- {ver:5,size:37,totalBytes:134,ecBytes:26,align:[6,30]},
- {ver:6,size:41,totalBytes:172,ecBytes:18,blocks:2,align:[6,34]}
-];
-
-const QR_FORMAT_MASKS=[
- 0x77c4,0x72f3,0x7daa,0x789d,0x662f,0x6318,0x6c41,0x6976,
- 0x5412,0x5125,0x5e7c,0x5b4b,0x45f9,0x40ce,0x4f97,0x4aa0,
- 0x355f,0x3068,0x3f31,0x3a06,0x24b4,0x2183,0x2eda,0x2bed,
- 0x1689,0x13be,0x1ce7,0x19d0,0x0762,0x0255,0x0d0c,0x083b
-];
-
-function buildQrMatrix(text){
- const bytes=Array.from(new TextEncoder().encode(String(text||"")));
- let spec=null;
- for(let v=1;v<=6;v++){
-  const s=QR_VERSIONS[v];
-  const blocks=s.blocks||1;
-  const dataBytes=s.totalBytes-(s.ecBytes*blocks);
-  const cap=dataBytes-2;
-  if(bytes.length<=cap){spec=s;break}
- }
- if(!spec)return null;
-
- const blocks=spec.blocks||1;
- const totalDataBytes=spec.totalBytes-(spec.ecBytes*blocks);
- const bits=[];
- const pushBits=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>i)&1)};
- pushBits(4,4);
- pushBits(bytes.length,8);
- bytes.forEach(b=>pushBits(b,8));
- const maxBits=totalDataBytes*8;
- const termLen=Math.min(4,maxBits-bits.length);
- if(termLen>0)pushBits(0,termLen);
- while(bits.length%8!==0)bits.push(0);
- const padBytes=[0xec,0x11];
- let padIdx=0;
- while(bits.length<maxBits){
-  pushBits(padBytes[padIdx%2],8);
-  padIdx++;
- }
-
- const codewords=[];
- for(let i=0;i<bits.length;i+=8){
-  let cw=0;
-  for(let j=0;j<8;j++)cw=(cw<<1)|bits[i+j];
-  codewords.push(cw);
- }
-
- const chunkLen=Math.floor(totalDataBytes/blocks);
- const dataBlocks=[];
- const ecBlocks=[];
- let offset=0;
- for(let b=0;b<blocks;b++){
-  const len=chunkLen+(b<(totalDataBytes%blocks)?1:0);
-  const part=codewords.slice(offset,offset+len);
-  offset+=len;
-  dataBlocks.push(part);
-  ecBlocks.push(qrRsEncode(part,spec.ecBytes));
- }
-
- const stream=[];
- for(let i=0;i<chunkLen+1;i++){
-  for(let b=0;b<blocks;b++)if(i<dataBlocks[b].length)stream.push(dataBlocks[b][i]);
- }
- for(let i=0;i<spec.ecBytes;i++){
-  for(let b=0;b<blocks;b++)stream.push(ecBlocks[b][i]);
- }
-
- const size=spec.size;
- const grid=Array.from({length:size},()=>new Array(size).fill(null));
- const reserved=Array.from({length:size},()=>new Array(size).fill(false));
-
- const placeFinder=(r0,c0)=>{
-  for(let r=-1;r<=7;r++){
-   for(let c=-1;c<=7;c++){
-    const rr=r0+r,cc=c0+c;
-    if(rr<0||cc<0||rr>=size||cc>=size)continue;
-    const isBorder=(r===-1||r===7||c===-1||c===7);
-    const isOuter=(r===0||r===6||c===0||c===6);
-    const isInner=(r>=2&&r<=4&&c>=2&&c<=4);
-    grid[rr][cc]=(!isBorder&&(isOuter||isInner))?1:0;
-    reserved[rr][cc]=true;
-   }
-  }
- };
- placeFinder(0,0);
- placeFinder(0,size-7);
- placeFinder(size-7,0);
-
- const placeAlign=(r0,c0)=>{
-  for(let r=-2;r<=2;r++){
-   for(let c=-2;c<=2;c++){
-    const rr=r0+r,cc=c0+c;
-    if(rr<0||cc<0||rr>=size||cc>=size||reserved[rr][cc])continue;
-    const dark=(Math.abs(r)===2||Math.abs(c)===2||(r===0&&c===0));
-    grid[rr][cc]=dark?1:0;
-    reserved[rr][cc]=true;
-   }
-  }
- };
- if(spec.align.length){
-  for(const r of spec.align){
-   for(const c of spec.align){
-    if((r===6&&c===6)||(r===6&&c===spec.align[spec.align.length-1])||(c===6&&r===spec.align[spec.align.length-1]))continue;
-    placeAlign(r,c);
-   }
-  }
- }
-
- for(let i=8;i<size-8;i++){
-  if!reserved[6][i][i]=(i%2===0)?1:0;reserved[6][i]=true}
-  if!reserved[i][6][6]=(i%2===0)?1:0;reserved[i][6]=true}
- }
- ifsize>=21[8]=1;reserved[size-8][8]=true}
-
- for(let r=0;r<9;r++){
-  for(let c=0;c<9;c++){
-   if(r<size&&c<size&&(r===8||c===8))reserved[r][c]=true;
-  }
- }
- for(let i=0;i<8;i++){
-  reserved[i][size-1-i]=false;
- }
- for(let r=size-7;r<size;r++)reserved[r][8]=true;
- for(let c=size-8;c<size;c++)reserved[8][c]=true;
-
- const dataBits=[];
- stream.forEach(cw=>{for(let i=7;i>=0;i--)dataBits.push((cw>>i)&1)});
-
- let bitIdx=0;
- let up=true;
- for(let col=size-1;col>0;col-=2){
-  if(col===6)col=5;
-  for(let step=0;step<size;step++){
-   const row=up?(size-1-step):step;
-   for(let sub=0;sub<2;sub++){
-    const c=col-sub;
-    if(!reserved[row][c]){
-     const rawBit=bitIdx<dataBits.length?dataBits[bitIdx++]:0;
-     const maskBit=((row+c)%2===0)?1:0;
-     grid[row][c]=rawBit^maskBit;
-    }
-   }
-  }
-  up=!up;
- }
-
- const formatInfo=QR_FORMAT_MASKS[0];
- const putFormatBit=(idx,val)=>{
-  const bit=(formatInfo>>(14-idx))&1;
-  if(idx<=5)grid[8][idx]=bit;
-  else if(idx===6)grid[8][7]=bit;
-  else if(idx===7)grid[8][8]=bit;
-  else if(idx===8)grid[7][8]=bit;
-  else grid[14-idx][8]=bit;
-
-  if(idx<=7)grid[size-1-idx][8]=bit;
-  else grid[8][size-15+idx]=bit;
- };
- for(let i=0;i<15;i++)putFormatBit(i,1);
-
- return grid;
-}
-
 function renderShareQr(){
- const input=$("shareUrlInput");
- const canvas=$("qrCanvas");
- const caption=$("qrCaption");
- if(!canvas)return;
+ try{
+  const input=$("shareUrlInput");
+  const img=$("qrImg");
+  const caption=$("qrCaption");
+  if(!img)return;
 
- const rawVal=input?input.value.trim():"";
- const activeUrl=safeHttpUrl(rawVal)||safeHttpUrl(window.location.href)||"https://example.com";
- if(input&&!input.value.trim())input.value=activeUrl;
+  const rawVal=input?input.value.trim():"";
+  const activeUrl=safeHttpUrl(rawVal)||safeHttpUrl(window.location.href)||"https://example.com";
+  if(input&&!input.value.trim())input.value=activeUrl;
 
- const ctx=canvas.getContext("2d");
- if(!ctx)return;
- const w=canvas.width,h=canvas.height;
- ctx.fillStyle="#ffffff";
- ctx.fillRect(0,0,w,h);
-
- const matrix=buildQrMatrix(activeUrl);
- if(!matrix){
-  ctx.fillStyle="#132030";
-  ctx.font="bold 11px sans-serif";
-  ctx.textAlign="center";
-  ctx.fillText("Адресът е твърде дълъг за QR",w/2,h/2);
+  img.src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data="+encodeURIComponent(activeUrl);
   if(caption)caption.textContent=activeUrl;
-  return;
+ }catch(e){
+  console.error("QR render error:",e);
  }
-
- const quiet=3;
- const totalCells=matrix.length+quiet*2;
- const cell=Math.floor(Math.min(w,h)/totalCells);
- const offsetX=Math.floor((w-cell*totalCells)/2);
- const offsetY=Math.floor((h-cell*totalCells)/2);
-
- ctx.fillStyle="#080c12";
- for(let r=0;r<matrix.length;r++){
-  for(let c=0;c<matrix.length;c++){
-   if(matrix[r][c]){
-    ctx.fillRect(offsetX+(c+quiet)*cell,offsetY+(r+quiet)*cell,cell,cell);
-   }
-  }
- }
-
- if(caption)caption.textContent=activeUrl;
 }
 
 function cleanRecord(record,type){
@@ -3302,16 +3061,6 @@ $("copyShareLinkBtn")?.addEventListener("click",async()=>{
   }
   showToast("Линкът е копиран","good");
  }catch{showToast("Неуспешно копиране","danger")}
-});
-
-$("downloadQrBtn")?.addEventListener("click",()=>{
- const canvas=$("qrCanvas");
- if(!canvas)return;
- const a=document.createElement("a");
- a.href=canvas.toDataURL("image/png");
- a.download="M-GARAGE-PRO-QR.png";
- document.body.append(a);a.click();a.remove();
- showToast("QR кодът е свален като PNG","good");
 });
 
 $("resetShareUrlBtn")?.addEventListener("click",()=>{
