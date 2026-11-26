@@ -395,6 +395,84 @@ a{color:var(--accent)}
  flex:1;
 }
 
+.docs-widget{
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:var(--radius);
+ padding:14px 16px;
+ margin:12px 0;
+ box-shadow:var(--shadow);
+}
+.dw-head{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:8px;
+ margin-bottom:10px;
+}
+.dw-title{
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:1.1px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+.dw-list{
+ display:grid;
+ gap:8px;
+}
+.dw-item{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:14px;
+ padding:9px 11px;
+}
+.dw-main{
+ min-width:0;
+ flex:1;
+}
+.dw-name{
+ font-size:12px;
+ font-weight:900;
+ overflow-wrap:anywhere;
+}
+.dw-sub{
+ font-size:10px;
+ color:var(--muted);
+ margin-top:2px;
+ font-variant-numeric:tabular-nums;
+ overflow-wrap:anywhere;
+}
+.dw-right{
+ display:flex;
+ align-items:center;
+ gap:6px;
+ flex-shrink:0;
+}
+.dw-link-btn{
+ border:1px solid var(--border);
+ background:var(--surface-3);
+ color:var(--accent);
+ border-radius:9px;
+ padding:5px 8px;
+ font-size:10px;
+ font-weight:900;
+ text-decoration:none;
+ white-space:nowrap;
+}
+.dw-foot{
+ display:flex;
+ gap:8px;
+ margin-top:10px;
+}
+.dw-foot .btn{
+ flex:1;
+}
+
 .health-widget{
  position:relative;
  overflow:hidden;
@@ -1332,6 +1410,18 @@ details[open] > summary{
     <div class="hw-footer-actions">
      <button class="btn small" id="hwAddReminderBtn" type="button">＋ Напомняне</button>
      <button class="btn secondary small" id="hwOpenAllBtn" type="button">Всички напомняния</button>
+    </div>
+   </div>
+
+   <div class="docs-widget" id="docsWidget">
+    <div class="dw-head">
+     <div class="dw-title">ДОКУМЕНТИ И КРИТИЧНИ СРОКОВЕ</div>
+     <span class="status-pill" id="dwCountBadge">0 файла</span>
+    </div>
+    <div class="dw-list" id="dwList"></div>
+    <div class="dw-foot">
+     <button class="btn small" id="dwAddDocBtn" type="button">＋ Документ</button>
+     <button class="btn secondary small" id="dwOpenAllBtn" type="button">Всички документи</button>
     </div>
    </div>
 
@@ -2690,6 +2780,82 @@ function renewReminderRecord(record,car){
  return nextRem;
 }
 
+function renderDocsWidget(car){
+ const listEl=$("dwList");
+ const badgeEl=$("dwCountBadge");
+ if(!listEl||!car)return;
+ listEl.replaceChildren();
+ if(badgeEl)badgeEl.textContent=car.documents.length+(car.documents.length===1?" файл":" файла");
+
+ const nowDate=parseFlexibleDate(today());
+ const criticalDocs=car.documents.filter(d=>{
+  const hay=((d.documentType||"")+" "+(d.title||"")+" "+(d.notes||"")).toLowerCase();
+  return hay.includes("преглед")||hay.includes("застрах")||hay.includes("гражданск")||hay.includes("каско")||hay.includes("данък")||hay.includes("винет");
+ });
+
+ const pool=criticalDocs.length?criticalDocs:car.documents;
+ const items=[...pool]
+  .sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))
+  .slice(0,3);
+
+ if(!items.length){
+  listEl.innerHTML='<div class="empty" style="padding:14px 10px">Няма добавени документи (ГТП, застраховка, фактури).</div>';
+  return;
+ }
+
+ items.forEach(doc=>{
+  const row=document.createElement("div");
+  row.className="dw-item";
+
+  const main=document.createElement("div");
+  main.className="dw-main";
+
+  const name=document.createElement("div");
+  name.className="dw-name";
+  name.textContent=getCategoryIcon(doc.documentType,doc.title)+" "+(doc.title||"Документ");
+
+  const sub=document.createElement("div");
+  sub.className="dw-sub";
+  const parts=[doc.documentType||"Документ",formatDate(doc.date)];
+  const dObj=parseFlexibleDate(doc.date);
+  if(dObj&&nowDate){
+   const diffDays=Math.round((dObj.getTime()-nowDate.getTime())/86400000);
+   if(diffDays>0&&diffDays<=60)parts.push("остават "+diffDays+" д.");
+  }
+  if(doc.notes)parts.push(doc.notes);
+  sub.textContent=parts.join(" · ");
+
+  main.append(name,sub);
+
+  const right=document.createElement("div");
+  right.className="dw-right";
+
+  const safeUrl=safeHttpUrl(doc.fileUrl);
+  if(safeUrl){
+   const a=document.createElement("a");
+   a.className="dw-link-btn";
+   a.href=safeUrl;
+   a.target="_blank";
+   a.rel="noopener noreferrer";
+   a.textContent="Отвори";
+   right.append(a);
+  }
+
+  const editBtn=document.createElement("button");
+  editBtn.type="button";
+  editBtn.className="btn secondary small";
+  editBtn.style.minHeight="28px";
+  editBtn.style.padding="4px 8px";
+  editBtn.textContent="✎";
+  editBtn.title="Редакция";
+  editBtn.addEventListener("click",()=>openEditRecord("document",doc));
+  right.append(editBtn);
+
+  row.append(main,right);
+  listEl.append(row);
+ });
+}
+
 function renderQuickGlance(car){
  if(!car)return;
  const totals=getFinancialTotals(car);
@@ -3512,6 +3678,7 @@ function renderOverview(car){
  renderHeroPhoto(car);
  renderLastServiceCard(car);
  renderHealthWidget(car);
+ renderDocsWidget(car);
  renderTimeline(car);
 
  const active=car.reminders.filter(r=>!r.completed);
@@ -4307,6 +4474,12 @@ $("hwOpenAllBtn")?.addEventListener("click",()=>{
  showSeg("reminders");
 });
 
+$("dwAddDocBtn")?.addEventListener("click",()=>openSheet("documents","Нов документ"));
+$("dwOpenAllBtn")?.addEventListener("click",()=>{
+ showScreen("service");
+ showSeg("documents");
+});
+
 $("topCloudBtn")?.addEventListener("click",openCloudPanel);
 $("emptyAddCarBtn")?.addEventListener("click",()=>openSheet("car","Нов автомобил"));
 
@@ -4434,7 +4607,7 @@ window.addEventListener("DOMContentLoaded",()=>{
  const moreSec=$("screen-more");
  if(dCloud)cloudObserver.observe(dCloud,{childList:true,characterData:true,subtree:true});
  if(cUser)cloudObserver.observe(cUser,{childList:true,characterData:true,subtree:true});
- if(moreSec)cloudObserver.observe(moreSec,{childList:true,subtree:true});
+ if(moreSec)cloudObserver.observe(moreSec,{childList:true,characterData:true,subtree:true});
  refreshGarageCloudWidget();
 });
 window.addEventListener("storage",e=>{
