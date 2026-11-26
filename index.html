@@ -271,7 +271,6 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
 
-/* Cloud Sync уиджит в Гараж */
 .garage-cloud-widget{
  background:var(--surface);
  border:1px solid var(--border);
@@ -315,7 +314,6 @@ a{color:var(--accent)}
  flex:1;
 }
 
-/* Уиджити за Състояние и Напомняния */
 .health-widget{
  position:relative;
  overflow:hidden;
@@ -515,7 +513,6 @@ a{color:var(--accent)}
 .seg-view{display:none}
 .seg-view.active{display:block;animation:screenIn .16s ease}
 
-/* Търсачка и филтри в Сервиз */
 .filter-bar{
  display:flex;
  flex-direction:column;
@@ -570,7 +567,6 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{min-height:82px;resize:vertical}
 
-/* Бързи шаблони (чипове) във формите */
 .preset-row{
  display:flex;
  flex-wrap:wrap;
@@ -690,7 +686,6 @@ textarea{min-height:82px;resize:vertical}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
 
-/* Сгъваеми MGU стъпки */
 details.step-card{
  background:var(--surface-2);
  border:1px solid var(--border);
@@ -777,7 +772,6 @@ details.step-card > summary::-webkit-details-marker{display:none}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
 .finance-caption{font-size:10px;color:var(--muted)}
 
-/* Падащи менюта / акордеони */
 details.ref-box,
 details.drop-panel{
  background:var(--surface-2);
@@ -1261,7 +1255,7 @@ details[open] > summary{
     <div class="field"><label>СТОЙНОСТ (€)</label><input id="sCost" type="number" min="0" step="0.01"></div>
     <div class="field"><label>БЕЛЕЖКИ</label><input id="sNotes"></div>
    </div>
-   <details class="ref-box" style="margin-top:12px">
+   <details class="ref-box" id="sAutoNextBox" style="margin-top:12px">
     <summary>Автоматично следващо обслужване <span><span class="chev">▾</span></span></summary>
     <div class="muted">Интервал в километри, месеци или и двете.</div>
     <div class="form-grid" style="margin-top:10px">
@@ -1415,6 +1409,7 @@ let searchQuery="";
 let activeFilter="all";
 let forcedCloudState="";
 let draftPhotoDataUrl="";
+let editingRecord=null;
 const $=id=>document.getElementById(id);
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
@@ -1427,11 +1422,42 @@ function safePhotoDataUrl(value){
 }
 function makeId(){return crypto.randomUUID?crypto.randomUUID():"id-"+Date.now()+"-"+Math.random().toString(16).slice(2)}
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+
+function parseFlexibleDate(value){
+ if(!value)return null;
+ if(value instanceof Date)return Number.isNaN(value.getTime())?null:new Date(value.getFullYear(),value.getMonth(),value.getDate(),12,0,0);
+ const raw=String(value).trim();
+ if(!raw)return null;
+ const ymd=raw.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
+ if(ymd){
+  const y=Number(ymd[1]),m=Number(ymd[2]),day=Number(ymd[3]);
+  const d=new Date(y,m-1,day,12,0,0);
+  if(d.getFullYear()===y&&d.getMonth()===m-1&&d.getDate()===day)return d;
+  return null;
+ }
+ const dmy=raw.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+ if(dmy){
+  const day=Number(dmy[1]),m=Number(dmy[2]),y=Number(dmy[3]);
+  const d=new Date(y,m-1,day,12,0,0);
+  if(d.getFullYear()===y&&d.getMonth()===m-1&&d.getDate()===day)return d;
+  return null;
+ }
+ const fallback=new Date(raw);
+ if(Number.isNaN(fallback.getTime()))return null;
+ return new Date(fallback.getFullYear(),fallback.getMonth(),fallback.getDate(),12,0,0);
+}
+
+function toIsoDate(value){
+ const d=parseFlexibleDate(value);
+ if(!d)return"";
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
 function addMonths(dateString,months){
- if(!dateString||!months)return"";
- const d=new Date(dateString+"T12:00:00");
- if(Number.isNaN(d.getTime()))return"";
- const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+months);
+ const base=parseFlexibleDate(dateString)||parseFlexibleDate(today());
+ if(!base||!months)return"";
+ const day=base.getDate();
+ const d=new Date(base.getFullYear(),base.getMonth()+Number(months),1,12,0,0);
  const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
  d.setDate(Math.min(day,last));
  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -1511,9 +1537,13 @@ function setTheme(theme){
 function formatMoney(value){return safeNumber(value).toLocaleString("bg-BG",{minimumFractionDigits:0,maximumFractionDigits:2})+" €"}
 function formatDate(value){
  if(!value)return"Без дата";
- const raw=String(value),datePart=raw.slice(0,10),parts=datePart.split("-");
- if(parts.length===3&&parts.every(p=>/^\d+$/.test(p)))return parts[2]+"."+parts[1]+"."+parts[0];
- const d=new Date(raw);return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
+ const parsed=parseFlexibleDate(value);
+ if(parsed){
+  return String(parsed.getDate()).padStart(2,"0")+"."+String(parsed.getMonth()+1).padStart(2,"0")+"."+parsed.getFullYear();
+ }
+ const raw=String(value);
+ const d=new Date(raw);
+ return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
 }
 function formatDateTime(value){
  if(!value)return"няма данни";
@@ -1714,20 +1744,117 @@ function showSeg(seg){
  updateFab();
 }
 
-function openSheet(formKey,title){
+function resetFormFields(formKey){
+ editingRecord=null;
+ if(formKey==="service"){
+  $("addServiceButton").textContent="Запази сервизен запис";
+  ["sTitle","sMileage","sProvider","sCost","sNotes","sIntervalKm","sIntervalMonths","sNextTitle"].forEach(id=>$(id).value="");
+  $("sDate").value=today();
+  if($("sAutoNextBox"))[$("sAutoNextBox").classList.remove("hidden"),$("sAutoNextBox").open=false];
+ }else if(formKey==="reminders"){
+  $("addReminderButton").textContent="Запази напомняне";
+  ["rTitle","rDate","rMileage","rNotes"].forEach(id=>$(id).value="");
+  $("rCategory").value="Масло";
+ }else if(formKey==="mods"){
+  $("addModificationButton").textContent="Запази модификация";
+  ["mTitle","mCategory","mPartNumber","mCost","mDescription"].forEach(id=>$(id).value="");
+  $("mDate").value=today();
+ }else if(formKey==="expenses"){
+  $("addExpenseButton").textContent="Запази разход";
+  ["eTitle","eCost","eNotes"].forEach(id=>$(id).value="");
+  $("eCategory").value="Гориво";
+  $("eDate").value=today();
+ }else if(formKey==="documents"){
+  $("addDocumentButton").textContent="Запази документ";
+  ["dTitle","dUrl","dNotes"].forEach(id=>$(id).value="");
+  $("dType").value="Фактура";
+  $("dDate").value=today();
+ }
+}
+
+function openSheet(formKey,title,record=null){
  const backdrop=$("sheetBackdrop");
  document.querySelectorAll(".sheet-form").forEach(f=>f.classList.add("hidden"));
  const target=$("form-"+formKey);
  if(target)target.classList.remove("hidden");
  $("sheetTitle").textContent=title;
- if(formKey==="service"&&!$("sDate").value)$("sDate").value=today();
- if(formKey==="mods"&&!$("mDate").value)$("mDate").value=today();
- if(formKey==="expenses"&&!$("eDate").value)$("eDate").value=today();
- if(formKey==="documents"&&!$("dDate").value)$("dDate").value=today();
+
+ resetFormFields(formKey);
+
+ if(record){
+  editingRecord={type:formKey,id:record.id};
+  if(formKey==="service"){
+   $("addServiceButton").textContent="Запази промените";
+   $("sDate").value=toIsoDate(record.date)||today();
+   $("sMileage").value=record.mileage||"";
+   $("sTitle").value=record.title||"";
+   $("sProvider").value=record.provider||"";
+   $("sCost").value=record.cost||"";
+   $("sNotes").value=record.notes||"";
+   if($("sAutoNextBox")){$("sAutoNextBox").open=false;$("sAutoNextBox").classList.add("hidden")}
+  }else if(formKey==="reminders"){
+   $("addReminderButton").textContent="Запази промените";
+   $("rTitle").value=record.title||"";
+   if(record.category&&Array.from($("rCategory").options).some(o=>o.value===record.category)){
+    $("rCategory").value=record.category;
+   }else{
+    $("rCategory").value="Друго";
+   }
+   $("rDate").value=toIsoDate(record.dueDate)||"";
+   $("rMileage").value=record.dueMileage||"";
+   $("rNotes").value=record.notes||"";
+  }else if(formKey==="mods"){
+   $("addModificationButton").textContent="Запази промените";
+   $("mTitle").value=record.title||"";
+   $("mCategory").value=record.category||"";
+   $("mPartNumber").value=record.partNumber||"";
+   $("mDate").value=toIsoDate(record.date)||today();
+   $("mCost").value=record.cost||"";
+   $("mDescription").value=record.description||"";
+  }else if(formKey==="expenses"){
+   $("addExpenseButton").textContent="Запази промените";
+   $("eTitle").value=record.title||"";
+   $("eDate").value=toIsoDate(record.date)||today();
+   $("eCost").value=record.cost||"";
+   if(record.category&&Array.from($("eCategory").options).some(o=>o.value===record.category)){
+    $("eCategory").value=record.category;
+   }else{
+    $("eCategory").value="Други";
+   }
+   $("eNotes").value=record.notes||"";
+  }else if(formKey==="documents"){
+   $("addDocumentButton").textContent="Запази промените";
+   $("dTitle").value=record.title||"";
+   if(record.documentType&&Array.from($("dType").options).some(o=>o.value===record.documentType)){
+    $("dType").value=record.documentType;
+   }else{
+    $("dType").value="Друг";
+   }
+   $("dDate").value=toIsoDate(record.date)||today();
+   $("dUrl").value=record.fileUrl||"";
+   $("dNotes").value=record.notes||"";
+  }
+ }
+
  backdrop.classList.remove("hidden");
 }
 
+function openEditRecord(type,record){
+ const map={
+  service:{form:"service",title:"✎ Редакция на сервизен запис"},
+  reminder:{form:"reminders",title:"✎ Редакция на напомняне"},
+  modification:{form:"mods",title:"✎ Редакция на модификация"},
+  expense:{form:"expenses",title:"✎ Редакция на разход"},
+  document:{form:"documents",title:"✎ Редакция на документ"}
+ };
+ const cfg=map[type];
+ if(!cfg||!record)return;
+ openSheet(cfg.form,cfg.title,record);
+}
+
 function closeSheet(){
+ editingRecord=null;
+ if($("sAutoNextBox"))$("sAutoNextBox").classList.remove("hidden");
  $("sheetBackdrop").classList.add("hidden");
 }
 
@@ -1757,10 +1884,12 @@ function renderGarage(){
 }
 
 function reminderState(r,car){
- const now=today(),dateDue=!!(r.dueDate&&r.dueDate<=now);
- const kmDue=!!(r.dueMileage&&car.details.mileage>=r.dueMileage);
- const daysLeft=r.dueDate?Math.ceil((new Date(r.dueDate+"T12:00:00")-new Date(now+"T12:00:00"))/86400000):null;
- const kmLeft=r.dueMileage?Math.max(0,r.dueMileage-safeNumber(car.details.mileage)):null;
+ const nowDate=parseFlexibleDate(today());
+ const dueDateObj=parseFlexibleDate(r.dueDate);
+ const dateDue=!!(dueDateObj&&nowDate&&dueDateObj<=nowDate);
+ const kmDue=!!(r.dueMileage&&safeNumber(car.details.mileage)>=safeNumber(r.dueMileage));
+ const daysLeft=(dueDateObj&&nowDate)?Math.round((dueDateObj.getTime()-nowDate.getTime())/86400000):null;
+ const kmLeft=r.dueMileage?Math.max(0,safeNumber(r.dueMileage)-safeNumber(car.details.mileage)):null;
  const overdue=dateDue||kmDue,soon=!overdue&&((daysLeft!==null&&daysLeft<=30)||(kmLeft!==null&&kmLeft<=1000));
  return{overdue,soon,daysLeft,kmLeft};
 }
@@ -1833,7 +1962,9 @@ function renderHealthWidget(car){
  const active=car.reminders.filter(r=>!r.completed);
  const sorted=[...active].sort((a,b)=>{
   const sa=reminderState(a,car),sb=reminderState(b,car);
-  return Number(sb.overdue)-Number(sa.overdue)||Number(sb.soon)-Number(sa.soon)||String(a.dueDate||"9999").localeCompare(String(b.dueDate||"9999"));
+  const da=sa.daysLeft!==null&&Number.isFinite(sa.daysLeft)?sa.daysLeft:99999;
+  const db=sb.daysLeft!==null&&Number.isFinite(sb.daysLeft)?sb.daysLeft:99999;
+  return Number(sb.overdue)-Number(sa.overdue)||Number(sb.soon)-Number(sa.soon)||da-db;
  });
 
  const overdueCount=active.filter(r=>reminderState(r,car).overdue).length;
@@ -1892,7 +2023,8 @@ function renderHealthWidget(car){
 
  const dateCandidates=active.filter(r=>r.dueDate).map(r=>{
   const st=reminderState(r,car);
-  return{days:st.daysLeft,date:r.dueDate,title:r.title,category:r.category};
+  const validDays=(st.daysLeft!==null&&Number.isFinite(st.daysLeft))?st.daysLeft:null;
+  return{days:validDays,date:r.dueDate,title:r.title,category:r.category};
  }).sort((a,b)=>(a.days??99999)-(b.days??99999));
 
  if(dateCandidates.length>0){
@@ -1906,9 +2038,9 @@ function renderHealthWidget(car){
    dateLeftEl.style.color=nearestDate.days<=30?"var(--warn)":"var(--good)";
    dateSubEl.textContent="Срок: "+formatDate(nearestDate.date);
   }else{
-   dateLeftEl.textContent=formatDate(nearestDate.date);
+   dateLeftEl.textContent="—";
    dateLeftEl.style.color="var(--text)";
-   dateSubEl.textContent="Планирана дата";
+   dateSubEl.textContent="Срок: "+formatDate(nearestDate.date);
   }
  }else{
   dateLeftEl.textContent="—";
@@ -2049,7 +2181,9 @@ function renderOverview(car){
  const upcoming=$("upcomingServices");
  const sorted=[...active].sort((a,b)=>{
   const sa=reminderState(a,car),sb=reminderState(b,car);
-  return Number(sb.overdue)-Number(sa.overdue)||String(a.dueDate||"9999").localeCompare(String(b.dueDate||"9999"));
+  const da=sa.daysLeft!==null&&Number.isFinite(sa.daysLeft)?sa.daysLeft:99999;
+  const db=sb.daysLeft!==null&&Number.isFinite(sb.daysLeft)?sb.daysLeft:99999;
+  return Number(sb.overdue)-Number(sa.overdue)||da-db;
  }).slice(0,5);
 
  if(!sorted.length){upcoming.innerHTML='<div class="empty">Няма планирани обслужвания. Добави от „Сервиз“ или „Напомняния“.</div>';return}
@@ -2251,7 +2385,7 @@ function matchesSearchAndFilter(record,type,car){
 function renderRecords(containerId,records,type,car){
  const container=$(containerId);container.replaceChildren();
  const filtered=[...records]
-  .sort((a,b)=>(b.date||"").localeCompare(a.date||""))
+  .sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))
   .filter(r=>matchesSearchAndFilter(r,type,car));
 
  if(!records.length){
@@ -2307,13 +2441,18 @@ function renderRecords(containerId,records,type,car){
   }
 
   const actions=document.createElement("div");actions.className="record-actions";
-  const del=document.createElement("button");del.className="btn danger small";del.textContent="Изтрий записа";
+  const edit=document.createElement("button");edit.type="button";edit.className="btn secondary small";
+  edit.textContent="✎ Редакция";
+  edit.addEventListener("click",()=>openEditRecord(type,record));
+
+  const del=document.createElement("button");del.type="button";del.className="btn danger small";
+  del.textContent="Изтрий записа";
   del.addEventListener("click",()=>{
    if(!confirm("Да изтрия ли този запис?"))return;
    const index=records.findIndex(r=>r.id===record.id);if(index>=0)records.splice(index,1);
    save();renderAll();
   });
-  actions.append(del);card.append(actions);container.append(card);
+  actions.append(edit,del);card.append(actions);container.append(card);
  });
 }
 
@@ -2379,8 +2518,30 @@ function addService(){
  const car=activeCar();if(!car)return;
  if(!getVal("sTitle"))return alert("Въведи описание на сервизната дейност.");
  const date=getVal("sDate")||today(),mileage=safeNumber(getVal("sMileage"));
+ const serviceTitle=getVal("sTitle");
+
+ if(editingRecord&&editingRecord.type==="service"){
+  const idx=car.serviceRecords.findIndex(r=>r.id===editingRecord.id);
+  if(idx>=0){
+   const existing=car.serviceRecords[idx];
+   car.serviceRecords[idx]=cleanRecord({
+    ...existing,
+    id:existing.id,
+    date,
+    title:serviceTitle,
+    mileage,
+    provider:getVal("sProvider"),
+    cost:getVal("sCost"),
+    notes:getVal("sNotes")
+   },"service");
+   save();renderAll();closeSheet();
+   message("localMessage","Сервизният запис е обновен.");
+   return;
+  }
+ }
+
  const intervalKm=safeNumber(getVal("sIntervalKm")),intervalMonths=safeNumber(getVal("sIntervalMonths"));
- const serviceTitle=getVal("sTitle"),serviceId=makeId();
+ const serviceId=makeId();
  car.serviceRecords.push(cleanRecord({
   id:serviceId,date,title:serviceTitle,mileage,provider:getVal("sProvider"),
   cost:getVal("sCost"),notes:getVal("sNotes")
@@ -2401,37 +2562,106 @@ function addService(){
   },"reminder"));
  }
  save();renderAll();closeSheet();
- ["sTitle","sMileage","sProvider","sCost","sNotes","sIntervalKm","sIntervalMonths","sNextTitle"].forEach(id=>$(id).value="");
  message("localMessage",intervalKm||intervalMonths?"Сервизният запис и следващото напомняне са запазени.":"Сервизният запис е запазен.");
 }
 
 function addReminder(){
+ const car=activeCar();if(!car)return;
  if(!getVal("rTitle"))return alert("Въведи име на напомнянето.");
+ if(editingRecord&&editingRecord.type==="reminders"){
+  const idx=car.reminders.findIndex(r=>r.id===editingRecord.id);
+  if(idx>=0){
+   const existing=car.reminders[idx];
+   car.reminders[idx]=cleanRecord({
+    ...existing,
+    id:existing.id,
+    title:getVal("rTitle"),
+    dueDate:getVal("rDate"),
+    dueMileage:getVal("rMileage"),
+    category:getVal("rCategory"),
+    notes:getVal("rNotes")
+   },"reminder");
+   save();renderAll();closeSheet();
+   return;
+  }
+ }
  addRecord("reminder",{title:getVal("rTitle"),date:today(),dueDate:getVal("rDate"),dueMileage:getVal("rMileage"),category:getVal("rCategory"),notes:getVal("rNotes"),completed:false});
- ["rTitle","rDate","rMileage","rNotes"].forEach(id=>$(id).value="");
  closeSheet();
 }
 
 function addModification(){
+ const car=activeCar();if(!car)return;
  if(!getVal("mTitle"))return alert("Въведи име на модификацията.");
+ if(editingRecord&&editingRecord.type==="mods"){
+  const idx=car.modifications.findIndex(r=>r.id===editingRecord.id);
+  if(idx>=0){
+   const existing=car.modifications[idx];
+   car.modifications[idx]=cleanRecord({
+    ...existing,
+    id:existing.id,
+    title:getVal("mTitle"),
+    date:getVal("mDate")||today(),
+    category:getVal("mCategory"),
+    partNumber:getVal("mPartNumber"),
+    cost:getVal("mCost"),
+    description:getVal("mDescription")
+   },"modification");
+   save();renderAll();closeSheet();
+   return;
+  }
+ }
  addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
- ["mTitle","mDate","mCategory","mPartNumber","mCost","mDescription"].forEach(id=>$(id).value="");
  closeSheet();
 }
 
 function addExpense(){
+ const car=activeCar();if(!car)return;
  if(!getVal("eTitle")||!getVal("eCost"))return alert("Въведи описание и стойност на разхода.");
+ if(editingRecord&&editingRecord.type==="expenses"){
+  const idx=car.expenses.findIndex(r=>r.id===editingRecord.id);
+  if(idx>=0){
+   const existing=car.expenses[idx];
+   car.expenses[idx]=cleanRecord({
+    ...existing,
+    id:existing.id,
+    title:getVal("eTitle"),
+    date:getVal("eDate")||today(),
+    cost:getVal("eCost"),
+    category:getVal("eCategory"),
+    notes:getVal("eNotes")
+   },"expense");
+   save();renderAll();closeSheet();
+   return;
+  }
+ }
  addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),notes:getVal("eNotes")});
- ["eTitle","eDate","eCost","eNotes"].forEach(id=>$(id).value="");
  closeSheet();
 }
 
 function addDocument(){
+ const car=activeCar();if(!car)return;
  if(!getVal("dTitle"))return alert("Въведи име на документа.");
  const rawUrl=getVal("dUrl"),safeUrl=safeHttpUrl(rawUrl);
  if(rawUrl&&!safeUrl)return alert("Линкът трябва да бъде валиден адрес, започващ с http:// или https://.");
+ if(editingRecord&&editingRecord.type==="documents"){
+  const idx=car.documents.findIndex(r=>r.id===editingRecord.id);
+  if(idx>=0){
+   const existing=car.documents[idx];
+   car.documents[idx]=cleanRecord({
+    ...existing,
+    id:existing.id,
+    title:getVal("dTitle"),
+    date:getVal("dDate")||today(),
+    documentType:getVal("dType"),
+    fileName:getVal("dTitle"),
+    fileUrl:safeUrl,
+    notes:getVal("dNotes")
+   },"document");
+   save();renderAll();closeSheet();
+   return;
+  }
+ }
  addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:safeUrl,notes:getVal("dNotes")});
- ["dTitle","dDate","dUrl","dNotes"].forEach(id=>$(id).value="");
  closeSheet();
 }
 
