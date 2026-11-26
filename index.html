@@ -224,6 +224,13 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
  background:var(--accent-soft);border:1px solid var(--accent);
  border-radius:11px;padding:11px;margin:10px 0;font-size:11px;line-height:1.6
 }
+.step-expected{
+ background:rgba(158,231,189,.08);border:1px solid var(--good);
+ border-radius:11px;padding:11px;margin:0 0 4px;
+ color:var(--text);font-size:11px;line-height:1.6
+}
+.golden-rules{margin:0;padding-left:18px}
+.golden-rules li{margin:5px 0}
 .command-label{font-size:9px;font-weight:900;letter-spacing:1px;color:var(--muted);margin:13px 0 7px}
 .command-box{
  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
@@ -361,6 +368,7 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
  <button class="tab" data-tab="mods">Модификации</button>
  <button class="tab" data-tab="expenses">Разходи</button>
  <button class="tab" data-tab="documents">Документи</button>
+ <button class="tab" data-tab="reference">Справочник</button>
 </nav>
 
 <section class="panel tab-content active" id="tab-overview">
@@ -408,6 +416,19 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
  <div class="section-title">BMW MGU · ПЪЛНА ПРОЦЕДУРА</div>
  <div class="muted">Отбелязвай стъпките след реалното им изпълнение. Командите се копират, но не се изпълняват автоматично от приложението.</div>
  <div class="alert warn">Важно: процедурата зависи от версията на MGU и използвания проект. Преди изпълнение провери актуалната документация и съвместимостта. Не изпълнявай команда, ако не си сигурен какво прави.</div>
+ <div class="alert danger">
+  <strong>ЗЛАТНИ ПРАВИЛА</strong>
+  <ol class="golden-rules">
+   <li>Командата „flash“ се пуска САМО ВЕДНЪЖ. Никога втори път „за всеки случай“.</li>
+   <li>При всяка грешка: спри, направи снимка на целия изход, не повтаряй командата.</li>
+   <li>Зарядно на акумулатора и лаптопът на зарядно през цялото време.</li>
+   <li>Не пипай ENET кабела, не гаси колата и не затваряй Terminal по време на флаш и инсталация.</li>
+   <li>Ключовете (data/enrollments/…) да са на ДВЕ места. Не ги споделяй с никого.</li>
+   <li>Не публикувай логове или снимки с VIN-а.</li>
+   <li>Не форсирай нищо, ако Waze on cluster пише „Not supported“.</li>
+  </ol>
+  <div style="margin-top:10px">Какво се губи при флаша: кодирането на head unit-а (вкл. Sport+) и запазените настройки на iDrive. Digital Key не е засегнат, ако нямаш такъв.</div>
+ </div>
  <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
  <div class="muted" id="stepsProgressText"></div>
  <div id="stepsList"></div>
@@ -491,6 +512,47 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
  <div class="btn-row"><button class="btn" id="addDocumentButton">＋ Добави документ</button></div>
  <hr><div id="documentList"></div>
 </section>
+
+<section class="panel tab-content" id="tab-reference">
+ <div class="section-title">ИНСТРУМЕНТИ И ИЗТОЧНИЦИ</div>
+ <div class="alert">
+  <div><strong>Инструмент за root:</strong> github.com/cauliflowermossgrape/idrive7-8-ssh-root (папка idrive7-8-ssh-root-main на Desktop)</div>
+  <div style="margin-top:6px"><strong>Магазин:</strong> github.com/robertnisipeanu/mgu-store</div>
+  <div style="margin-top:6px"><strong>Приложения (Waze on cluster):</strong> github.com/robertnisipeanu/idrive-apps</div>
+  <div style="margin-top:6px"><strong>Boot loop възстановяване:</strong> issue #63 в idrive-apps — дръж го отворен на телефона по време на флаша.</div>
+  <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към момента) — за „Not supported“ на Waze on cluster.</div>
+ </div>
+
+ <div class="section-title" style="margin-top:22px">АКО НЕЩО СЕ ОБЪРКА</div>
+ <div class="alert danger">
+  <ul class="golden-rules">
+   <li><strong>Head unit-ът се рестартира в цикъл</strong> (лого, черен екран, лого…): не предприемай нищо в паника. Отвори issue #63 в idrive-apps — възстановяването там е през root SSH, който се отваря само за ~5 секунди на цикъл. Mac-ът с ключа остава свързан през ENET. Пиши веднага.</li>
+   <li><strong>„No route to host“:</strong> изключи Wi-Fi на Mac-а, провери кабела, колата да е будна.</li>
+   <li><strong>„Permission denied (publickey)“:</strong> не пускай втори флаш. Направи снимка.</li>
+   <li><strong>Store: „nothing was installed“:</strong> няма промяна в колата. Снимка на целия изход.</li>
+   <li><strong>Waze on cluster „Not supported“:</strong> спри и питай автора (issue #99).</li>
+   <li><strong>B7F8E5 не се трие:</strong> направи Persist (стъпка 5), после изтрий грешката.</li>
+   <li><strong>Нужни са ти кодираните стойности отново:</strong> виж стъпка 9 (връщане на кодирането).</li>
+  </ul>
+ </div>
+
+ <div class="section-title" style="margin-top:22px">КАКВО НЕ Е ПОТВЪРДЕНО</div>
+ <div class="alert warn">
+  <ul class="golden-rules">
+   <li>Авторът на idrive-apps не е потвърдил точно версия 11/2021.61 на софтуера (issue #99 без видим отговор). По други issue-та 21-07 е работила, но тази версия не е тествана от никого познат.</li>
+   <li>Точният текст на изхода на командите <code>persist</code>, <code>close</code>, на Waze on cluster и на BimmerCode Restore — дадени са само признаци за успех, не точен текст.</li>
+   <li>Дали <code>persist</code> и <code>close</code> влияят на Store-а и на Waze.</li>
+   <li>Точните имена на пунктове в менюто на BimmerCode за твоята версия на приложението.</li>
+   <li>Дали гаранцията или дилърът ще имат проблем със софтуера.</li>
+   <li>Дали бъдеща актуализация на iStep ще презапише промените (един потребител във форум пише, че новият софтуер изтрива кодирането).</li>
+  </ul>
+ </div>
+
+ <div class="section-title" style="margin-top:22px">ПОВЕРИТЕЛНОСТ НА ОБЛАЧНИЯ СИНХ</div>
+ <div class="alert warn">
+  Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
+ </div>
+</section>
 </main>
 
 <section class="panel rules">
@@ -516,15 +578,18 @@ const THEME_KEY="mgu_theme";
 const DATA_VERSION=4;
 
 const STEPS=[
-{id:"prep",title:"1. Подготовка на Mac-а",description:"Подготви Mac, Python средата и ENET връзката към автомобила.",explanation:"Провери дали Python 3 е инсталиран, дали проектът е разархивиран и дали Terminal е отворен в правилната директория. Свържи автомобила чрез ENET кабел и провери комуникацията.",warning:"Осигури стабилно захранване на автомобила. Не започвай процедура при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt"},
-{id:"backup",title:"2. Резервно копие на кодирането",description:"Направи и запази backup на оригиналната конфигурация.",explanation:"Преди промяна на MGU направи пълен backup на оригиналното кодиране чрез BimmerCode. Запази файла на Mac-а и на отделно сигурно място. Увери се, че архивът е наличен и можеш да го намериш.",warning:"Не продължавай без резервно копие. Не изтривай оригиналния архив след приключване на процедурата.",command:""},
-{id:"enable",title:"3. Enable – активиране на SSH",description:"Активиране на SSH достъпа до MGU.",explanation:"От Terminal, в директорията на проекта, изпълни командата за активиране. Изчакай приключване и прочети резултата. Не затваряй Terminal по време на операцията.",warning:"Командата трябва да съответства на версията на проекта и автомобила. Не продължавай, ако процесът върне грешка.",command:"python3 ssh_enable.py enable"},
-{id:"flash",title:"4. Flash – флашване на MGU",description:"Изпълнение на Flash процедурата за съответния VIN.",explanation:"Провери VIN номера и го използвай точно както е записан в документите на автомобила. Изпълни командата само след успешна подготовка и backup.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. Не стартирай повторна процедура само защото процесът се бави. Следвай документацията на използвания проект.",command:"python3 ssh_enable.py flash --vin ${v}"},
-{id:"persist",title:"5. Persist – перманентно запазване",description:"Запазване на SSH конфигурацията според процедурата.",explanation:"Изпълнява се след успешното приключване на Flash. Изчакай програмата да завърши и провери дали резултатът е успешен.",warning:"Не изпълнявай Persist при неуспешен Flash или неустановена връзка с MGU.",command:"python3 ssh_enable.py persist"},
-{id:"status",title:"6. Проверка на статус",description:"Провери състоянието на SSH достъпа.",explanation:"Използвай командата за проверка на статуса. Сравни резултата с очаквания от документацията на проекта. Ако достъпът не е активен, спри и установи причината.",warning:"Не преминавай към следващите стъпки при грешка или липса на SSH достъп.",command:"python3 ssh_enable.py status"},
-{id:"key",title:"7. Ключ за SSH достъп",description:"Подготви частния SSH ключ за връзка.",explanation:"Копирай ключа от директорията на конкретния VIN в локалната SSH директория. Настрой правата му така, че да бъде достъпен само от твоя потребител.",warning:"Частният ключ е чувствителна информация. Не го публикувай, не го изпращай в чатове и не го качвай в публичен GitHub repository.",command:"mkdir -p ~/.ssh && cp data/enrollments/${v}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key"},
-{id:"store",title:"8. Инсталирай mgu-store и Waze",description:"Инсталация и настройка на MGU Store и желаните приложения.",explanation:"След като SSH достъпът е проверен, продължи по официалната процедура на MGU Store. Използвай инструкциите за съответната версия на MGU. След инсталацията провери дали Store се отваря и дали Waze е наличен и функционира.",warning:"Не използвай произволни инсталационни скриптове или пакети от непроверени източници. Командите за тази стъпка зависят от версията на MGU Store и не трябва да се заменят с предположения.",command:""},
-{id:"recode",title:"9. Прекодирай Headunit-а",description:"Възстановяване на кодиране и финална проверка.",explanation:"След приключване на процедурата възстанови оригиналното кодиране чрез BimmerCode от резервното копие. Провери работата на iDrive, аудиосистемата, камерите, навигацията, Bluetooth, CarPlay и останалите функции на автомобила.",warning:"Не приемай процедурата за приключена, докато оригиналното кодиране не е възстановено и функциите на автомобила не са проверени.",command:""}
+{id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
+{id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
+{id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
+{id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
+{id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
+{id:"store_key",title:"6. SSH ключ за Store инсталацията",description:"Копирай ключа на стандартно място, за да го ползва инсталаторът на mgu-store.",explanation:"Wi-Fi на Mac-а ВКЛЮЧЕН (трябва интернет). ENET свързан. Колата на зарядно.",warning:"При „No such file or directory“ — не си в папката на инструмента (cd отново) или VIN-папката е друга (ls data/enrollments).",command:"mkdir -p ~/.ssh && cp data/enrollments/{VIN}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ: няма изход. Проверка по желание: „ls -l ~/.ssh/mgu_root_key“ → ред, започващ с -rw------- и завършващ на mgu_root_key."},
+{id:"store",title:"7. Инсталирай mgu-store",description:"Пуска официалния инсталатор на mgu-store (от README на проекта) и рестартира head unit-а.",explanation:"Ако не намери устройството, добави в края „--host 169.254.83.114 --port 22“ (адресът на твоята кола, провери със status). На въпроса „Restart the head unit now? [y/N]“ отговори y. Може да мълчи 5+ минути — не прекъсвай.",warning:"Ако видиш „nothing was installed“ / „ended with status 2“ — НИЩО не е променено в колата, направи снимка на целия изход и не повтаряй сляпо.",command:"curl -fsSL https://raw.githubusercontent.com/robertnisipeanu/mgu-store/main/deploy/install.sh | sh -s -- first-install --identity ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ [ДРУГИ, може да е различно]: „app-privacy … installed“, „installing app robertn_store …“, след рестарт — плочка на Store сред приложенията на iDrive."},
+{id:"waze",title:"8. Waze on cluster",description:"Добави източника idrive-apps в Store-а, инсталирай „Waze on cluster“ и провери на таблото.",explanation:"В Store-а на iDrive добави GitHub източник robertnisipeanu/idrive-apps, инсталирай „Waze on cluster“, рестартирай при нужда. В колата: Instrument cluster → Central display area → Map view. Отвори приложението и провери статуса: ако е наред — включи картата (Enable map / Patch) и рестартирай. Тествай с iPhone по CarPlay (Waze или Google Maps) и провери стабилността след рестарт на колата и на CarPlay връзката.",warning:"Ако статусът пише „Not supported on this car“ или грешка за билда — СПРИ. Не форсирай нищо, не пипай /usr/bin/carplay. Пиши на автора (issue #99 в idrive-apps).",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: таблото показва област за карта; при свързан CarPlay картата (маршрут/стрелки) се вижда на инструменталния клъстер и се връща сама след рестарт."},
+{id:"recode",title:"9. Връщане на кодирането (BimmerCode)",description:"Нов backup на текущото състояние, после Restore на ОРИГИНАЛНОТО кодиране от самото начало, после ръчно въвеждане на промените отново.",explanation:"BimmerCode → Headunit → Backup files → Export (нов файл с днешна дата). После Connect → Headunit → иконата за възстановяване → RECOVERY → избери файла от ПЪРВОТО четене (оригиналното кодиране, не текущия бекъп). След Restore въведи наново промените, напр. Sport+ в Headunit (HU_MGU → Expert mode → 3008 FES: FES_SPORT_EXPERT → aktiv, SPORT_CONF_ATTENUATION_SPORTPLUS → aktiv, SPORT_CONF_STEERING_SPORTPLUS → aktiv). Провери BDC отделно (3221 PfFesMaster → FesSportWorldMode1 → SportExpert) — най-вероятно не е засегнат от флаша, но провери.",warning:"Не приемай процедурата за приключена, докато оригиналното кодиране не е възстановено и всички функции не са проверени: радио, Bluetooth, камери, навигация, Sport+, Waze на таблото.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ [по форуми]: съобщение за успех в BimmerCode; след рестарт в iDrive до Sport и Sport Individual се появява PLUS."},
+{id:"after",title:"10. След това — следващите дни",description:"Няколко дни нормално каране, следи за рестарти на екрана, изчезваща карта и странности след изгасяне.",explanation:"Остави постоянния root вход поне първите дни — това е пътят за възстановяване при проблем. По-късно, по желание, може да се затвори. Пази папката data/enrollments/VIN/ и BimmerCode бекъпите на две места за постоянно.",warning:"Рискът от оставен root вход е нисък (достъпът е само през ENET/OBD), но ключът вероятно е общ за инструмента.",command:"python3 ssh_enable.py close",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка. Не е потвърдено дали затварянето пречи на обновяванията на Store-а."},
 ];
 
 let cars=[];
@@ -764,14 +829,20 @@ function renderSteps(car){
   const explanation=document.createElement("p");explanation.textContent=step.explanation;details.append(explanation);
   if(step.warning){const warning=document.createElement("div");warning.className="step-warning";warning.textContent="⚠ ВНИМАНИЕ: "+step.warning;details.append(warning)}
   if(step.command){
+   const resolvedCommand=step.command.replace(/\{VIN\}/g,car.vin||"{VIN}");
    const label=document.createElement("div");label.className="command-label";label.textContent="КОМАНДА ЗА TERMINAL";
-   const command=document.createElement("pre");command.className="command-box";command.textContent=step.command;
+   const command=document.createElement("pre");command.className="command-box";command.textContent=resolvedCommand;
    const copy=document.createElement("button");copy.type="button";copy.className="btn small copy-command";copy.textContent="Копирай командата";
-   copy.addEventListener("click",()=>copyCommand(step.command,copy));details.append(label,command,copy);
+   copy.addEventListener("click",()=>copyCommand(resolvedCommand,copy));details.append(label,command,copy);
   }else{
    const note=document.createElement("div");note.className="step-note";
-   note.textContent="За тази стъпка няма добавена Terminal команда. Следвай инструкциите за конкретната версия на използвания инструмент.";
+   note.textContent="За тази стъпка няма Terminal команда — следвай инструкциите в полето по-горе.";
    details.append(note);
+  }
+  if(step.expected){
+   const expectedLabel=document.createElement("div");expectedLabel.className="command-label";expectedLabel.textContent="ОЧАКВАН РЕЗУЛТАТ";
+   const expected=document.createElement("div");expected.className="step-expected";expected.textContent=step.expected;
+   details.append(expectedLabel,expected);
   }
   card.append(header,details);container.append(card);
  });
