@@ -1054,6 +1054,67 @@ details.step-card > summary::-webkit-details-marker{display:none}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .finance-caption{font-size:10px;color:var(--muted)}
 
+.chart-block{
+ margin-top:14px;
+ padding-top:14px;
+ border-top:1px solid var(--border);
+}
+.chart-title{
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:.8px;
+ color:var(--muted);
+ text-transform:uppercase;
+ margin-bottom:10px;
+}
+.donut-wrap{
+ display:flex;
+ align-items:center;
+ gap:14px;
+ flex-wrap:wrap;
+}
+.donut-svg{
+ width:116px;
+ height:116px;
+ flex:0 0 116px;
+}
+.donut-legend{
+ flex:1;
+ min-width:170px;
+ display:grid;
+ gap:7px;
+}
+.legend-item{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:8px;
+ font-size:11px;
+}
+.legend-left{
+ display:flex;
+ align-items:center;
+ gap:7px;
+ min-width:0;
+}
+.legend-dot{
+ width:9px;
+ height:9px;
+ border-radius:50%;
+ flex:0 0 9px;
+}
+.legend-val{
+ font-weight:900;
+ font-variant-numeric:tabular-nums;
+ white-space:nowrap;
+}
+.bar-chart-svg{
+ width:100%;
+ height:132px;
+ display:block;
+ overflow:visible;
+}
+
 details.ref-box,
 details.drop-panel{
  background:var(--surface-2);
@@ -1331,7 +1392,7 @@ details[open] > summary{
       <span class="panel-icon">💶</span>
       <div>
        <div>ФИНАНСОВ ОБЗОР</div>
-       <div class="drop-sub">Разбивка по сервизи, модификации и други разходи</div>
+       <div class="drop-sub">Разбивка по сервизи, модификации, други разходи и графики</div>
       </div>
      </div>
      <span class="chev">▾</span>
@@ -2897,6 +2958,129 @@ function renderTimeline(car){
  });
 }
 
+function renderExpenseCharts(car,totals,container){
+ if(!container||!car)return;
+ const wrap=document.createElement("div");
+ wrap.className="chart-block";
+
+ const segments=[
+  {label:"Сервиз",value:totals.services,color:"#258bff"},
+  {label:"Модификации",value:totals.modifications,color:"#28c58a"},
+  {label:"Други разходи",value:totals.expenses,color:"#f0b547"}
+ ].filter(s=>s.value>0);
+
+ const donutTitle=document.createElement("div");
+ donutTitle.className="chart-title";
+ donutTitle.textContent="Разпределение по тип разход";
+ wrap.append(donutTitle);
+
+ if(totals.total<=0||!segments.length){
+  const emptyDonut=document.createElement("div");
+  emptyDonut.className="muted";
+  emptyDonut.textContent="Няма отчетени суми за визуализация на графика.";
+  wrap.append(emptyDonut);
+ }else{
+  const donutWrap=document.createElement("div");
+  donutWrap.className="donut-wrap";
+
+  const radius=42;
+  const circumference=2*Math.PI*radius;
+  let offset=0;
+
+  const circlesSvg=segments.map(seg=>{
+   const frac=seg.value/totals.total;
+   const len=frac*circumference;
+   const circle=`<circle cx="58" cy="58" r="${radius}" fill="none" stroke="${seg.color}" stroke-width="14" stroke-dasharray="${len.toFixed(2)} ${circumference.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 58 58)"/>`;
+   offset+=len;
+   return circle;
+  }).join("");
+
+  const donutSvg=document.createElement("div");
+  donutSvg.className="donut-svg";
+  donutSvg.innerHTML=`
+   <svg viewBox="0 0 116 116" width="116" height="116" aria-hidden="true">
+    <circle cx="58" cy="58" r="${radius}" fill="none" stroke="var(--surface-3)" stroke-width="14"/>
+    ${circlesSvg}
+    <text x="58" y="55" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="900">100%</text>
+    <text x="58" y="70" text-anchor="middle" fill="var(--muted)" font-size="8.5" font-weight="800">РАЗХОДИ</text>
+   </svg>
+  `;
+
+  const legend=document.createElement("div");
+  legend.className="donut-legend";
+  segments.forEach(seg=>{
+   const pct=Math.round((seg.value/totals.total)*100);
+   const row=document.createElement("div");
+   row.className="legend-item";
+   row.innerHTML=`
+    <div class="legend-left">
+     <span class="legend-dot" style="background:${seg.color}"></span>
+     <span>${seg.label} (${pct}%)</span>
+    </div>
+    <span class="legend-val">${formatMoney(seg.value)}</span>
+   `;
+   legend.append(row);
+  });
+
+  donutWrap.append(donutSvg,legend);
+  wrap.append(donutWrap);
+ }
+
+ const barTitle=document.createElement("div");
+ barTitle.className="chart-title";
+ barTitle.style.marginTop="16px";
+ barTitle.textContent="Месечна динамика (последни 6 месеца)";
+ wrap.append(barTitle);
+
+ const now=new Date();
+ const months=[];
+ for(let i=5;i>=0;i--){
+  const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+  const ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+  const label=d.toLocaleDateString("bg-BG",{month:"short"}).replace(".","");
+  months.push({ym,label,sum:0});
+ }
+
+ const monthIndex=new Map(months.map((m,idx)=>[m.ym,idx]));
+ const allCostRecords=[...car.serviceRecords,...car.modifications,...car.expenses];
+ allCostRecords.forEach(r=>{
+  const iso=toIsoDate(r.date);
+  const cost=safeNumber(r.cost);
+  if(!iso||!cost)return;
+  const idx=monthIndex.get(iso.slice(0,7));
+  if(idx!==undefined)months[idx].sum+=cost;
+ });
+
+ const maxVal=Math.max(1,...months.map(m=>m.sum));
+ const svgW=560,svgH=124,padTop=18,padBottom=22,plotH=svgH-padTop-padBottom;
+ const colW=svgW/months.length;
+
+ const barsMarkup=months.map((m,idx)=>{
+  const h=m.sum>0?Math.max(6,Math.round((m.sum/maxVal)*plotH)):2;
+  const x=Math.round(idx*colW+colW*0.2);
+  const w=Math.max(14,Math.round(colW*0.6));
+  const y=padTop+(plotH-h);
+  const isPeak=m.sum>0&&m.sum===maxVal;
+  const fill=isPeak?"var(--accent)":(m.sum>0?"color-mix(in srgb,var(--accent) 55%,var(--surface-3))":"var(--surface-3)");
+  const valText=m.sum>0?Math.round(m.sum)+"€":"0€";
+  return `
+   <text x="${x+w/2}" y="${y-5}" text-anchor="middle" fill="${isPeak?"var(--accent)":"var(--muted)"}" font-size="10" font-weight="800">${valText}</text>
+   <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}"/>
+   <text x="${x+w/2}" y="${svgH-5}" text-anchor="middle" fill="var(--muted)" font-size="10.5" font-weight="800">${m.label}</text>
+  `;
+ }).join("");
+
+ const barBox=document.createElement("div");
+ barBox.innerHTML=`
+  <svg class="bar-chart-svg" viewBox="0 0 ${svgW} ${svgH}" role="img" aria-label="Месечни разходи за последните 6 месеца">
+   <line x1="0" y1="${svgH-padBottom}" x2="${svgW}" y2="${svgH-padBottom}" stroke="var(--border)" stroke-width="1"/>
+   ${barsMarkup}
+  </svg>
+ `;
+ wrap.append(barBox);
+ container.append(wrap);
+}
+
 function renderFinance(car){
  const totals=getFinancialTotals(car),container=$("financeSummary");
  $("statExpenses").textContent=formatMoney(totals.total);
@@ -2919,6 +3103,7 @@ function renderFinance(car){
   track.append(fill);row.append(label,value,track);list.append(row);
  });
  container.append(list);
+ renderExpenseCharts(car,totals,container);
 }
 
 function quickAddOilReminder(){
