@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bg" data-theme="dark">
 <head>
@@ -12,35 +11,42 @@
 
 <style>
 :root{
- --bg:#0b1018;
- --surface:#121a25;
- --surface-2:#192433;
- --surface-3:#202d3d;
- --text:#edf3fa;
- --muted:#91a1b4;
- --border:#28384b;
+ --bg:#080c12;
+ --surface:#101722;
+ --surface-2:#172130;
+ --surface-3:#1f2c3f;
+ --text:#f0f5fc;
+ --muted:#8c9cb0;
+ --border:#253447;
  --accent:#258bff;
- --accent-soft:rgba(37,139,255,.13);
+ --accent-soft:rgba(37,139,255,.15);
  --good:#28c58a;
+ --good-soft:rgba(40,197,138,.14);
  --warn:#f0b547;
+ --warn-soft:rgba(240,181,71,.14);
  --danger:#f06464;
- --shadow:0 12px 32px rgba(0,0,0,.22);
- --radius:18px;
+ --danger-soft:rgba(240,100,100,.14);
+ --shadow:0 14px 34px rgba(0,0,0,.32);
+ --radius:20px;
+ --nav-h:68px;
 }
 html[data-theme="light"]{
- --bg:#edf2f7;
+ --bg:#eef3f8;
  --surface:#ffffff;
- --surface-2:#f5f8fb;
- --surface-3:#eaf0f6;
- --text:#172333;
- --muted:#68798d;
- --border:#dce4ed;
+ --surface-2:#f4f7fb;
+ --surface-3:#e8eff7;
+ --text:#132030;
+ --muted:#63758a;
+ --border:#dce4ee;
  --accent:#0878e8;
- --accent-soft:rgba(8,120,232,.09);
+ --accent-soft:rgba(8,120,232,.1);
  --good:#128b5a;
+ --good-soft:rgba(18,139,90,.1);
  --warn:#a96c00;
+ --warn-soft:rgba(169,108,0,.1);
  --danger:#c93636;
- --shadow:0 10px 28px rgba(30,55,80,.07);
+ --danger-soft:rgba(201,54,54,.1);
+ --shadow:0 10px 26px rgba(23,43,68,.07);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -48,255 +54,448 @@ body{
  margin:0;
  background:var(--bg);
  color:var(--text);
- font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
- padding:0 0 calc(105px + env(safe-area-inset-bottom));
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+ padding:0 0 calc(var(--nav-h) + 28px + env(safe-area-inset-bottom));
  -webkit-font-smoothing:antialiased;
 }
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 a{color:var(--accent)}
-.app{max-width:1120px;margin:auto;padding:16px}
-.topbar{
- display:flex;align-items:center;justify-content:space-between;
- gap:14px;padding:8px 2px 22px;
+
+.app{
+ max-width:680px;
+ margin:auto;
+ padding:12px 14px 20px;
 }
-.brand{font-size:22px;font-weight:950;letter-spacing:1.2px}
+
+/* Top App Bar */
+.topbar{
+ position:sticky;
+ top:0;
+ z-index:20;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ padding:calc(10px + env(safe-area-inset-top)) 4px 12px;
+ margin-bottom:6px;
+ background:color-mix(in srgb,var(--bg) 86%,transparent);
+ backdrop-filter:blur(16px);
+ -webkit-backdrop-filter:blur(16px);
+}
+.brand{font-size:19px;font-weight:950;letter-spacing:.9px;line-height:1.05}
 .brand span{color:var(--accent)}
 .version{
- font-size:9px;color:var(--muted);letter-spacing:1.7px;
- margin-top:5px;font-weight:700
+ font-size:9px;
+ color:var(--muted);
+ letter-spacing:1.5px;
+ margin-top:3px;
+ font-weight:800;
 }
-.top-actions{display:flex;gap:8px}
+.top-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{
- width:42px;height:42px;border:1px solid var(--border);
- background:var(--surface);color:var(--text);
- border-radius:14px;font-size:17px;
+ width:38px;height:38px;
+ border:1px solid var(--border);
+ background:var(--surface);
+ color:var(--text);
+ border-radius:12px;
+ font-size:16px;
+ display:inline-flex;align-items:center;justify-content:center;
 }
+.pill-btn{
+ height:38px;
+ padding:0 12px;
+ border:1px solid var(--border);
+ background:var(--surface);
+ color:var(--text);
+ border-radius:12px;
+ font-size:11px;font-weight:850;
+ display:inline-flex;align-items:center;gap:6px;
+ white-space:nowrap;
+}
+
+/* Screens */
+.screen{display:none}
+.screen.active{display:block;animation:screenIn .18s ease}
+@keyframes screenIn{
+ from{opacity:0;transform:translateY(6px)}
+ to{opacity:1;transform:translateY(0)}
+}
+
 .panel{
- background:var(--surface);border:1px solid var(--border);
- border-radius:var(--radius);padding:18px;margin:14px 0;
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:var(--radius);
+ padding:16px;
+ margin:12px 0;
  box-shadow:var(--shadow);
 }
 .section-title{
- font-size:11px;font-weight:900;letter-spacing:1.15px;
- margin-bottom:15px;color:var(--muted);
+ font-size:10px;font-weight:900;
+ letter-spacing:1.2px;
+ margin-bottom:12px;
+ color:var(--muted);
+ text-transform:uppercase;
 }
 .muted,.backup-info{color:var(--muted);font-size:12px;line-height:1.6}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+/* Garage Switcher Bar */
+.garage-bar{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ overflow-x:auto;
+ padding:2px 0 6px;
+ scrollbar-width:none;
+}
+.garage-bar::-webkit-scrollbar{display:none}
+.garage-chip{
+ flex:0 0 auto;
+ background:var(--surface);
+ border:1px solid var(--border);
+ color:var(--text);
+ border-radius:999px;
+ padding:8px 14px;
+ font-size:12px;font-weight:850;
+}
+.garage-chip.active{
+ border-color:var(--accent);
+ background:var(--accent);
+ color:#fff;
+}
+.add-car-chip{
+ flex:0 0 auto;
+ background:var(--accent-soft);
+ border:1px dashed var(--accent);
+ color:var(--accent);
+ border-radius:999px;
+ padding:8px 13px;
+ font-size:11px;font-weight:900;
+}
+
+/* Hero Vehicle Card */
+.hero-card{
+ position:relative;
+ overflow:hidden;
+ background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 70%);
+ border:1px solid var(--border);
+ border-radius:24px;
+ padding:18px;
+ margin:8px 0 12px;
+ box-shadow:var(--shadow);
+}
+.hero-card:after{
+ content:"";
+ position:absolute;
+ right:-55px;top:-65px;
+ width:190px;height:190px;
+ border-radius:50%;
+ background:var(--accent-soft);
+ pointer-events:none;
+}
+.hero-top{
+ position:relative;z-index:1;
+ display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+}
+.hero-name{font-size:24px;font-weight:950;letter-spacing:-.5px;line-height:1.15}
+.hero-vin{
+ font-size:11px;color:var(--muted);
+ margin-top:5px;font-weight:700;letter-spacing:.4px;overflow-wrap:anywhere;
+}
+.hero-meta{
+ position:relative;z-index:1;
+ font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;
+}
+.status-pill{
+ border-radius:999px;
+ padding:6px 10px;
+ font-size:9px;font-weight:900;letter-spacing:.6px;
+ background:var(--accent-soft);color:var(--accent);
+ white-space:nowrap;
+}
+
+.stats{
+ position:relative;z-index:1;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin-top:16px;
+}
+.stat{
+ padding:12px;
+ background:color-mix(in srgb,var(--bg) 52%,var(--surface-2));
+ border:1px solid var(--border);
+ border-radius:16px;
+ min-width:0;
+}
+.stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
+.stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
+
+/* Segmented Control inside Service Hub */
+.seg-bar{
+ display:flex;
+ gap:6px;
+ overflow-x:auto;
+ padding:4px;
+ margin:6px 0 12px;
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:16px;
+ scrollbar-width:none;
+}
+.seg-bar::-webkit-scrollbar{display:none}
+.seg-btn{
+ flex:1 0 auto;
+ border:0;
+ background:transparent;
+ color:var(--muted);
+ border-radius:12px;
+ padding:9px 11px;
+ font-size:11px;font-weight:850;
+ white-space:nowrap;
+}
+.seg-btn.active{
+ background:var(--accent);
+ color:#fff;
+ box-shadow:0 4px 12px rgba(37,139,255,.25);
+}
+.seg-view{display:none}
+.seg-view.active{display:block;animation:screenIn .16s ease}
+
+/* Forms & Sheet */
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field{min-width:0}
 .field.full{grid-column:1/-1}
 .field label{
  display:block;color:var(--muted);font-size:10px;
- margin:0 0 7px 2px;font-weight:800;letter-spacing:.35px
+ margin:0 0 6px 2px;font-weight:850;letter-spacing:.4px;
 }
 input,select,textarea{
- width:100%;min-width:0;background:var(--surface-2);
- color:var(--text);border:1px solid var(--border);
- border-radius:12px;padding:13px;outline:none;
+ width:100%;min-width:0;
+ background:var(--surface-2);color:var(--text);
+ border:1px solid var(--border);
+ border-radius:13px;padding:12px;outline:none;
 }
 input:focus,select:focus,textarea:focus{
- border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)
+ border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);
 }
-textarea{min-height:88px;resize:vertical}
+textarea{min-height:82px;resize:vertical}
+
 .btn{
- border:0;border-radius:12px;padding:12px 16px;
+ border:0;border-radius:13px;padding:12px 15px;
  background:var(--accent);color:#fff;font-weight:850;
- min-height:43px;transition:filter .15s,transform .15s
+ min-height:42px;transition:transform .14s,filter .14s;
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
-.btn:active,.icon-btn:active,.tab:active{transform:scale(.98)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active{transform:scale(.97)}
 .btn.secondary{
- background:var(--surface-2);color:var(--text);
- border:1px solid var(--border)
+ background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
 .btn.danger{background:var(--danger);color:#fff}
 .btn.good{background:var(--good);color:#fff}
-.btn.small{padding:9px 11px;font-size:11px;min-height:36px}
-.btn-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.btn.small{padding:8px 11px;font-size:11px;min-height:35px;border-radius:11px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn-row .btn{flex:1}
-.garage-list{
- display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;
- scrollbar-width:thin
+
+/* Bottom Sheet Modal */
+.sheet-backdrop{
+ position:fixed;inset:0;z-index:60;
+ background:rgba(3,7,13,.68);
+ backdrop-filter:blur(6px);
+ display:flex;align-items:flex-end;justify-content:center;
+ padding:12px 12px calc(12px + env(safe-area-inset-bottom));
 }
-.garage-chip{
- flex:0 0 auto;background:var(--surface-2);
- border:1px solid var(--border);color:var(--text);
- border-radius:12px;padding:11px 14px;font-size:12px;font-weight:850
+.sheet-backdrop.hidden{display:none}
+.sheet{
+ width:100%;max-width:640px;max-height:86vh;overflow-y:auto;
+ background:var(--surface);border:1px solid var(--border);
+ border-radius:24px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.5);
+ animation:sheetUp .2s ease;
 }
-.garage-chip.active{
- border-color:var(--accent);background:var(--accent);color:#fff
+@keyframes sheetUp{
+ from{transform:translateY(24px);opacity:.6}
+ to{transform:translateY(0);opacity:1}
 }
-.vehicle-panel{overflow:hidden;position:relative}
-.vehicle-panel:before{
- content:"";position:absolute;right:-65px;top:-95px;
- width:230px;height:230px;border-radius:50%;
- background:var(--accent-soft);pointer-events:none
+.sheet-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ margin-bottom:14px;
 }
-.vehicle-head{
- display:flex;justify-content:space-between;align-items:flex-start;
- gap:12px;position:relative
+.sheet-title{font-size:14px;font-weight:950;letter-spacing:.3px}
+.sheet-close{
+ width:34px;height:34px;border-radius:10px;
+ border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+ font-size:16px;
 }
-.vehicle-name{font-size:clamp(22px,5vw,30px);font-weight:950;letter-spacing:-.7px}
-.vehicle-sub{font-size:11px;color:var(--muted);margin-top:7px;overflow-wrap:anywhere}
-.status-pill{
- border-radius:20px;padding:7px 10px;font-size:9px;
- font-weight:900;letter-spacing:.5px;background:var(--accent-soft);
- color:var(--accent);white-space:nowrap
+
+/* Floating Action Button */
+.fab{
+ position:fixed;
+ right:max(16px,calc(50% - 310px));
+ bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
+ z-index:30;
+ height:46px;padding:0 16px;
+ border-radius:999px;border:0;
+ background:var(--accent);color:#fff;
+ font-size:12px;font-weight:900;letter-spacing:.3px;
+ box-shadow:0 10px 26px rgba(37,139,255,.38);
+ display:inline-flex;align-items:center;gap:6px;
 }
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px}
-.stat{
- padding:14px;background:var(--surface-2);
- border:1px solid var(--border);border-radius:15px;min-width:0
-}
-.stat-label{font-size:9px;color:var(--muted);font-weight:850;letter-spacing:.65px}
-.stat-value{font-size:clamp(18px,4vw,23px);font-weight:950;margin-top:7px;overflow-wrap:anywhere}
-.tabs{
- display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
- gap:8px;margin:16px 0 12px
-}
-.tab{
- min-width:0;border:1px solid var(--border);
- background:var(--surface);color:var(--muted);
- border-radius:12px;padding:12px 6px;font-size:11px;font-weight:850;
-}
-.tab.active{
- background:var(--accent);border-color:var(--accent);color:#fff;
- box-shadow:0 5px 16px rgba(37,139,255,.2)
-}
-.tab-content{display:none}
-.tab-content.active{display:block;animation:fadeIn .18s ease}
-@keyframes fadeIn{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards & Lists */
 .record{
  border:1px solid var(--border);background:var(--surface-2);
- border-radius:14px;padding:14px;margin:10px 0
+ border-radius:16px;padding:13px 14px;margin:9px 0;
 }
-.record-top{display:flex;justify-content:space-between;gap:10px}
+.record-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .record-title{font-weight:850;font-size:13px;overflow-wrap:anywhere}
-.record-date{font-size:10px;color:var(--muted);margin-top:6px}
+.record-date{font-size:10px;color:var(--muted);margin-top:4px}
 .record-meta{
- font-size:11px;color:var(--muted);margin-top:9px;
- white-space:pre-line;overflow-wrap:anywhere;line-height:1.6
+ font-size:11px;color:var(--muted);margin-top:8px;
+ white-space:pre-line;overflow-wrap:anywhere;line-height:1.55;
 }
-.record-actions{display:flex;gap:8px;margin-top:12px}
+.record-actions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
 .record-actions button{flex:1}
+
 .empty{
  color:var(--muted);font-size:12px;text-align:center;
- padding:22px 12px;border:1px dashed var(--border);
- border-radius:14px;line-height:1.5
+ padding:22px 14px;border:1px dashed var(--border);
+ border-radius:16px;line-height:1.5;
 }
 .progress-track{
- height:8px;border-radius:20px;background:var(--surface-2);
- overflow:hidden;margin:13px 0 7px
+ height:8px;border-radius:999px;background:var(--surface-2);
+ overflow:hidden;margin:12px 0 6px;
 }
 .progress-fill{height:100%;background:var(--good);width:0;transition:width .2s}
+
 .alert{
- border-radius:13px;padding:13px;margin:9px 0;
+ border-radius:14px;padding:12px 13px;margin:8px 0;
  background:var(--surface-2);border:1px solid var(--border);
- font-size:12px;line-height:1.6
+ font-size:11.5px;line-height:1.6;
 }
-.alert.warn{border-color:var(--warn)}
-.alert.good{border-color:var(--good)}
-.alert.danger{border-color:var(--danger)}
+.alert.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn-soft) 55%,var(--surface-2))}
+.alert.good{border-color:var(--good);background:color-mix(in srgb,var(--good-soft) 55%,var(--surface-2))}
+.alert.danger{border-color:var(--danger);background:color-mix(in srgb,var(--danger-soft) 55%,var(--surface-2))}
+
 .form-msg{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
 .hidden{display:none!important}
-hr{border:0;border-top:1px solid var(--border);margin:20px 0}
-.footer{text-align:center;color:var(--muted);font-size:9px;padding:25px 10px;letter-spacing:1px}
+hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+.footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
+
+/* MGU Steps */
 .step-card{
  background:var(--surface-2);border:1px solid var(--border);
- border-radius:15px;padding:15px;margin:11px 0
+ border-radius:17px;padding:14px;margin:10px 0;
 }
-.step-header{display:flex;align-items:flex-start;gap:12px}
-.step-check{
- flex:0 0 22px;width:22px;height:22px;margin:2px 0 0;
- accent-color:var(--good)
-}
+.step-header{display:flex;align-items:flex-start;gap:11px}
+.step-check{flex:0 0 21px;width:21px;height:21px;margin:2px 0 0;accent-color:var(--good)}
 .step-title-wrap{flex:1;min-width:0}
-.step-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.4}
-.step-description{font-size:11px;color:var(--muted);line-height:1.5;margin-top:5px}
-.step-status{font-size:9px;font-weight:900;color:var(--good);margin-top:7px}
-.step-details{margin:14px 0 0 34px;font-size:11px;line-height:1.7;color:var(--text)}
-.step-details p{margin:0 0 10px}
+.step-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.35}
+.step-description{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px}
+.step-status{font-size:9px;font-weight:900;color:var(--good);margin-top:6px}
+.step-details{margin:12px 0 0 32px;font-size:11px;line-height:1.65;color:var(--text)}
+.step-details p{margin:0 0 9px}
 .step-warning{
- background:rgba(240,181,71,.09);border:1px solid var(--warn);
- border-radius:11px;padding:11px;margin:10px 0;
- color:var(--text);font-size:11px;line-height:1.6
+ background:var(--warn-soft);border:1px solid var(--warn);
+ border-radius:12px;padding:10px 11px;margin:9px 0;font-size:11px;line-height:1.55;
 }
 .step-note{
  background:var(--accent-soft);border:1px solid var(--accent);
- border-radius:11px;padding:11px;margin:10px 0;font-size:11px;line-height:1.6
+ border-radius:12px;padding:10px 11px;margin:9px 0;font-size:11px;line-height:1.55;
 }
 .step-expected{
- background:rgba(158,231,189,.08);border:1px solid var(--good);
- border-radius:11px;padding:11px;margin:0 0 4px;
- color:var(--text);font-size:11px;line-height:1.6
+ background:var(--good-soft);border:1px solid var(--good);
+ border-radius:12px;padding:10px 11px;margin:0 0 4px;font-size:11px;line-height:1.55;
 }
-.golden-rules{margin:0;padding-left:18px}
-.golden-rules li{margin:5px 0}
-.command-label{font-size:9px;font-weight:900;letter-spacing:1px;color:var(--muted);margin:13px 0 7px}
+.golden-rules{margin:6px 0 0;padding-left:18px}
+.golden-rules li{margin:4px 0}
+.command-label{font-size:9px;font-weight:900;letter-spacing:1px;color:var(--muted);margin:11px 0 6px}
 .command-box{
  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
- background:#080d13;color:#9ee7bd;border:1px solid #344252;
- border-radius:11px;padding:13px;font-size:11px;line-height:1.6;
- overflow-x:auto;user-select:text
+ background:#070b10;color:#9ee7bd;border:1px solid #304052;
+ border-radius:12px;padding:12px;font-size:11px;line-height:1.55;
+ overflow-x:auto;user-select:text;margin:0;
 }
-.copy-command{width:100%;margin-top:8px}
-.no-command{font-size:11px;color:var(--muted);font-style:italic;padding:8px 0}
+.copy-command{width:100%;margin-top:7px}
+
 .service-plan{
  background:var(--surface-2);border:1px solid var(--border);
- border-radius:14px;padding:14px;margin-top:14px
+ border-radius:15px;padding:13px;margin-top:12px;
 }
-.service-plan-title{font-size:10px;font-weight:900;margin-bottom:8px;color:var(--accent);letter-spacing:.7px}
+.service-plan-title{font-size:10px;font-weight:900;margin-bottom:6px;color:var(--accent);letter-spacing:.7px}
+
 .due-item{
  display:flex;justify-content:space-between;gap:10px;
- align-items:center;padding:12px 0;border-bottom:1px solid var(--border)
+ align-items:center;padding:10px 0;border-bottom:1px solid var(--border);
 }
 .due-item:last-child{border-bottom:0}
 .due-name{font-size:12px;font-weight:850}
-.due-meta{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.5}
+.due-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45}
 .due-tag{
- font-size:9px;font-weight:950;padding:7px 9px;border-radius:9px;
- background:var(--surface);white-space:nowrap
+ font-size:9px;font-weight:950;padding:6px 9px;border-radius:999px;
+ background:var(--surface-3);white-space:nowrap;
 }
 .due-tag.warn{color:var(--warn)}
 .due-tag.danger{color:var(--danger)}
 .due-tag.good{color:var(--good)}
-.finance-list{display:grid;gap:13px}
-.finance-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+
+.finance-list{display:grid;gap:11px}
+.finance-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}
 .finance-label{font-size:11px;font-weight:750}
 .finance-value{font-size:11px;font-weight:900;text-align:right}
-.finance-track{grid-column:1/-1;height:7px;border-radius:20px;background:var(--surface-2);overflow:hidden}
-.finance-fill{height:100%;background:var(--accent);border-radius:20px;min-width:0}
-.finance-total{font-size:26px;font-weight:950;margin:4px 0 5px;letter-spacing:-.6px}
-.finance-caption{font-size:10px;color:var(--muted);margin-top:4px}
-.rules{margin-top:22px}
-.rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:10px!important;font-weight:800!important;opacity:1!important}
+.finance-track{grid-column:1/-1;height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.finance-fill{height:100%;background:var(--accent);border-radius:999px;min-width:0}
+.finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
+.finance-caption{font-size:10px;color:var(--muted)}
+
+/* Accordion inside Reference */
+details.ref-box{
+ background:var(--surface-2);border:1px solid var(--border);
+ border-radius:15px;padding:12px 14px;margin:9px 0;
+}
+details.ref-box summary{
+ font-size:12px;font-weight:900;cursor:pointer;list-style:none;
+ display:flex;justify-content:space-between;align-items:center;
+}
+details.ref-box summary::-webkit-details-marker{display:none}
+details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
+
+/* Cloud compatibility hook (.rules) */
+.rules{margin-top:12px}
+.rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
 .rules ~ * button:disabled{opacity:.55!important}
 .rules ~ * input,.rules ~ * select{background:var(--surface-2)!important;color:var(--text)!important;border:1px solid var(--border)!important}
 .rules ~ *{color:var(--text)}
 .rules ~ * .muted,.rules ~ * small{color:var(--muted)}
 .rules ~ * .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
-.collection-panel{padding-bottom:10px}
-.collection-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.collection-heading .section-title{margin:0}
-.add-car-shortcut{font-size:11px;font-weight:850;color:var(--accent);background:transparent;border:0;padding:7px 0}
-.overview-grid{display:grid;grid-template-columns:1fr;gap:12px}
-.overview-grid .panel{margin:0}
-@media(min-width:700px){
- .app{padding:22px}
- .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
- .form-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
- .overview-grid{grid-template-columns:1.2fr .8fr}
- .tabs{grid-template-columns:repeat(8,minmax(0,1fr))}
- .tab{font-size:11px;padding:13px 5px}
+
+/* Fixed Bottom App Navigation */
+.bottom-nav{
+ position:fixed;left:0;right:0;bottom:0;z-index:40;
+ min-height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+ padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+ background:color-mix(in srgb,var(--surface) 90%,transparent);
+ backdrop-filter:blur(18px);
+ -webkit-backdrop-filter:blur(18px);
+ border-top:1px solid var(--border);
+ display:flex;justify-content:center;
 }
-@media(max-width:420px){
- .app{padding:11px}
- .panel{padding:15px;border-radius:16px}
- .tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
- .tab{font-size:10px;padding:11px 3px}
- .form-grid{gap:9px}
- .btn-row{gap:7px}
- .btn{padding:11px 12px;font-size:12px}
- .vehicle-name{font-size:22px}
+.bottom-nav-inner{
+ width:100%;max-width:640px;
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
+}
+.nav-btn{
+ border:0;background:transparent;color:var(--muted);
+ border-radius:14px;padding:6px 4px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+ font-size:10px;font-weight:850;
+}
+.nav-icon{font-size:17px;line-height:1}
+.nav-btn.active{
+ color:var(--accent);
+ background:var(--accent-soft);
+}
+
+@media(max-width:400px){
+ .form-grid{grid-template-columns:1fr}
+ .hero-name{font-size:21px}
 }
 @media(prefers-reduced-motion:reduce){
  *,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
@@ -306,268 +505,348 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
 
 <body>
 <div class="app">
-<header class="topbar">
- <div>
-  <div class="brand">M-<span>GARAGE</span> PRO</div>
-  <div class="version">YOUR VEHICLE · YOUR DATA · 4.0</div>
- </div>
- <div class="top-actions">
-  <button class="icon-btn" id="themeToggle" type="button" aria-label="Смени тема">◐</button>
-  <button class="icon-btn" id="backupButton" type="button" aria-label="Експорт на архив">↓</button>
- </div>
-</header>
-
-<section class="panel collection-panel">
- <div class="collection-heading">
-  <div class="section-title">МОЯТА КОЛЕКЦИЯ</div>
-  <button class="add-car-shortcut" id="showAddCar" type="button">＋ Добави автомобил</button>
- </div>
- <div class="garage-list" id="garageList"></div>
- <div id="garageEmpty" class="empty">Все още няма добавени автомобили. Добави първия си автомобил, за да започнеш.</div>
-</section>
-
-<section class="panel hidden" id="addCarPanel">
- <div class="section-title">НОВ АВТОМОБИЛ</div>
- <div class="form-grid">
-  <div class="field full"><label>VIN НОМЕР – 17 СИМВОЛА</label><input id="newVin" maxlength="17" placeholder="Например: WBA..."></div>
-  <div class="field"><label>ИМЕ В ГАРАЖА</label><input id="newNick" placeholder="Моят BMW"></div>
-  <div class="field"><label>МАРКА</label><input id="newMake" placeholder="BMW"></div>
-  <div class="field"><label>МОДЕЛ</label><input id="newModel" placeholder="330i"></div>
-  <div class="field"><label>ГОДИНА</label><input id="newYear" type="number" min="1900" max="2100"></div>
- </div>
- <div class="btn-row">
-  <button class="btn" id="addCarButton" type="button">Запази автомобила</button>
-  <button class="btn secondary" id="cancelAddCar" type="button">Отказ</button>
- </div>
- <div id="addCarMessage" class="form-msg"></div>
-</section>
-
-<main id="mainContent" class="hidden">
-<section class="panel vehicle-panel">
- <div class="vehicle-head">
+ <header class="topbar">
   <div>
-   <div class="vehicle-name" id="vehicleName">BMW</div>
-   <div class="vehicle-sub" id="vehicleVin"></div>
+   <div class="brand">M-<span>GARAGE</span> PRO</div>
+   <div class="version">G20 · MGU · WAZE · 4.0</div>
   </div>
-  <div class="status-pill" id="vehicleStatus">АКТИВЕН ПРОФИЛ</div>
- </div>
- <div class="stats">
-  <div class="stat"><div class="stat-label">ПРОБЕГ</div><div class="stat-value" id="statMileage">0 km</div></div>
-  <div class="stat"><div class="stat-label">СЕРВИЗНИ ЗАПИСИ</div><div class="stat-value" id="statServices">0</div></div>
-  <div class="stat"><div class="stat-label">ОБЩИ РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
-  <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
- </div>
-</section>
-
-<nav class="tabs" id="tabs" aria-label="Основна навигация">
- <button class="tab active" data-tab="overview">Обзор</button>
- <button class="tab" data-tab="profile">Профил</button>
- <button class="tab" data-tab="steps">MGU</button>
- <button class="tab" data-tab="service">Сервиз</button>
- <button class="tab" data-tab="reminders">Напомняния</button>
- <button class="tab" data-tab="mods">Модификации</button>
- <button class="tab" data-tab="expenses">Разходи</button>
- <button class="tab" data-tab="documents">Документи</button>
- <button class="tab" data-tab="reference">Справочник</button>
-</nav>
-
-<section class="panel tab-content active" id="tab-overview">
- <div class="section-title">ОБЩО СЪСТОЯНИЕ</div>
- <div id="overviewAlerts"></div>
- <div class="section-title" style="margin-top:22px">ПРЕДСТОЯЩИ ОБСЛУЖВАНИЯ</div>
- <div id="upcomingServices"></div>
- <hr>
- <div class="section-title">ФИНАНСОВ ОБЗОР</div>
- <div id="financeSummary"></div>
- <hr>
- <div class="section-title">ИНФОРМАЦИЯ ЗА АВТОМОБИЛА</div>
- <div id="overviewDetails" class="muted"></div>
- <div class="btn-row">
-  <button class="btn secondary" id="editProfileButton">Редактирай профила</button>
-  <button class="btn secondary" id="renameCarButton">Преименувай</button>
- </div>
- <hr>
- <div class="section-title">УПРАВЛЕНИЕ</div>
- <div class="btn-row">
-  <button class="btn secondary" id="resetStepsButton">Нулирай MGU стъпките</button>
-  <button class="btn danger" id="deleteCarButton">Изтрий автомобила</button>
- </div>
-</section>
-
-<section class="panel tab-content" id="tab-profile">
- <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ</div>
- <div class="form-grid">
-  <div class="field"><label>МАРКА</label><input id="pMake"></div>
-  <div class="field"><label>МОДЕЛ</label><input id="pModel"></div>
-  <div class="field"><label>ГОДИНА</label><input id="pYear" type="number"></div>
-  <div class="field"><label>ДВИГАТЕЛ</label><input id="pEngine" placeholder="B46D"></div>
-  <div class="field"><label>СКОРОСТНА КУТИЯ</label><input id="pTransmission"></div>
-  <div class="field"><label>ПРОБЕГ (KM)</label><input id="pMileage" type="number" min="0"></div>
-  <div class="field"><label>ГОРИВО</label><select id="pFuel"><option value="">Не е посочено</option><option>Бензин</option><option>Дизел</option><option>Хибрид</option><option>Plug-in хибрид</option><option>Електрически</option><option>Газ</option></select></div>
-  <div class="field"><label>ЦВЯТ</label><input id="pColor"></div>
-  <div class="field"><label>РЕГИСТРАЦИЯ</label><input id="pRegistration"></div>
-  <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="pNotes"></textarea></div>
- </div>
- <div class="btn-row"><button class="btn" id="saveProfileButton">Запази профила</button></div>
- <div id="profileMessage" class="form-msg"></div>
-</section>
-
-<section class="panel tab-content" id="tab-steps">
- <div class="section-title">BMW MGU · ПЪЛНА ПРОЦЕДУРА</div>
- <div class="muted">Отбелязвай стъпките след реалното им изпълнение. Командите се копират, но не се изпълняват автоматично от приложението.</div>
- <div class="alert warn">Важно: процедурата зависи от версията на MGU и използвания проект. Преди изпълнение провери актуалната документация и съвместимостта. Не изпълнявай команда, ако не си сигурен какво прави.</div>
- <div class="alert danger">
-  <strong>ЗЛАТНИ ПРАВИЛА</strong>
-  <ol class="golden-rules">
-   <li>Командата „flash“ се пуска САМО ВЕДНЪЖ. Никога втори път „за всеки случай“.</li>
-   <li>При всяка грешка: спри, направи снимка на целия изход, не повтаряй командата.</li>
-   <li>Зарядно на акумулатора и лаптопът на зарядно през цялото време.</li>
-   <li>Не пипай ENET кабела, не гаси колата и не затваряй Terminal по време на флаш и инсталация.</li>
-   <li>Ключовете (data/enrollments/…) да са на ДВЕ места. Не ги споделяй с никого.</li>
-   <li>Не публикувай логове или снимки с VIN-а.</li>
-   <li>Не форсирай нищо, ако Waze on cluster пише „Not supported“.</li>
-  </ol>
-  <div style="margin-top:10px">Какво се губи при флаша: кодирането на head unit-а (вкл. Sport+) и запазените настройки на iDrive. Digital Key не е засегнат, ако нямаш такъв.</div>
- </div>
- <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
- <div class="muted" id="stepsProgressText"></div>
- <div id="stepsList"></div>
-</section>
-
-<section class="panel tab-content" id="tab-service">
- <div class="section-title">СЕРВИЗНА ИСТОРИЯ</div>
- <div class="form-grid">
-  <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
-  <div class="field"><label>ПРОБЕГ (KM)</label><input id="sMileage" type="number" min="0"></div>
-  <div class="field full"><label>СЕРВИЗ / ДЕЙНОСТ</label><input id="sTitle" placeholder="Масло и филтри"></div>
-  <div class="field full"><label>ИЗВЪРШИТЕЛ / СЕРВИЗ</label><input id="sProvider"></div>
-  <div class="field"><label>СТОЙНОСТ (€)</label><input id="sCost" type="number" min="0" step="0.01"></div>
-  <div class="field"><label>БЕЛЕЖКИ</label><input id="sNotes"></div>
- </div>
- <div class="service-plan">
-  <div class="service-plan-title">АВТОМАТИЧНО СЛЕДВАЩО ОБСЛУЖВАНЕ</div>
-  <div class="muted">Можеш да зададеш интервал в километри, месеци или и двете.</div>
-  <div class="form-grid" style="margin-top:12px">
-   <div class="field"><label>СЛЕД КОЛКО KM?</label><input id="sIntervalKm" type="number" min="1" placeholder="Например 10000"></div>
-   <div class="field"><label>СЛЕД КОЛКО МЕСЕЦА?</label><input id="sIntervalMonths" type="number" min="1" max="120" placeholder="Например 12"></div>
-   <div class="field full"><label>ИМЕ НА СЛЕДВАЩОТО ОБСЛУЖВАНЕ</label><input id="sNextTitle" placeholder="Следваща смяна на масло"></div>
+  <div class="top-actions">
+   <button class="pill-btn" id="quickAddCarBtn" type="button">＋ Кола</button>
+   <button class="icon-btn" id="themeToggle" type="button" aria-label="Смени тема">◐</button>
+   <button class="icon-btn" id="backupButton" type="button" aria-label="Експорт на архив">↓</button>
   </div>
-  <div class="muted" style="margin-top:9px">Напомнянето ще се счита за настъпило при достигане на който и да е от двата срока.</div>
- </div>
- <div class="btn-row"><button class="btn" id="addServiceButton">＋ Добави сервизен запис</button></div>
- <hr><div id="serviceList"></div>
-</section>
+ </header>
 
-<section class="panel tab-content" id="tab-reminders">
- <div class="section-title">СЕРВИЗНИ НАПОМНЯНИЯ</div>
- <div class="alert warn">Напомнянията се показват в приложението. Системните push известия изискват допълнителна настройка.</div>
- <div class="form-grid">
-  <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
-  <div class="field"><label>КАТЕГОРИЯ</label><select id="rCategory"><option>Масло</option><option>Филтри</option><option>Спирачки</option><option>Гуми</option><option>Технически преглед</option><option>Застраховка</option><option>Друго</option></select></div>
-  <div class="field"><label>КРАЕН СРОК</label><input id="rDate" type="date"></div>
-  <div class="field"><label>ПРОБЕГ ЗА СЕРВИЗ (KM)</label><input id="rMileage" type="number" min="0"></div>
-  <div class="field"><label>БЕЛЕЖКИ</label><input id="rNotes"></div>
- </div>
- <div class="btn-row"><button class="btn" id="addReminderButton">＋ Добави напомняне</button></div>
- <hr><div id="reminderList"></div>
-</section>
+ <!-- Компактна лента за избор на автомобил -->
+ <div class="garage-bar" id="garageBar" aria-label="Автомобили в гаража"></div>
 
-<section class="panel tab-content" id="tab-mods">
- <div class="section-title">МОДИФИКАЦИИ И НАДГРАЖДАНИЯ</div>
- <div class="form-grid">
-  <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
-  <div class="field"><label>КАТЕГОРИЯ</label><input id="mCategory" placeholder="Двигател"></div>
-  <div class="field"><label>АРТИКУЛ / НОМЕР</label><input id="mPartNumber"></div>
-  <div class="field"><label>ДАТА</label><input id="mDate" type="date"></div>
-  <div class="field"><label>СТОЙНОСТ (€)</label><input id="mCost" type="number" min="0" step="0.01"></div>
-  <div class="field full"><label>ОПИСАНИЕ</label><textarea id="mDescription"></textarea></div>
- </div>
- <div class="btn-row"><button class="btn" id="addModificationButton">＋ Добави модификация</button></div>
- <hr><div id="modificationList"></div>
-</section>
-
-<section class="panel tab-content" id="tab-expenses">
- <div class="section-title">РАЗХОДИ ПО АВТОМОБИЛА</div>
- <div class="form-grid">
-  <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
-  <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
-  <div class="field"><label>СТОЙНОСТ (€)</label><input id="eCost" type="number" min="0" step="0.01"></div>
-  <div class="field"><label>КАТЕГОРИЯ</label><select id="eCategory"><option>Гориво</option><option>Сервиз</option><option>Части</option><option>Застраховка</option><option>Данък</option><option>Гуми</option><option>Други</option></select></div>
-  <div class="field"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
- </div>
- <div class="btn-row"><button class="btn" id="addExpenseButton">＋ Добави разход</button></div>
- <hr><div id="expenseList"></div>
-</section>
-
-<section class="panel tab-content" id="tab-documents">
- <div class="section-title">ДОКУМЕНТИ И ФАЙЛОВЕ</div>
- <div class="alert">Тук се съхраняват наименования и линкове към документи. Самият файл не се качва автоматично в Cloud. За реално качване на снимки и PDF ще е необходимо отделно Storage пространство.</div>
- <div class="form-grid">
-  <div class="field full"><label>ИМЕ НА ДОКУМЕНТА</label><input id="dTitle" placeholder="Фактура / сервизен протокол"></div>
-  <div class="field"><label>ТИП</label><select id="dType"><option>Фактура</option><option>Сервизен документ</option><option>Застраховка</option><option>Технически преглед</option><option>Снимка</option><option>Друг</option></select></div>
-  <div class="field"><label>ДАТА</label><input id="dDate" type="date"></div>
-  <div class="field full"><label>ЛИНК КЪМ ФАЙЛ (ПО ЖЕЛАНИЕ)</label><input id="dUrl" type="url" placeholder="https://..."></div>
-  <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="dNotes"></textarea></div>
- </div>
- <div class="btn-row"><button class="btn" id="addDocumentButton">＋ Добави документ</button></div>
- <hr><div id="documentList"></div>
-</section>
-
-<section class="panel tab-content" id="tab-reference">
- <div class="section-title">ИНСТРУМЕНТИ И ИЗТОЧНИЦИ</div>
- <div class="alert">
-  <div><strong>Инструмент за root:</strong> github.com/cauliflowermossgrape/idrive7-8-ssh-root (папка idrive7-8-ssh-root-main на Desktop)</div>
-  <div style="margin-top:6px"><strong>Магазин:</strong> github.com/robertnisipeanu/mgu-store</div>
-  <div style="margin-top:6px"><strong>Приложения (Waze on cluster):</strong> github.com/robertnisipeanu/idrive-apps</div>
-  <div style="margin-top:6px"><strong>Boot loop възстановяване:</strong> issue #63 в idrive-apps — дръж го отворен на телефона по време на флаша.</div>
-  <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към момента) — за „Not supported“ на Waze on cluster.</div>
+ <div id="garageEmpty" class="panel empty hidden">
+  Все още няма добавени автомобили.<br>
+  Натисни <strong>„＋ Кола“</strong> горе вдясно, за да добавиш първия автомобил.
  </div>
 
- <div class="section-title" style="margin-top:22px">АКО НЕЩО СЕ ОБЪРКА</div>
- <div class="alert danger">
-  <ul class="golden-rules">
-   <li><strong>Head unit-ът се рестартира в цикъл</strong> (лого, черен екран, лого…): не предприемай нищо в паника. Отвори issue #63 в idrive-apps — възстановяването там е през root SSH, който се отваря само за ~5 секунди на цикъл. Mac-ът с ключа остава свързан през ENET. Пиши веднага.</li>
-   <li><strong>„No route to host“:</strong> изключи Wi-Fi на Mac-а, провери кабела, колата да е будна.</li>
-   <li><strong>„Permission denied (publickey)“:</strong> не пускай втори флаш. Направи снимка.</li>
-   <li><strong>Store: „nothing was installed“:</strong> няма промяна в колата. Снимка на целия изход.</li>
-   <li><strong>Waze on cluster „Not supported“:</strong> спри и питай автора (issue #99).</li>
-   <li><strong>B7F8E5 не се трие:</strong> направи Persist (стъпка 5), после изтрий грешката.</li>
-   <li><strong>Нужни са ти кодираните стойности отново:</strong> виж стъпка 9 (връщане на кодирането).</li>
-  </ul>
- </div>
+ <main id="mainContent" class="hidden">
+  <!-- ЕКРАН 1: ГАРАЖ / ОБЗОР -->
+  <section class="screen active" id="screen-garage">
+   <div class="hero-card">
+    <div class="hero-top">
+     <div>
+      <div class="hero-name" id="vehicleName">BMW</div>
+      <div class="hero-vin" id="vehicleVin"></div>
+     </div>
+     <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
+    </div>
+    <div class="hero-meta" id="overviewDetails"></div>
+    <div class="stats">
+     <div class="stat"><div class="stat-label">ПРОБЕГ</div><div class="stat-value" id="statMileage">0 km</div></div>
+     <div class="stat"><div class="stat-label">СЕРВИЗИ</div><div class="stat-value" id="statServices">0</div></div>
+     <div class="stat"><div class="stat-label">РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
+     <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
+    </div>
+   </div>
 
- <div class="section-title" style="margin-top:22px">КАКВО НЕ Е ПОТВЪРДЕНО</div>
- <div class="alert warn">
-  <ul class="golden-rules">
-   <li>Авторът на idrive-apps не е потвърдил точно версия 11/2021.61 на софтуера (issue #99 без видим отговор). По други issue-та 21-07 е работила, но тази версия не е тествана от никого познат.</li>
-   <li>Точният текст на изхода на командите <code>persist</code>, <code>close</code>, на Waze on cluster и на BimmerCode Restore — дадени са само признаци за успех, не точен текст.</li>
-   <li>Дали <code>persist</code> и <code>close</code> влияят на Store-а и на Waze.</li>
-   <li>Точните имена на пунктове в менюто на BimmerCode за твоята версия на приложението.</li>
-   <li>Дали гаранцията или дилърът ще имат проблем със софтуера.</li>
-   <li>Дали бъдеща актуализация на iStep ще презапише промените (един потребител във форум пише, че новият софтуер изтрива кодирането).</li>
-  </ul>
- </div>
+   <div class="panel">
+    <div class="section-title">СЪСТОЯНИЕ И НАПОМНЯНИЯ</div>
+    <div id="overviewAlerts"></div>
+    <div id="upcomingServices" style="margin-top:10px"></div>
+   </div>
 
- <div class="section-title" style="margin-top:22px">ПОВЕРИТЕЛНОСТ НА ОБЛАЧНИЯ СИНХ</div>
- <div class="alert warn">
-  Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
- </div>
-</section>
-</main>
+   <div class="panel">
+    <div class="section-title">ФИНАНСОВ ОБЗОР</div>
+    <div id="financeSummary"></div>
+   </div>
+  </section>
 
-<section class="panel rules">
- <div class="section-title">ДАННИ И РЕЗЕРВНИ КОПИЯ</div>
- <div class="backup-info">Данните се записват на устройството. При активен Cloud профил модулът за синхронизация обработва промените автоматично. Препоръчително е периодично да експортираш архив.</div>
- <div class="btn-row">
-  <button class="btn secondary" id="exportLocalButton">Експорт на архив</button>
-  <button class="btn secondary" id="importLocalButton">Импорт на архив</button>
-  <input id="localImportFile" type="file" accept=".json,application/json" hidden>
- </div>
- <div id="localMessage" class="form-msg"></div>
-</section>
+  <!-- ЕКРАН 2: СЕРВИЗ ХЪБ (Сервиз / Напомняния / Модификации / Разходи / Документи) -->
+  <section class="screen" id="screen-service">
+   <div class="seg-bar" id="serviceSegs" role="tablist">
+    <button class="seg-btn active" data-seg="service" type="button">Сервиз</button>
+    <button class="seg-btn" data-seg="reminders" type="button">Напомняния</button>
+    <button class="seg-btn" data-seg="mods" type="button">Модификации</button>
+    <button class="seg-btn" data-seg="expenses" type="button">Разходи</button>
+    <button class="seg-btn" data-seg="documents" type="button">Документи</button>
+   </div>
 
-<div class="footer">M-GARAGE PRO 4.0 · YOUR VEHICLE. YOUR DATA.</div>
+   <div class="seg-view active" id="seg-service">
+    <div class="panel">
+     <div class="section-title">СЕРВИЗНА ИСТОРИЯ</div>
+     <div id="serviceList"></div>
+    </div>
+   </div>
+
+   <div class="seg-view" id="seg-reminders">
+    <div class="panel">
+     <div class="section-title">СЕРВИЗНИ НАПОМНЯНИЯ</div>
+     <div class="alert warn">Напомнянията се показват в приложението. Системните push известия изискват допълнителна настройка.</div>
+     <div id="reminderList"></div>
+    </div>
+   </div>
+
+   <div class="seg-view" id="seg-mods">
+    <div class="panel">
+     <div class="section-title">МОДИФИКАЦИИ И НАДГРАЖДАНИЯ</div>
+     <div id="modificationList"></div>
+    </div>
+   </div>
+
+   <div class="seg-view" id="seg-expenses">
+    <div class="panel">
+     <div class="section-title">РАЗХОДИ ПО АВТОМОБИЛА</div>
+     <div id="expenseList"></div>
+    </div>
+   </div>
+
+   <div class="seg-view" id="seg-documents">
+    <div class="panel">
+     <div class="section-title">ДОКУМЕНТИ И ФАЙЛОВЕ</div>
+     <div class="alert">Тук се съхраняват наименования и линкове към документи. Самият файл не се качва автоматично в Cloud. За реално качване на снимки и PDF ще е необходимо отделно Storage пространство.</div>
+     <div id="documentList"></div>
+    </div>
+   </div>
+  </section>
+
+  <!-- ЕКРАН 3: MGU ПРОЦЕДУРА -->
+  <section class="screen" id="screen-mgu">
+   <div class="panel">
+    <div class="section-title">BMW MGU · ПЪЛНА ПРОЦЕДУРА</div>
+    <div class="muted">Отбелязвай стъпките след реалното им изпълнение. Командите се копират, но не се изпълняват автоматично от приложението.</div>
+    <div class="alert warn">Важно: процедурата зависи от версията на MGU и използвания проект. Преди изпълнение провери актуалната документация и съвместимостта. Не изпълнявай команда, ако не си сигурен какво прави.</div>
+    <div class="alert danger">
+     <strong>ЗЛАТНИ ПРАВИЛА</strong>
+     <ol class="golden-rules">
+      <li>Командата „flash“ се пуска САМО ВЕДНЪЖ. Никога втори път „за всеки случай“.</li>
+      <li>При всяка грешка: спри, направи снимка на целия изход, не повтаряй командата.</li>
+      <li>Зарядно на акумулатора и лаптопът на зарядно през цялото време.</li>
+      <li>Не пипай ENET кабела, не гаси колата и не затваряй Terminal по време на флаш и инсталация.</li>
+      <li>Ключовете (data/enrollments/…) да са на ДВЕ места. Не ги споделяй с никого.</li>
+      <li>Не публикувай логове или снимки с VIN-а.</li>
+      <li>Не форсирай нищо, ако Waze on cluster пише „Not supported“.</li>
+     </ol>
+     <div style="margin-top:8px">Какво се губи при флаша: кодирането на head unit-а (вкл. Sport+) и запазените настройки на iDrive. Digital Key не е засегнат, ако нямаш такъв.</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
+    <div class="muted" id="stepsProgressText"></div>
+   </div>
+   <div id="stepsList"></div>
+  </section>
+
+  <!-- ЕКРАН 4: ОЩЕ (Профил, Справочник, Управление и Архив/Cloud) -->
+  <section class="screen" id="screen-more">
+   <div class="panel">
+    <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ</div>
+    <div class="form-grid">
+     <div class="field"><label>МАРКА</label><input id="pMake"></div>
+     <div class="field"><label>МОДЕЛ</label><input id="pModel"></div>
+     <div class="field"><label>ГОДИНА</label><input id="pYear" type="number"></div>
+     <div class="field"><label>ДВИГАТЕЛ</label><input id="pEngine" placeholder="B46D"></div>
+     <div class="field"><label>СКОРОСТНА КУТИЯ</label><input id="pTransmission"></div>
+     <div class="field"><label>ПРОБЕГ (KM)</label><input id="pMileage" type="number" min="0"></div>
+     <div class="field"><label>ГОРИВО</label><select id="pFuel"><option value="">Не е посочено</option><option>Бензин</option><option>Дизел</option><option>Хибрид</option><option>Plug-in хибрид</option><option>Електрически</option><option>Газ</option></select></div>
+     <div class="field"><label>ЦВЯТ</label><input id="pColor"></div>
+     <div class="field"><label>РЕГИСТРАЦИЯ</label><input id="pRegistration"></div>
+     <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="pNotes"></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="saveProfileButton" type="button">Запази профила</button></div>
+    <div id="profileMessage" class="form-msg"></div>
+   </div>
+
+   <div class="panel">
+    <div class="section-title">СПРАВОЧНИК MGU & WAZE</div>
+    <details class="ref-box">
+     <summary>Инструменти и източници <span>▾</span></summary>
+     <div class="alert">
+      <div><strong>Инструмент за root:</strong> github.com/cauliflowermossgrape/idrive7-8-ssh-root (папка idrive7-8-ssh-root-main на Desktop)</div>
+      <div style="margin-top:6px"><strong>Магазин:</strong> github.com/robertnisipeanu/mgu-store</div>
+      <div style="margin-top:6px"><strong>Приложения (Waze on cluster):</strong> github.com/robertnisipeanu/idrive-apps</div>
+      <div style="margin-top:6px"><strong>Boot loop възстановяване:</strong> issue #63 в idrive-apps — дръж го отворен на телефона по време на флаша.</div>
+      <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към момента) — за „Not supported“ на Waze on cluster.</div>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Ако нещо се обърка <span>▾</span></summary>
+     <div class="alert danger">
+      <ul class="golden-rules">
+       <li><strong>Head unit-ът се рестартира в цикъл</strong> (лого, черен екран, лого…): не предприемай нищо в паника. Отвори issue #63 в idrive-apps — възстановяването там е през root SSH, който се отваря само за ~5 секунди на цикъл. Mac-ът с ключа остава свързан през ENET. Пиши веднага.</li>
+       <li><strong>„No route to host“:</strong> изключи Wi-Fi на Mac-а, провери кабела, колата да е будна.</li>
+       <li><strong>„Permission denied (publickey)“:</strong> не пускай втори флаш. Направи снимка.</li>
+       <li><strong>Store: „nothing was installed“:</strong> няма промяна в колата. Снимка на целия изход.</li>
+       <li><strong>Waze on cluster „Not supported“:</strong> спри и питай автора (issue #99).</li>
+       <li><strong>B7F8E5 не се трие:</strong> направи Persist (стъпка 5), после изтрий грешката.</li>
+       <li><strong>Нужни са ти кодираните стойности отново:</strong> виж стъпка 9 (връщане на кодирането).</li>
+      </ul>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Какво не е потвърдено <span>▾</span></summary>
+     <div class="alert warn">
+      <ul class="golden-rules">
+       <li>Авторът на idrive-apps не е потвърдил точно версия 11/2021.61 на софтуера (issue #99 без видим отговор). По други issue-та 21-07 е работила, но тази версия не е тествана от никого познат.</li>
+       <li>Точният текст на изхода на командите <code>persist</code>, <code>close</code>, на Waze on cluster и на BimmerCode Restore — дадени са само признаци за успех, не точен текст.</li>
+       <li>Дали <code>persist</code> и <code>close</code> влияят на Store-а и на Waze.</li>
+       <li>Точните имена на пунктове в менюто на BimmerCode за твоята версия на приложението.</li>
+       <li>Дали гаранцията или дилърът ще имат проблем със софтуера.</li>
+       <li>Дали бъдеща актуализация на iStep ще презапише промените (един потребител във форум пише, че новият софтуер изтрива кодирането).</li>
+      </ul>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Поверителност на облачния синх <span>▾</span></summary>
+     <div class="alert warn">
+      Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
+     </div>
+    </details>
+   </div>
+
+   <div class="panel">
+    <div class="section-title">УПРАВЛЕНИЕ НА АВТОМОБИЛА</div>
+    <div class="btn-row">
+     <button class="btn secondary" id="renameCarButton" type="button">Преименувай</button>
+     <button class="btn secondary" id="resetStepsButton" type="button">Нулирай MGU стъпки</button>
+    </div>
+    <div class="btn-row">
+     <button class="btn danger" id="deleteCarButton" type="button">Изтрий автомобила</button>
+    </div>
+   </div>
+
+   <section class="panel rules">
+    <div class="section-title">ДАННИ И РЕЗЕРВНИ КОПИЯ</div>
+    <div class="backup-info">Данните се записват на устройството. При активен Cloud профил модулът за синхронизация обработва промените автоматично. Препоръчително е периодично да експортираш архив.</div>
+    <div class="btn-row">
+     <button class="btn secondary" id="exportLocalButton" type="button">Експорт на архив</button>
+     <button class="btn secondary" id="importLocalButton" type="button">Импорт на архив</button>
+     <input id="localImportFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div id="localMessage" class="form-msg"></div>
+   </section>
+  </section>
+ </main>
+
+ <div class="footer">M-GARAGE PRO 4.0 · YOUR VEHICLE. YOUR DATA.</div>
 </div>
+
+<!-- Плаващ бутон за бързо добавяне -->
+<button class="fab" id="fabAdd" type="button">＋ Добави</button>
+
+<!-- Bottom Sheet модален панел за форми -->
+<div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
+ <div class="sheet">
+  <div class="sheet-head">
+   <div class="sheet-title" id="sheetTitle">Нов запис</div>
+   <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
+  </div>
+
+  <!-- Форма: Нов автомобил -->
+  <div class="sheet-form hidden" id="form-car">
+   <div class="form-grid">
+    <div class="field full"><label>VIN НОМЕР – 17 СИМВОЛА</label><input id="newVin" maxlength="17" placeholder="Например: WBA..."></div>
+    <div class="field"><label>ИМЕ В ГАРАЖА</label><input id="newNick" placeholder="Моят BMW"></div>
+    <div class="field"><label>МАРКА</label><input id="newMake" placeholder="BMW"></div>
+    <div class="field"><label>МОДЕЛ</label><input id="newModel" placeholder="330i"></div>
+    <div class="field"><label>ГОДИНА</label><input id="newYear" type="number" min="1900" max="2100"></div>
+   </div>
+   <div class="btn-row">
+    <button class="btn" id="addCarButton" type="button">Запази автомобила</button>
+   </div>
+   <div id="addCarMessage" class="form-msg"></div>
+  </div>
+
+  <!-- Форма: Сервиз -->
+  <div class="sheet-form hidden" id="form-service">
+   <div class="form-grid">
+    <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
+    <div class="field"><label>ПРОБЕГ (KM)</label><input id="sMileage" type="number" min="0"></div>
+    <div class="field full"><label>СЕРВИЗ / ДЕЙНОСТ</label><input id="sTitle" placeholder="Масло и филтри"></div>
+    <div class="field full"><label>ИЗВЪРШИТЕЛ / СЕРВИЗ</label><input id="sProvider"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="sCost" type="number" min="0" step="0.01"></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="sNotes"></div>
+   </div>
+   <div class="service-plan">
+    <div class="service-plan-title">АВТОМАТИЧНО СЛЕДВАЩО ОБСЛУЖВАНЕ</div>
+    <div class="muted">Интервал в километри, месеци или и двете.</div>
+    <div class="form-grid" style="margin-top:10px">
+     <div class="field"><label>СЛЕД КОЛКО KM?</label><input id="sIntervalKm" type="number" min="1" placeholder="Например 10000"></div>
+     <div class="field"><label>СЛЕД КОЛКО МЕСЕЦА?</label><input id="sIntervalMonths" type="number" min="1" max="120" placeholder="Например 12"></div>
+     <div class="field full"><label>ИМЕ НА СЛЕДВАЩОТО ОБСЛУЖВАНЕ</label><input id="sNextTitle" placeholder="Следваща смяна на масло"></div>
+    </div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addServiceButton" type="button">Запази сервизен запис</button></div>
+  </div>
+
+  <!-- Форма: Напомняне -->
+  <div class="sheet-form hidden" id="form-reminders">
+   <div class="form-grid">
+    <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><select id="rCategory"><option>Масло</option><option>Филтри</option><option>Спирачки</option><option>Гуми</option><option>Технически преглед</option><option>Застраховка</option><option>Друго</option></select></div>
+    <div class="field"><label>КРАЕН СРОК</label><input id="rDate" type="date"></div>
+    <div class="field"><label>ПРОБЕГ ЗА СЕРВИЗ (KM)</label><input id="rMileage" type="number" min="0"></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="rNotes"></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addReminderButton" type="button">Запази напомняне</button></div>
+  </div>
+
+  <!-- Форма: Модификация -->
+  <div class="sheet-form hidden" id="form-mods">
+   <div class="form-grid">
+    <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><input id="mCategory" placeholder="Двигател"></div>
+    <div class="field"><label>АРТИКУЛ / НОМЕР</label><input id="mPartNumber"></div>
+    <div class="field"><label>ДАТА</label><input id="mDate" type="date"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="mCost" type="number" min="0" step="0.01"></div>
+    <div class="field full"><label>ОПИСАНИЕ</label><textarea id="mDescription"></textarea></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addModificationButton" type="button">Запази модификация</button></div>
+  </div>
+
+  <!-- Форма: Разход -->
+  <div class="sheet-form hidden" id="form-expenses">
+   <div class="form-grid">
+    <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
+    <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="eCost" type="number" min="0" step="0.01"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><select id="eCategory"><option>Гориво</option><option>Сервиз</option><option>Части</option><option>Застраховка</option><option>Данък</option><option>Гуми</option><option>Други</option></select></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addExpenseButton" type="button">Запази разход</button></div>
+  </div>
+
+  <!-- Форма: Документ -->
+  <div class="sheet-form hidden" id="form-documents">
+   <div class="form-grid">
+    <div class="field full"><label>ИМЕ НА ДОКУМЕНТА</label><input id="dTitle" placeholder="Фактура / сервизен протокол"></div>
+    <div class="field"><label>ТИП</label><select id="dType"><option>Фактура</option><option>Сервизен документ</option><option>Застраховка</option><option>Технически преглед</option><option>Снимка</option><option>Друг</option></select></div>
+    <div class="field"><label>ДАТА</label><input id="dDate" type="date"></div>
+    <div class="field full"><label>ЛИНК КЪМ ФАЙЛ (ПО ЖЕЛАНИЕ)</label><input id="dUrl" type="url" placeholder="https://..."></div>
+    <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="dNotes"></textarea></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addDocumentButton" type="button">Запази документ</button></div>
+  </div>
+ </div>
+</div>
+
+<!-- Долна навигация на приложението -->
+<nav class="bottom-nav" id="bottomNav" aria-label="Навигация на приложението">
+ <div class="bottom-nav-inner">
+  <button class="nav-btn active" data-screen="garage" type="button">
+   <span class="nav-icon">🚘</span>
+   <span>Гараж</span>
+  </button>
+  <button class="nav-btn" data-screen="service" type="button">
+   <span class="nav-icon">🛠️</span>
+   <span>Сервиз</span>
+  </button>
+  <button class="nav-btn" data-screen="mgu" type="button">
+   <span class="nav-icon">💻</span>
+   <span>MGU</span>
+  </button>
+  <button class="nav-btn" data-screen="more" type="button">
+   <span class="nav-icon">⚙️</span>
+   <span>Още</span>
+  </button>
+ </div>
+</nav>
 
 <script>
 "use strict";
@@ -594,6 +873,8 @@ const STEPS=[
 
 let cars=[];
 let activeVin="";
+let currentScreen="garage";
+let currentSeg="service";
 const $=id=>document.getElementById(id);
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
@@ -677,7 +958,7 @@ function setTheme(theme){
  document.documentElement.dataset.theme=value;
  localStorage.setItem(THEME_KEY,value);
  const meta=document.querySelector('meta[name="theme-color"]');
- if(meta)meta.content=value==="dark"?"#0b1018":"#edf2f7";
+ if(meta)meta.content=value==="dark"?"#080c12":"#eef3f8";
 }
 function formatMoney(value){return safeNumber(value).toLocaleString("bg-BG",{minimumFractionDigits:0,maximumFractionDigits:2})+" €"}
 function formatDate(value){
@@ -686,26 +967,83 @@ function formatDate(value){
  if(parts.length===3&&parts.every(p=>/^\d+$/.test(p)))return parts[2]+"."+parts[1]+"."+parts[0];
  const d=new Date(raw);return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
 }
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-}
 function message(id,text){if($(id))$(id).textContent=text}
-function showTab(name){
- document.querySelectorAll(".tab").forEach(tab=>tab.classList.toggle("active",tab.dataset.tab===name));
- document.querySelectorAll(".tab-content").forEach(panel=>panel.classList.toggle("active",panel.id==="tab-"+name));
+
+function updateFab(){
+ const fab=$("fabAdd");
+ if(!fab)return;
+ const hasCar=cars.length>0;
+ if(!hasCar||currentScreen==="mgu"||currentScreen==="more"){
+  fab.classList.add("hidden");
+  return;
+ }
+ fab.classList.remove("hidden");
+ const labels={
+  service:"＋ Сервиз",
+  reminders:"＋ Напомняне",
+  mods:"＋ Модификация",
+  expenses:"＋ Разход",
+  documents:"＋ Документ"
+ };
+ fab.textContent=currentScreen==="garage"?"＋ Сервиз":(labels[currentSeg]||"＋ Добави");
 }
+
+function showScreen(name){
+ currentScreen=name;
+ document.querySelectorAll(".nav-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.screen===name));
+ document.querySelectorAll(".screen").forEach(sec=>sec.classList.toggle("active",sec.id==="screen-"+name));
+ updateFab();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showSeg(seg){
+ currentSeg=seg;
+ document.querySelectorAll(".seg-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.seg===seg));
+ document.querySelectorAll(".seg-view").forEach(view=>view.classList.toggle("active",view.id==="seg-"+seg));
+ updateFab();
+}
+
+function openSheet(formKey,title){
+ const backdrop=$("sheetBackdrop");
+ document.querySelectorAll(".sheet-form").forEach(f=>f.classList.add("hidden"));
+ const target=$("form-"+formKey);
+ if(target)target.classList.remove("hidden");
+ $("sheetTitle").textContent=title;
+ if(formKey==="service"&&!$("sDate").value)$("sDate").value=today();
+ if(formKey==="mods"&&!$("mDate").value)$("mDate").value=today();
+ if(formKey==="expenses"&&!$("eDate").value)$("eDate").value=today();
+ if(formKey==="documents"&&!$("dDate").value)$("dDate").value=today();
+ backdrop.classList.remove("hidden");
+}
+
+function closeSheet(){
+ $("sheetBackdrop").classList.add("hidden");
+}
+
 function renderGarage(){
- const list=$("garageList");list.replaceChildren();
+ const bar=$("garageBar");
+ bar.replaceChildren();
  $("garageEmpty").classList.toggle("hidden",cars.length>0);
  $("mainContent").classList.toggle("hidden",cars.length===0);
+
  cars.forEach(car=>{
   const button=document.createElement("button");
-  button.type="button";button.className="garage-chip"+(car.vin===activeVin?" active":"");
+  button.type="button";
+  button.className="garage-chip"+(car.vin===activeVin?" active":"");
   button.textContent=car.nick||car.details.model||car.vin;
   button.addEventListener("click",()=>{activeVin=car.vin;save();renderAll()});
-  list.append(button);
+  bar.append(button);
  });
+
+ const addBtn=document.createElement("button");
+ addBtn.type="button";
+ addBtn.className="add-car-chip";
+ addBtn.textContent="＋ Нов";
+ addBtn.addEventListener("click",()=>openSheet("car","Нов автомобил"));
+ bar.append(addBtn);
+ updateFab();
 }
+
 function reminderState(r,car){
  const now=today(),dateDue=!!(r.dueDate&&r.dueDate<=now);
  const kmDue=!!(r.dueMileage&&car.details.mileage>=r.dueMileage);
@@ -714,12 +1052,14 @@ function reminderState(r,car){
  const overdue=dateDue||kmDue,soon=!overdue&&((daysLeft!==null&&daysLeft<=30)||(kmLeft!==null&&kmLeft<=1000));
  return{overdue,soon,daysLeft,kmLeft};
 }
+
 function getFinancialTotals(car){
  const services=car.serviceRecords.reduce((sum,r)=>sum+safeNumber(r.cost),0);
  const modifications=car.modifications.reduce((sum,r)=>sum+safeNumber(r.cost),0);
  const expenses=car.expenses.reduce((sum,r)=>sum+safeNumber(r.cost),0);
  return{services,modifications,expenses,total:services+modifications+expenses};
 }
+
 function renderFinance(car){
  const totals=getFinancialTotals(car),container=$("financeSummary");
  $("statExpenses").textContent=formatMoney(totals.total);
@@ -731,7 +1071,7 @@ function renderFinance(car){
  container.replaceChildren();
  const total=document.createElement("div");total.className="finance-total";total.textContent=formatMoney(totals.total);container.append(total);
  const caption=document.createElement("div");caption.className="finance-caption";caption.textContent="Общо отчетени разходи за автомобила";container.append(caption);
- const list=document.createElement("div");list.className="finance-list";list.style.marginTop="16px";
+ const list=document.createElement("div");list.className="finance-list";list.style.marginTop="14px";
  categories.forEach(item=>{
   const row=document.createElement("div");row.className="finance-row";
   const label=document.createElement("div");label.className="finance-label";label.textContent=item.label;
@@ -743,6 +1083,7 @@ function renderFinance(car){
  });
  container.append(list);
 }
+
 function renderOverview(car){
  $("vehicleName").textContent=car.nick||"BMW";
  $("vehicleVin").textContent="VIN: "+car.vin;
@@ -750,12 +1091,15 @@ function renderOverview(car){
  $("statServices").textContent=car.serviceRecords.length;
  renderFinance(car);
  $("statReminders").textContent=car.reminders.filter(r=>!r.completed).length;
+
  const d=car.details;
  $("overviewDetails").textContent=[
   [d.make,d.model].filter(Boolean).join(" "),d.year||"",
-  d.engine?"Двигател: "+d.engine:"",d.transmission?"Скоростна кутия: "+d.transmission:"",
-  d.fuel?"Гориво: "+d.fuel:"",d.color?"Цвят: "+d.color:""
- ].filter(Boolean).join(" · ")||"Добави информация в профила на автомобила.";
+  d.engine?"Двигател: "+d.engine:"",d.transmission?"Кутия: "+d.transmission:"",
+  d.fuel?"Гориво: "+d.fuel:"",d.color?"Цвят: "+d.color:"",
+  d.registration?"Рег.: "+d.registration:""
+ ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
+
  const active=car.reminders.filter(r=>!r.completed);
  const overdue=active.filter(r=>reminderState(r,car).overdue);
  const soon=active.filter(r=>reminderState(r,car).soon);
@@ -764,12 +1108,14 @@ function renderOverview(car){
  if(soon.length)alerts.push('<div class="alert warn">Предстоят '+soon.length+' обслужване/ия в следващите 30 дни или 1000 km.</div>');
  if(!overdue.length&&!soon.length)alerts.push('<div class="alert good">Няма установени просрочени или наближаващи напомняния.</div>');
  $("overviewAlerts").innerHTML=alerts.join("");
+
  const upcoming=$("upcomingServices");
  const sorted=[...active].sort((a,b)=>{
   const sa=reminderState(a,car),sb=reminderState(b,car);
   return Number(sb.overdue)-Number(sa.overdue)||String(a.dueDate||"9999").localeCompare(String(b.dueDate||"9999"));
- }).slice(0,6);
- if(!sorted.length){upcoming.innerHTML='<div class="empty">Няма планирани обслужвания. Можеш да добавиш такова от раздел „Сервиз“.</div>';return}
+ }).slice(0,5);
+
+ if(!sorted.length){upcoming.innerHTML='<div class="empty">Няма планирани обслужвания. Добави от „Сервиз“ или „Напомняния“.</div>';return}
  upcoming.replaceChildren();
  sorted.forEach(r=>{
   const state=reminderState(r,car),item=document.createElement("div");item.className="due-item";
@@ -785,6 +1131,7 @@ function renderOverview(car){
   item.append(left,tag);upcoming.append(item);
  });
 }
+
 function renderProfile(car){
  const d=car.details;
  $("pMake").value=d.make;$("pModel").value=d.model;$("pYear").value=d.year||"";
@@ -792,6 +1139,7 @@ function renderProfile(car){
  $("pMileage").value=d.mileage||"";$("pFuel").value=d.fuel;
  $("pColor").value=d.color;$("pRegistration").value=d.registration;$("pNotes").value=d.notes;
 }
+
 async function copyCommand(command,button){
  const original=button.textContent;
  try{
@@ -806,6 +1154,7 @@ async function copyCommand(command,button){
  }catch(error){button.textContent="Неуспешно копиране"}
  setTimeout(()=>button.textContent=original,1800);
 }
+
 function renderSteps(car){
  const done=STEPS.filter(s=>car.done[s.id]).length,percent=Math.round(done/STEPS.length*100);
  $("stepsProgress").style.width=percent+"%";
@@ -825,6 +1174,7 @@ function renderSteps(car){
   const description=document.createElement("div");description.className="step-description";description.textContent=step.description;
   const status=document.createElement("div");status.className="step-status";status.textContent=car.done[step.id]?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
   titleWrap.append(title,description,status);header.append(checkbox,titleWrap);
+
   const details=document.createElement("div");details.className="step-details";
   const explanation=document.createElement("p");explanation.textContent=step.explanation;details.append(explanation);
   if(step.warning){const warning=document.createElement("div");warning.className="step-warning";warning.textContent="⚠ ВНИМАНИЕ: "+step.warning;details.append(warning)}
@@ -847,9 +1197,10 @@ function renderSteps(car){
   card.append(header,details);container.append(card);
  });
 }
+
 function renderRecords(containerId,records,type,car){
  const container=$(containerId);container.replaceChildren();
- if(!records.length){container.innerHTML='<div class="empty">Няма добавени записи.</div>';return}
+ if(!records.length){container.innerHTML='<div class="empty">Няма добавени записи. Натисни бутона „＋“ за нов запис.</div>';return}
  [...records].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).forEach(record=>{
   const card=document.createElement("article");card.className="record";
   const heading=document.createElement("div");heading.className="record-top";
@@ -869,12 +1220,14 @@ function renderRecords(containerId,records,type,car){
   if(record.description)lines.push(record.description);
   if(record.notes)lines.push(record.notes);
   meta.textContent=lines.join("\n");card.append(heading,date,meta);
+
   if(type==="reminder"){
    const state=reminderState(record,car),status=document.createElement("div");status.className="record-date";
    status.textContent=record.completed?"✓ Изпълнено":state.overdue?"⚠ Просрочено":state.soon?"Предстои скоро":"Активно напомняне";
    card.append(status);
    if(!record.completed){
     const complete=document.createElement("button");complete.className="btn good small";
+    complete.style.marginTop="10px";complete.style.width="100%";
     complete.textContent="Отбележи като изпълнено";
     complete.addEventListener("click",()=>{record.completed=true;save();renderAll()});card.append(complete);
    }
@@ -889,6 +1242,7 @@ function renderRecords(containerId,records,type,car){
     warning.textContent="Линкът не е валиден или не е разрешен.";card.append(warning);
    }
   }
+
   const actions=document.createElement("div");actions.className="record-actions";
   const del=document.createElement("button");del.className="btn danger small";del.textContent="Изтрий записа";
   del.addEventListener("click",()=>{
@@ -899,6 +1253,7 @@ function renderRecords(containerId,records,type,car){
   actions.append(del);card.append(actions);container.append(card);
  });
 }
+
 function renderAll(){
  renderGarage();
  const car=activeCar();if(!car)return;
@@ -909,15 +1264,17 @@ function renderAll(){
  renderRecords("expenseList",car.expenses,"expense",car);
  renderRecords("documentList",car.documents,"document",car);
 }
+
 function addCar(){
  const vin=$("newVin").value.trim().toUpperCase();
  if(!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)){message("addCarMessage","VIN трябва да съдържа точно 17 валидни символа.");return}
  if(cars.some(c=>c.vin===vin)){message("addCarMessage","Автомобил с този VIN вече съществува.");return}
  const car=cleanCar({vin,nick:$("newNick").value||$("newModel").value||"BMW",done:{},details:{make:$("newMake").value,model:$("newModel").value,year:$("newYear").value}});
- cars.push(car);activeVin=vin;save();$("addCarPanel").classList.add("hidden");
+ cars.push(car);activeVin=vin;save();closeSheet();
  ["newVin","newNick","newMake","newModel","newYear"].forEach(id=>$(id).value="");
  message("addCarMessage","");renderAll();
 }
+
 function saveProfile(){
  const car=activeCar();if(!car)return;
  car.details={
@@ -929,12 +1286,14 @@ function saveProfile(){
  };
  save();renderAll();message("profileMessage","Профилът е запазен.");
 }
+
 function addRecord(type,record){
  const car=activeCar();if(!car)return;
  const key={service:"serviceRecords",reminder:"reminders",modification:"modifications",expense:"expenses",document:"documents"}[type];
  car[key].push(cleanRecord(record,type));save();renderAll();
 }
 function getVal(id){return $(id).value.trim()}
+
 function addService(){
  const car=activeCar();if(!car)return;
  if(!getVal("sTitle"))return alert("Въведи описание на сервизната дейност.");
@@ -960,32 +1319,41 @@ function addService(){
    completed:false
   },"reminder"));
  }
- save();renderAll();
+ save();renderAll();closeSheet();
  ["sTitle","sMileage","sProvider","sCost","sNotes","sIntervalKm","sIntervalMonths","sNextTitle"].forEach(id=>$(id).value="");
  message("localMessage",intervalKm||intervalMonths?"Сервизният запис и следващото напомняне са запазени.":"Сервизният запис е запазен.");
 }
+
 function addReminder(){
  if(!getVal("rTitle"))return alert("Въведи име на напомнянето.");
  addRecord("reminder",{title:getVal("rTitle"),date:today(),dueDate:getVal("rDate"),dueMileage:getVal("rMileage"),category:getVal("rCategory"),notes:getVal("rNotes"),completed:false});
  ["rTitle","rDate","rMileage","rNotes"].forEach(id=>$(id).value="");
+ closeSheet();
 }
+
 function addModification(){
  if(!getVal("mTitle"))return alert("Въведи име на модификацията.");
  addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
  ["mTitle","mDate","mCategory","mPartNumber","mCost","mDescription"].forEach(id=>$(id).value="");
+ closeSheet();
 }
+
 function addExpense(){
  if(!getVal("eTitle")||!getVal("eCost"))return alert("Въведи описание и стойност на разхода.");
  addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),notes:getVal("eNotes")});
  ["eTitle","eDate","eCost","eNotes"].forEach(id=>$(id).value="");
+ closeSheet();
 }
+
 function addDocument(){
  if(!getVal("dTitle"))return alert("Въведи име на документа.");
  const rawUrl=getVal("dUrl"),safeUrl=safeHttpUrl(rawUrl);
  if(rawUrl&&!safeUrl)return alert("Линкът трябва да бъде валиден адрес, започващ с http:// или https://.");
  addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:safeUrl,notes:getVal("dNotes")});
  ["dTitle","dDate","dUrl","dNotes"].forEach(id=>$(id).value="");
+ closeSheet();
 }
+
 function exportBackup(){
  const data={app:"M-GARAGE PRO",version:DATA_VERSION,archiveType:"full",exportedAt:new Date().toISOString(),cars:cars.map(cleanCar).filter(Boolean),activeVin,theme:localStorage.getItem(THEME_KEY)||"dark"};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
@@ -994,6 +1362,7 @@ function exportBackup(){
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  message("localMessage","Архивът е експортиран.");
 }
+
 async function importBackup(file){
  if(!file)return;
  try{
@@ -1008,8 +1377,37 @@ async function importBackup(file){
  }catch(error){message("localMessage","Грешка: "+error.message)}
 }
 
-$("showAddCar").addEventListener("click",()=>$("addCarPanel").classList.remove("hidden"));
-$("cancelAddCar").addEventListener("click",()=>$("addCarPanel").classList.add("hidden"));
+$("quickAddCarBtn").addEventListener("click",()=>openSheet("car","Нов автомобил"));
+$("fabAdd").addEventListener("click",()=>{
+ if(currentScreen==="garage"){
+  showScreen("service");
+  showSeg("service");
+  openSheet("service","Нов сервизен запис");
+  return;
+ }
+ const titles={
+  service:"Нов сервизен запис",
+  reminders:"Ново напомняне",
+  mods:"Нова модификация",
+  expenses:"Нов разход",
+  documents:"Нов документ"
+ };
+ openSheet(currentSeg,titles[currentSeg]||"Нов запис");
+});
+
+$("sheetClose").addEventListener("click",closeSheet);
+$("sheetBackdrop").addEventListener("click",e=>{if(e.target===$("sheetBackdrop"))closeSheet()});
+
+$("bottomNav").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-screen]");
+ if(btn)showScreen(btn.dataset.screen);
+});
+
+$("serviceSegs").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-seg]");
+ if(btn)showSeg(btn.dataset.seg);
+});
+
 $("addCarButton").addEventListener("click",addCar);
 $("saveProfileButton").addEventListener("click",saveProfile);
 $("addServiceButton").addEventListener("click",addService);
@@ -1022,8 +1420,7 @@ $("exportLocalButton").addEventListener("click",exportBackup);
 $("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
 $("localImportFile").addEventListener("change",e=>importBackup(e.target.files[0]));
 $("themeToggle").addEventListener("click",()=>setTheme((localStorage.getItem(THEME_KEY)||"dark")==="dark"?"light":"dark"));
-$("tabs").addEventListener("click",e=>{const tab=e.target.closest("[data-tab]");if(tab)showTab(tab.dataset.tab)});
-$("editProfileButton").addEventListener("click",()=>showTab("profile"));
+
 $("renameCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
  const name=prompt("Ново име на автомобила:",car.nick);
@@ -1031,7 +1428,7 @@ $("renameCarButton").addEventListener("click",()=>{
 });
 $("resetStepsButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да нулирам ли деветте MGU стъпки за този автомобил?"))return;
+ if(!confirm("Да нулирам ли MGU стъпките за този автомобил?"))return;
  car.done={};save();renderAll();
 });
 $("deleteCarButton").addEventListener("click",()=>{
