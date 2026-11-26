@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080c12">
+<meta name="theme-color" content="#0b1018">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
@@ -15,8 +15,6 @@
  --surface:#101722;
  --surface-2:#172130;
  --surface-3:#1f2c3f;
- --topbar-bg:rgba(8,12,18,.92);
- --nav-bg:rgba(16,23,34,.95);
  --text:#f0f5fc;
  --muted:#8c9cb0;
  --border:#253447;
@@ -37,8 +35,6 @@ html[data-theme="light"]{
  --surface:#ffffff;
  --surface-2:#f4f7fb;
  --surface-3:#e8eff7;
- --topbar-bg:rgba(238,243,248,.92);
- --nav-bg:rgba(255,255,255,.95);
  --text:#132030;
  --muted:#63758a;
  --border:#dce4ee;
@@ -72,6 +68,7 @@ a{color:var(--accent)}
  padding:12px 14px 20px;
 }
 
+/* Top App Bar */
 .topbar{
  position:sticky;
  top:0;
@@ -82,7 +79,7 @@ a{color:var(--accent)}
  gap:10px;
  padding:calc(10px + env(safe-area-inset-top)) 4px 12px;
  margin-bottom:6px;
- background:var(--topbar-bg);
+ background:color-mix(in srgb,var(--bg) 86%,transparent);
  backdrop-filter:blur(16px);
  -webkit-backdrop-filter:blur(16px);
 }
@@ -117,6 +114,7 @@ a{color:var(--accent)}
  white-space:nowrap;
 }
 
+/* Screens */
 .screen{display:none}
 .screen.active{display:block;animation:screenIn .18s ease}
 @keyframes screenIn{
@@ -141,6 +139,7 @@ a{color:var(--accent)}
 }
 .muted,.backup-info{color:var(--muted);font-size:12px;line-height:1.6}
 
+/* Garage Switcher Bar */
 .garage-bar{
  display:flex;
  align-items:center;
@@ -174,10 +173,11 @@ a{color:var(--accent)}
  font-size:11px;font-weight:900;
 }
 
+/* Hero Vehicle Card */
 .hero-card{
  position:relative;
  overflow:hidden;
- background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 75%);
+ background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 70%);
  border:1px solid var(--border);
  border-radius:24px;
  padding:18px;
@@ -221,7 +221,7 @@ a{color:var(--accent)}
 }
 .stat{
  padding:12px;
- background:var(--surface-2);
+ background:color-mix(in srgb,var(--bg) 52%,var(--surface-2));
  border:1px solid var(--border);
  border-radius:16px;
  min-width:0;
@@ -229,6 +229,7 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
 
+/* Segmented Control inside Service Hub */
 .seg-bar{
  display:flex;
  gap:6px;
@@ -259,6 +260,7 @@ a{color:var(--accent)}
 .seg-view{display:none}
 .seg-view.active{display:block;animation:screenIn .16s ease}
 
+/* Forms & Sheet */
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field{min-width:0}
 .field.full{grid-column:1/-1}
@@ -293,14 +295,15 @@ textarea{min-height:82px;resize:vertical}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn-row .btn{flex:1}
 
+/* Bottom Sheet Modal */
 .sheet-backdrop{
  position:fixed;inset:0;z-index:60;
- background:rgba(3,7,13,.75);
+ background:rgba(3,7,13,.68);
  backdrop-filter:blur(6px);
  display:flex;align-items:flex-end;justify-content:center;
  padding:12px 12px calc(12px + env(safe-area-inset-bottom));
 }
-.sheet-backdrop.hidden{display:none!important}
+.sheet-backdrop.hidden{display:none}
 .sheet{
  width:100%;max-width:640px;max-height:86vh;overflow-y:auto;
  background:var(--surface);border:1px solid var(--border);
@@ -322,9 +325,10 @@ textarea{min-height:82px;resize:vertical}
  font-size:16px;
 }
 
+/* Floating Action Button */
 .fab{
  position:fixed;
- right:16px;
+ right:max(16px,calc(50% - 310px));
  bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
  z-index:30;
  height:46px;padding:0 16px;
@@ -335,6 +339,7 @@ textarea{min-height:82px;resize:vertical}
  display:inline-flex;align-items:center;gap:6px;
 }
 
+/* Cards & Lists */
 .record{
  border:1px solid var(--border);background:var(--surface-2);
  border-radius:16px;padding:13px 14px;margin:9px 0;
@@ -365,15 +370,16 @@ textarea{min-height:82px;resize:vertical}
  background:var(--surface-2);border:1px solid var(--border);
  font-size:11.5px;line-height:1.6;
 }
-.alert.warn{border-color:var(--warn);background:var(--warn-soft)}
-.alert.good{border-color:var(--good);background:var(--good-soft)}
-.alert.danger{border-color:var(--danger);background:var(--danger-soft)}
+.alert.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn-soft) 55%,var(--surface-2))}
+.alert.good{border-color:var(--good);background:color-mix(in srgb,var(--good-soft) 55%,var(--surface-2))}
+.alert.danger{border-color:var(--danger);background:color-mix(in srgb,var(--danger-soft) 55%,var(--surface-2))}
 
 .form-msg{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
 .hidden{display:none!important}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
 
+/* MGU Steps */
 .step-card{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:17px;padding:14px;margin:10px 0;
@@ -439,6 +445,7 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
 .finance-caption{font-size:10px;color:var(--muted)}
 
+/* Accordion inside Reference */
 details.ref-box{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:15px;padding:12px 14px;margin:9px 0;
@@ -450,6 +457,7 @@ details.ref-box summary{
 details.ref-box summary::-webkit-details-marker{display:none}
 details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 
+/* Cloud compatibility hook (.rules) */
 .rules{margin-top:12px}
 .rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
 .rules ~ * button:disabled{opacity:.55!important}
@@ -458,11 +466,12 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 .rules ~ * .muted,.rules ~ * small{color:var(--muted)}
 .rules ~ * .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
 
+/* Fixed Bottom App Navigation */
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
  min-height:calc(var(--nav-h) + env(safe-area-inset-bottom));
  padding:6px 10px calc(6px + env(safe-area-inset-bottom));
- background:var(--nav-bg);
+ background:color-mix(in srgb,var(--surface) 90%,transparent);
  backdrop-filter:blur(18px);
  -webkit-backdrop-filter:blur(18px);
  border-top:1px solid var(--border);
@@ -508,6 +517,7 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
   </div>
  </header>
 
+ <!-- Компактна лента за избор на автомобил -->
  <div class="garage-bar" id="garageBar" aria-label="Автомобили в гаража"></div>
 
  <div id="garageEmpty" class="panel empty hidden">
@@ -547,7 +557,7 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    </div>
   </section>
 
-  <!-- ЕКРАН 2: СЕРВИЗ ХЪБ -->
+  <!-- ЕКРАН 2: СЕРВИЗ ХЪБ (Сервиз / Напомняния / Модификации / Разходи / Документи) -->
   <section class="screen" id="screen-service">
    <div class="seg-bar" id="serviceSegs" role="tablist">
     <button class="seg-btn active" data-seg="service" type="button">Сервиз</button>
@@ -620,7 +630,7 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div id="stepsList"></div>
   </section>
 
-  <!-- ЕКРАН 4: ОЩЕ -->
+  <!-- ЕКРАН 4: ОЩЕ (Профил, Справочник, Управление и Архив/Cloud) -->
   <section class="screen" id="screen-more">
    <div class="panel">
     <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ</div>
@@ -649,4 +659,794 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
       <div style="margin-top:6px"><strong>Магазин:</strong> github.com/robertnisipeanu/mgu-store</div>
       <div style="margin-top:6px"><strong>Приложения (Waze on cluster):</strong> github.com/robertnisipeanu/idrive-apps</div>
       <div style="margin-top:6px"><strong>Boot loop възстановяване:</strong> issue #63 в idrive-apps — дръж го отворен на телефона по време на флаша.</div>
-      <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към
+      <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към момента) — за „Not supported“ на Waze on cluster.</div>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Ако нещо се обърка <span>▾</span></summary>
+     <div class="alert danger">
+      <ul class="golden-rules">
+       <li><strong>Head unit-ът се рестартира в цикъл</strong> (лого, черен екран, лого…): не предприемай нищо в паника. Отвори issue #63 в idrive-apps — възстановяването там е през root SSH, който се отваря само за ~5 секунди на цикъл. Mac-ът с ключа остава свързан през ENET. Пиши веднага.</li>
+       <li><strong>„No route to host“:</strong> изключи Wi-Fi на Mac-а, провери кабела, колата да е будна.</li>
+       <li><strong>„Permission denied (publickey)“:</strong> не пускай втори флаш. Направи снимка.</li>
+       <li><strong>Store: „nothing was installed“:</strong> няма промяна в колата. Снимка на целия изход.</li>
+       <li><strong>Waze on cluster „Not supported“:</strong> спри и питай автора (issue #99).</li>
+       <li><strong>B7F8E5 не се трие:</strong> направи Persist (стъпка 5), после изтрий грешката.</li>
+       <li><strong>Нужни са ти кодираните стойности отново:</strong> виж стъпка 9 (връщане на кодирането).</li>
+      </ul>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Какво не е потвърдено <span>▾</span></summary>
+     <div class="alert warn">
+      <ul class="golden-rules">
+       <li>Авторът на idrive-apps не е потвърдил точно версия 11/2021.61 на софтуера (issue #99 без видим отговор). По други issue-та 21-07 е работила, но тази версия не е тествана от никого познат.</li>
+       <li>Точният текст на изхода на командите <code>persist</code>, <code>close</code>, на Waze on cluster и на BimmerCode Restore — дадени са само признаци за успех, не точен текст.</li>
+       <li>Дали <code>persist</code> и <code>close</code> влияят на Store-а и на Waze.</li>
+       <li>Точните имена на пунктове в менюто на BimmerCode за твоята версия на приложението.</li>
+       <li>Дали гаранцията или дилърът ще имат проблем със софтуера.</li>
+       <li>Дали бъдеща актуализация на iStep ще презапише промените (един потребител във форум пише, че новият софтуер изтрива кодирането).</li>
+      </ul>
+     </div>
+    </details>
+
+    <details class="ref-box">
+     <summary>Поверителност на облачния синх <span>▾</span></summary>
+     <div class="alert warn">
+      Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
+     </div>
+    </details>
+   </div>
+
+   <div class="panel">
+    <div class="section-title">УПРАВЛЕНИЕ НА АВТОМОБИЛА</div>
+    <div class="btn-row">
+     <button class="btn secondary" id="renameCarButton" type="button">Преименувай</button>
+     <button class="btn secondary" id="resetStepsButton" type="button">Нулирай MGU стъпки</button>
+    </div>
+    <div class="btn-row">
+     <button class="btn danger" id="deleteCarButton" type="button">Изтрий автомобила</button>
+    </div>
+   </div>
+
+   <section class="panel rules">
+    <div class="section-title">ДАННИ И РЕЗЕРВНИ КОПИЯ</div>
+    <div class="backup-info">Данните се записват на устройството. При активен Cloud профил модулът за синхронизация обработва промените автоматично. Препоръчително е периодично да експортираш архив.</div>
+    <div class="btn-row">
+     <button class="btn secondary" id="exportLocalButton" type="button">Експорт на архив</button>
+     <button class="btn secondary" id="importLocalButton" type="button">Импорт на архив</button>
+     <input id="localImportFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div id="localMessage" class="form-msg"></div>
+   </section>
+  </section>
+ </main>
+
+ <div class="footer">M-GARAGE PRO 4.0 · YOUR VEHICLE. YOUR DATA.</div>
+</div>
+
+<!-- Плаващ бутон за бързо добавяне -->
+<button class="fab" id="fabAdd" type="button">＋ Добави</button>
+
+<!-- Bottom Sheet модален панел за форми -->
+<div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
+ <div class="sheet">
+  <div class="sheet-head">
+   <div class="sheet-title" id="sheetTitle">Нов запис</div>
+   <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
+  </div>
+
+  <!-- Форма: Нов автомобил -->
+  <div class="sheet-form hidden" id="form-car">
+   <div class="form-grid">
+    <div class="field full"><label>VIN НОМЕР – 17 СИМВОЛА</label><input id="newVin" maxlength="17" placeholder="Например: WBA..."></div>
+    <div class="field"><label>ИМЕ В ГАРАЖА</label><input id="newNick" placeholder="Моят BMW"></div>
+    <div class="field"><label>МАРКА</label><input id="newMake" placeholder="BMW"></div>
+    <div class="field"><label>МОДЕЛ</label><input id="newModel" placeholder="330i"></div>
+    <div class="field"><label>ГОДИНА</label><input id="newYear" type="number" min="1900" max="2100"></div>
+   </div>
+   <div class="btn-row">
+    <button class="btn" id="addCarButton" type="button">Запази автомобила</button>
+   </div>
+   <div id="addCarMessage" class="form-msg"></div>
+  </div>
+
+  <!-- Форма: Сервиз -->
+  <div class="sheet-form hidden" id="form-service">
+   <div class="form-grid">
+    <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
+    <div class="field"><label>ПРОБЕГ (KM)</label><input id="sMileage" type="number" min="0"></div>
+    <div class="field full"><label>СЕРВИЗ / ДЕЙНОСТ</label><input id="sTitle" placeholder="Масло и филтри"></div>
+    <div class="field full"><label>ИЗВЪРШИТЕЛ / СЕРВИЗ</label><input id="sProvider"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="sCost" type="number" min="0" step="0.01"></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="sNotes"></div>
+   </div>
+   <div class="service-plan">
+    <div class="service-plan-title">АВТОМАТИЧНО СЛЕДВАЩО ОБСЛУЖВАНЕ</div>
+    <div class="muted">Интервал в километри, месеци или и двете.</div>
+    <div class="form-grid" style="margin-top:10px">
+     <div class="field"><label>СЛЕД КОЛКО KM?</label><input id="sIntervalKm" type="number" min="1" placeholder="Например 10000"></div>
+     <div class="field"><label>СЛЕД КОЛКО МЕСЕЦА?</label><input id="sIntervalMonths" type="number" min="1" max="120" placeholder="Например 12"></div>
+     <div class="field full"><label>ИМЕ НА СЛЕДВАЩОТО ОБСЛУЖВАНЕ</label><input id="sNextTitle" placeholder="Следваща смяна на масло"></div>
+    </div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addServiceButton" type="button">Запази сервизен запис</button></div>
+  </div>
+
+  <!-- Форма: Напомняне -->
+  <div class="sheet-form hidden" id="form-reminders">
+   <div class="form-grid">
+    <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><select id="rCategory"><option>Масло</option><option>Филтри</option><option>Спирачки</option><option>Гуми</option><option>Технически преглед</option><option>Застраховка</option><option>Друго</option></select></div>
+    <div class="field"><label>КРАЕН СРОК</label><input id="rDate" type="date"></div>
+    <div class="field"><label>ПРОБЕГ ЗА СЕРВИЗ (KM)</label><input id="rMileage" type="number" min="0"></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="rNotes"></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addReminderButton" type="button">Запази напомняне</button></div>
+  </div>
+
+  <!-- Форма: Модификация -->
+  <div class="sheet-form hidden" id="form-mods">
+   <div class="form-grid">
+    <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><input id="mCategory" placeholder="Двигател"></div>
+    <div class="field"><label>АРТИКУЛ / НОМЕР</label><input id="mPartNumber"></div>
+    <div class="field"><label>ДАТА</label><input id="mDate" type="date"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="mCost" type="number" min="0" step="0.01"></div>
+    <div class="field full"><label>ОПИСАНИЕ</label><textarea id="mDescription"></textarea></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addModificationButton" type="button">Запази модификация</button></div>
+  </div>
+
+  <!-- Форма: Разход -->
+  <div class="sheet-form hidden" id="form-expenses">
+   <div class="form-grid">
+    <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
+    <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
+    <div class="field"><label>СТОЙНОСТ (€)</label><input id="eCost" type="number" min="0" step="0.01"></div>
+    <div class="field"><label>КАТЕГОРИЯ</label><select id="eCategory"><option>Гориво</option><option>Сервиз</option><option>Части</option><option>Застраховка</option><option>Данък</option><option>Гуми</option><option>Други</option></select></div>
+    <div class="field"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addExpenseButton" type="button">Запази разход</button></div>
+  </div>
+
+  <!-- Форма: Документ -->
+  <div class="sheet-form hidden" id="form-documents">
+   <div class="form-grid">
+    <div class="field full"><label>ИМЕ НА ДОКУМЕНТА</label><input id="dTitle" placeholder="Фактура / сервизен протокол"></div>
+    <div class="field"><label>ТИП</label><select id="dType"><option>Фактура</option><option>Сервизен документ</option><option>Застраховка</option><option>Технически преглед</option><option>Снимка</option><option>Друг</option></select></div>
+    <div class="field"><label>ДАТА</label><input id="dDate" type="date"></div>
+    <div class="field full"><label>ЛИНК КЪМ ФАЙЛ (ПО ЖЕЛАНИЕ)</label><input id="dUrl" type="url" placeholder="https://..."></div>
+    <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="dNotes"></textarea></div>
+   </div>
+   <div class="btn-row"><button class="btn" id="addDocumentButton" type="button">Запази документ</button></div>
+  </div>
+ </div>
+</div>
+
+<!-- Долна навигация на приложението -->
+<nav class="bottom-nav" id="bottomNav" aria-label="Навигация на приложението">
+ <div class="bottom-nav-inner">
+  <button class="nav-btn active" data-screen="garage" type="button">
+   <span class="nav-icon">🚘</span>
+   <span>Гараж</span>
+  </button>
+  <button class="nav-btn" data-screen="service" type="button">
+   <span class="nav-icon">🛠️</span>
+   <span>Сервиз</span>
+  </button>
+  <button class="nav-btn" data-screen="mgu" type="button">
+   <span class="nav-icon">💻</span>
+   <span>MGU</span>
+  </button>
+  <button class="nav-btn" data-screen="more" type="button">
+   <span class="nav-icon">⚙️</span>
+   <span>Още</span>
+  </button>
+ </div>
+</nav>
+
+<script>
+"use strict";
+
+const STORAGE_KEY="mgu_cars";
+const ACTIVE_KEY="mgu_active";
+const THEME_KEY="mgu_theme";
+const DATA_VERSION=4;
+
+const STEPS=[
+{id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
+{id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
+{id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
+{id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
+{id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
+{id:"store_key",title:"6. SSH ключ за Store инсталацията",description:"Копирай ключа на стандартно място, за да го ползва инсталаторът на mgu-store.",explanation:"Wi-Fi на Mac-а ВКЛЮЧЕН (трябва интернет). ENET свързан. Колата на зарядно.",warning:"При „No such file or directory“ — не си в папката на инструмента (cd отново) или VIN-папката е друга (ls data/enrollments).",command:"mkdir -p ~/.ssh && cp data/enrollments/{VIN}/id_rsa.pkcs1.pem ~/.ssh/mgu_root_key && chmod 600 ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ: няма изход. Проверка по желание: „ls -l ~/.ssh/mgu_root_key“ → ред, започващ с -rw------- и завършващ на mgu_root_key."},
+{id:"store",title:"7. Инсталирай mgu-store",description:"Пуска официалния инсталатор на mgu-store (от README на проекта) и рестартира head unit-а.",explanation:"Ако не намери устройството, добави в края „--host 169.254.83.114 --port 22“ (адресът на твоята кола, провери със status). На въпроса „Restart the head unit now? [y/N]“ отговори y. Може да мълчи 5+ минути — не прекъсвай.",warning:"Ако видиш „nothing was installed“ / „ended with status 2“ — НИЩО не е променено в колата, направи снимка на целия изход и не повтаряй сляпо.",command:"curl -fsSL https://raw.githubusercontent.com/robertnisipeanu/mgu-store/main/deploy/install.sh | sh -s -- first-install --identity ~/.ssh/mgu_root_key",expected:"ОЧАКВАН РЕЗУЛТАТ [ДРУГИ, може да е различно]: „app-privacy … installed“, „installing app robertn_store …“, след рестарт — плочка на Store сред приложенията на iDrive."},
+{id:"waze",title:"8. Waze on cluster",description:"Добави източника idrive-apps в Store-а, инсталирай „Waze on cluster“ и провери на таблото.",explanation:"В Store-а на iDrive добави GitHub източник robertnisipeanu/idrive-apps, инсталирай „Waze on cluster“, рестартирай при нужда. В колата: Instrument cluster → Central display area → Map view. Отвори приложението и провери статуса: ако е наред — включи картата (Enable map / Patch) и рестартирай. Тествай с iPhone по CarPlay (Waze или Google Maps) и провери стабилността след рестарт на колата и на CarPlay връзката.",warning:"Ако статусът пише „Not supported on this car“ или грешка за билда — СПРИ. Не форсирай нищо, не пипай /usr/bin/carplay. Пиши на автора (issue #99 в idrive-apps).",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: таблото показва област за карта; при свързан CarPlay картата (маршрут/стрелки) се вижда на инструменталния клъстер и се връща сама след рестарт."},
+{id:"recode",title:"9. Връщане на кодирането (BimmerCode)",description:"Нов backup на текущото състояние, после Restore на ОРИГИНАЛНОТО кодиране от самото начало, после ръчно въвеждане на промените отново.",explanation:"BimmerCode → Headunit → Backup files → Export (нов файл с днешна дата). После Connect → Headunit → иконата за възстановяване → RECOVERY → избери файла от ПЪРВОТО четене (оригиналното кодиране, не текущия бекъп). След Restore въведи наново промените, напр. Sport+ в Headunit (HU_MGU → Expert mode → 3008 FES: FES_SPORT_EXPERT → aktiv, SPORT_CONF_ATTENUATION_SPORTPLUS → aktiv, SPORT_CONF_STEERING_SPORTPLUS → aktiv). Провери BDC отделно (3221 PfFesMaster → FesSportWorldMode1 → SportExpert) — най-вероятно не е засегнат от флаша, но провери.",warning:"Не приемай процедурата за приключена, докато оригиналното кодиране не е възстановено и всички функции не са проверени: радио, Bluetooth, камери, навигация, Sport+, Waze на таблото.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ [по форуми]: съобщение за успех в BimmerCode; след рестарт в iDrive до Sport и Sport Individual се появява PLUS."},
+{id:"after",title:"10. След това — следващите дни",description:"Няколко дни нормално каране, следи за рестарти на екрана, изчезваща карта и странности след изгасяне.",explanation:"Остави постоянния root вход поне първите дни — това е пътят за възстановяване при проблем. По-късно, по желание, може да се затвори. Пази папката data/enrollments/VIN/ и BimmerCode бекъпите на две места за постоянно.",warning:"Рискът от оставен root вход е нисък (достъпът е само през ENET/OBD), но ключът вероятно е общ за инструмента.",command:"python3 ssh_enable.py close",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка. Не е потвърдено дали затварянето пречи на обновяванията на Store-а."},
+];
+
+let cars=[];
+let activeVin="";
+let currentScreen="garage";
+let currentSeg="service";
+const $=id=>document.getElementById(id);
+
+function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
+function safeNumber(value){const n=Number(value);return Number.isFinite(n)&&n>0?n:0}
+function makeId(){return crypto.randomUUID?crypto.randomUUID():"id-"+Date.now()+"-"+Math.random().toString(16).slice(2)}
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function addMonths(dateString,months){
+ if(!dateString||!months)return"";
+ const d=new Date(dateString+"T12:00:00");
+ if(Number.isNaN(d.getTime()))return"";
+ const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+months);
+ const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+ d.setDate(Math.min(day,last));
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function safeHttpUrl(value){
+ const raw=safeText(value,2000);if(!raw)return"";
+ try{const url=new URL(raw);if(url.protocol!=="http:"&&url.protocol!=="https:")return"";return url.href}
+ catch(error){return""}
+}
+function cleanRecord(record,type){
+ const r=record&&typeof record==="object"?record:{};
+ const result={
+  id:safeText(r.id,100)||makeId(),date:safeText(r.date,40),
+  title:safeText(r.title,150),description:safeText(r.description,2000),
+  mileage:safeNumber(r.mileage),cost:safeNumber(r.cost),currency:"EUR",
+  provider:safeText(r.provider,150),notes:safeText(r.notes,2000)
+ };
+ if(type==="expense")result.category=safeText(r.category,100);
+ if(type==="reminder"){
+  result.dueDate=safeText(r.dueDate,40);result.dueMileage=safeNumber(r.dueMileage);
+  result.completed=r.completed===true;result.category=safeText(r.category,80);
+ }
+ if(type==="modification"){result.category=safeText(r.category,100);result.partNumber=safeText(r.partNumber,100)}
+ if(type==="document"){
+  result.fileName=safeText(r.fileName,200);result.fileUrl=safeHttpUrl(r.fileUrl);
+  result.documentType=safeText(r.documentType,100);
+ }
+ return result;
+}
+function cleanCar(item){
+ if(!item||typeof item!=="object")return null;
+ const vin=safeText(item.vin,17).toUpperCase();
+ if(!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin))return null;
+ const details=item.details&&typeof item.details==="object"?item.details:{};
+ const done={};STEPS.forEach(step=>{if(item.done?.[step.id]===true)done[step.id]=true});
+ return{
+  vin,nick:safeText(item.nick||"BMW",30)||"BMW",done,
+  details:{
+   make:safeText(details.make,60),model:safeText(details.model,80),
+   year:safeNumber(details.year),engine:safeText(details.engine,100),
+   transmission:safeText(details.transmission,100),mileage:safeNumber(details.mileage),
+   fuel:safeText(details.fuel,40),color:safeText(details.color,60),
+   registration:safeText(details.registration,40),notes:safeText(details.notes,4000)
+  },
+  serviceRecords:Array.isArray(item.serviceRecords)?item.serviceRecords.slice(0,500).map(r=>cleanRecord(r,"service")):[],
+  modifications:Array.isArray(item.modifications)?item.modifications.slice(0,500).map(r=>cleanRecord(r,"modification")):[],
+  expenses:Array.isArray(item.expenses)?item.expenses.slice(0,1000).map(r=>cleanRecord(r,"expense")):[],
+  reminders:Array.isArray(item.reminders)?item.reminders.slice(0,500).map(r=>cleanRecord(r,"reminder")):[],
+  documents:Array.isArray(item.documents)?item.documents.slice(0,500).map(r=>cleanRecord(r,"document")):[]
+ };
+}
+function loadCars(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+  const seen=new Set();
+  cars=(Array.isArray(raw)?raw:[]).map(cleanCar).filter(car=>{
+   if(!car||seen.has(car.vin))return false;seen.add(car.vin);return true;
+  });
+  activeVin=localStorage.getItem(ACTIVE_KEY)||"";
+  if(!cars.some(c=>c.vin===activeVin))activeVin=cars[0]?.vin||"";
+ }catch(error){console.error("Load garage:",error);cars=[];activeVin=""}
+}
+function save(){
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(cars.map(cleanCar).filter(Boolean)));
+ localStorage.setItem(ACTIVE_KEY,activeVin);
+}
+function activeCar(){return cars.find(car=>car.vin===activeVin)||null}
+function setTheme(theme){
+ const value=theme==="light"?"light":"dark";
+ document.documentElement.dataset.theme=value;
+ localStorage.setItem(THEME_KEY,value);
+ const meta=document.querySelector('meta[name="theme-color"]');
+ if(meta)meta.content=value==="dark"?"#080c12":"#eef3f8";
+}
+function formatMoney(value){return safeNumber(value).toLocaleString("bg-BG",{minimumFractionDigits:0,maximumFractionDigits:2})+" €"}
+function formatDate(value){
+ if(!value)return"Без дата";
+ const raw=String(value),datePart=raw.slice(0,10),parts=datePart.split("-");
+ if(parts.length===3&&parts.every(p=>/^\d+$/.test(p)))return parts[2]+"."+parts[1]+"."+parts[0];
+ const d=new Date(raw);return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
+}
+function message(id,text){if($(id))$(id).textContent=text}
+
+function updateFab(){
+ const fab=$("fabAdd");
+ if(!fab)return;
+ const hasCar=cars.length>0;
+ if(!hasCar||currentScreen==="mgu"||currentScreen==="more"){
+  fab.classList.add("hidden");
+  return;
+ }
+ fab.classList.remove("hidden");
+ const labels={
+  service:"＋ Сервиз",
+  reminders:"＋ Напомняне",
+  mods:"＋ Модификация",
+  expenses:"＋ Разход",
+  documents:"＋ Документ"
+ };
+ fab.textContent=currentScreen==="garage"?"＋ Сервиз":(labels[currentSeg]||"＋ Добави");
+}
+
+function showScreen(name){
+ currentScreen=name;
+ document.querySelectorAll(".nav-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.screen===name));
+ document.querySelectorAll(".screen").forEach(sec=>sec.classList.toggle("active",sec.id==="screen-"+name));
+ updateFab();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showSeg(seg){
+ currentSeg=seg;
+ document.querySelectorAll(".seg-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.seg===seg));
+ document.querySelectorAll(".seg-view").forEach(view=>view.classList.toggle("active",view.id==="seg-"+seg));
+ updateFab();
+}
+
+function openSheet(formKey,title){
+ const backdrop=$("sheetBackdrop");
+ document.querySelectorAll(".sheet-form").forEach(f=>f.classList.add("hidden"));
+ const target=$("form-"+formKey);
+ if(target)target.classList.remove("hidden");
+ $("sheetTitle").textContent=title;
+ if(formKey==="service"&&!$("sDate").value)$("sDate").value=today();
+ if(formKey==="mods"&&!$("mDate").value)$("mDate").value=today();
+ if(formKey==="expenses"&&!$("eDate").value)$("eDate").value=today();
+ if(formKey==="documents"&&!$("dDate").value)$("dDate").value=today();
+ backdrop.classList.remove("hidden");
+}
+
+function closeSheet(){
+ $("sheetBackdrop").classList.add("hidden");
+}
+
+function renderGarage(){
+ const bar=$("garageBar");
+ bar.replaceChildren();
+ $("garageEmpty").classList.toggle("hidden",cars.length>0);
+ $("mainContent").classList.toggle("hidden",cars.length===0);
+
+ cars.forEach(car=>{
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="garage-chip"+(car.vin===activeVin?" active":"");
+  button.textContent=car.nick||car.details.model||car.vin;
+  button.addEventListener("click",()=>{activeVin=car.vin;save();renderAll()});
+  bar.append(button);
+ });
+
+ const addBtn=document.createElement("button");
+ addBtn.type="button";
+ addBtn.className="add-car-chip";
+ addBtn.textContent="＋ Нов";
+ addBtn.addEventListener("click",()=>openSheet("car","Нов автомобил"));
+ bar.append(addBtn);
+ updateFab();
+}
+
+function reminderState(r,car){
+ const now=today(),dateDue=!!(r.dueDate&&r.dueDate<=now);
+ const kmDue=!!(r.dueMileage&&car.details.mileage>=r.dueMileage);
+ const daysLeft=r.dueDate?Math.ceil((new Date(r.dueDate+"T12:00:00")-new Date(now+"T12:00:00"))/86400000):null;
+ const kmLeft=r.dueMileage?Math.max(0,r.dueMileage-safeNumber(car.details.mileage)):null;
+ const overdue=dateDue||kmDue,soon=!overdue&&((daysLeft!==null&&daysLeft<=30)||(kmLeft!==null&&kmLeft<=1000));
+ return{overdue,soon,daysLeft,kmLeft};
+}
+
+function getFinancialTotals(car){
+ const services=car.serviceRecords.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ const modifications=car.modifications.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ const expenses=car.expenses.reduce((sum,r)=>sum+safeNumber(r.cost),0);
+ return{services,modifications,expenses,total:services+modifications+expenses};
+}
+
+function renderFinance(car){
+ const totals=getFinancialTotals(car),container=$("financeSummary");
+ $("statExpenses").textContent=formatMoney(totals.total);
+ const categories=[
+  {label:"Сервизни дейности",value:totals.services},
+  {label:"Модификации",value:totals.modifications},
+  {label:"Други разходи",value:totals.expenses}
+ ];
+ container.replaceChildren();
+ const total=document.createElement("div");total.className="finance-total";total.textContent=formatMoney(totals.total);container.append(total);
+ const caption=document.createElement("div");caption.className="finance-caption";caption.textContent="Общо отчетени разходи за автомобила";container.append(caption);
+ const list=document.createElement("div");list.className="finance-list";list.style.marginTop="14px";
+ categories.forEach(item=>{
+  const row=document.createElement("div");row.className="finance-row";
+  const label=document.createElement("div");label.className="finance-label";label.textContent=item.label;
+  const value=document.createElement("div");value.className="finance-value";value.textContent=formatMoney(item.value);
+  const track=document.createElement("div");track.className="finance-track";
+  const fill=document.createElement("div");fill.className="finance-fill";
+  fill.style.width=totals.total?Math.min(100,item.value/totals.total*100)+"%":"0%";
+  track.append(fill);row.append(label,value,track);list.append(row);
+ });
+ container.append(list);
+}
+
+function renderOverview(car){
+ $("vehicleName").textContent=car.nick||"BMW";
+ $("vehicleVin").textContent="VIN: "+car.vin;
+ $("statMileage").textContent=(car.details.mileage||0).toLocaleString("bg-BG")+" km";
+ $("statServices").textContent=car.serviceRecords.length;
+ renderFinance(car);
+ $("statReminders").textContent=car.reminders.filter(r=>!r.completed).length;
+
+ const d=car.details;
+ $("overviewDetails").textContent=[
+  [d.make,d.model].filter(Boolean).join(" "),d.year||"",
+  d.engine?"Двигател: "+d.engine:"",d.transmission?"Кутия: "+d.transmission:"",
+  d.fuel?"Гориво: "+d.fuel:"",d.color?"Цвят: "+d.color:"",
+  d.registration?"Рег.: "+d.registration:""
+ ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
+
+ const active=car.reminders.filter(r=>!r.completed);
+ const overdue=active.filter(r=>reminderState(r,car).overdue);
+ const soon=active.filter(r=>reminderState(r,car).soon);
+ const alerts=[];
+ if(overdue.length)alerts.push('<div class="alert danger">⚠ Имаш '+overdue.length+' просрочено/и напомняне/ия. Провери списъка и планирай обслужването.</div>');
+ if(soon.length)alerts.push('<div class="alert warn">Предстоят '+soon.length+' обслужване/ия в следващите 30 дни или 1000 km.</div>');
+ if(!overdue.length&&!soon.length)alerts.push('<div class="alert good">Няма установени просрочени или наближаващи напомняния.</div>');
+ $("overviewAlerts").innerHTML=alerts.join("");
+
+ const upcoming=$("upcomingServices");
+ const sorted=[...active].sort((a,b)=>{
+  const sa=reminderState(a,car),sb=reminderState(b,car);
+  return Number(sb.overdue)-Number(sa.overdue)||String(a.dueDate||"9999").localeCompare(String(b.dueDate||"9999"));
+ }).slice(0,5);
+
+ if(!sorted.length){upcoming.innerHTML='<div class="empty">Няма планирани обслужвания. Добави от „Сервиз“ или „Напомняния“.</div>';return}
+ upcoming.replaceChildren();
+ sorted.forEach(r=>{
+  const state=reminderState(r,car),item=document.createElement("div");item.className="due-item";
+  const left=document.createElement("div");
+  const name=document.createElement("div");name.className="due-name";name.textContent=r.title||"Напомняне";
+  const meta=document.createElement("div");meta.className="due-meta";
+  const details=[];if(r.dueDate)details.push("Срок: "+formatDate(r.dueDate));
+  if(r.dueMileage)details.push("Пробег: "+r.dueMileage.toLocaleString("bg-BG")+" km");
+  if(r.category)details.push(r.category);
+  meta.textContent=details.join(" · ")||"Без зададен срок";left.append(name,meta);
+  const tag=document.createElement("div");tag.className="due-tag "+(state.overdue?"danger":state.soon?"warn":"good");
+  tag.textContent=state.overdue?"ПРОСРОЧЕНО":state.soon?"НАБЛИЖАВА":"ПЛАНИРАНО";
+  item.append(left,tag);upcoming.append(item);
+ });
+}
+
+function renderProfile(car){
+ const d=car.details;
+ $("pMake").value=d.make;$("pModel").value=d.model;$("pYear").value=d.year||"";
+ $("pEngine").value=d.engine;$("pTransmission").value=d.transmission;
+ $("pMileage").value=d.mileage||"";$("pFuel").value=d.fuel;
+ $("pColor").value=d.color;$("pRegistration").value=d.registration;$("pNotes").value=d.notes;
+}
+
+async function copyCommand(command,button){
+ const original=button.textContent;
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(command);
+  else{
+   const temp=document.createElement("textarea");temp.value=command;
+   temp.style.position="fixed";temp.style.opacity="0";document.body.append(temp);
+   temp.focus();temp.select();const ok=document.execCommand("copy");temp.remove();
+   if(!ok)throw new Error("Copy failed");
+  }
+  button.textContent="✓ Копирано";
+ }catch(error){button.textContent="Неуспешно копиране"}
+ setTimeout(()=>button.textContent=original,1800);
+}
+
+function renderSteps(car){
+ const done=STEPS.filter(s=>car.done[s.id]).length,percent=Math.round(done/STEPS.length*100);
+ $("stepsProgress").style.width=percent+"%";
+ $("stepsProgressText").textContent=done+" от "+STEPS.length+" изпълнени · "+percent+"%";
+ const container=$("stepsList");container.replaceChildren();
+ STEPS.forEach(step=>{
+  const card=document.createElement("article");card.className="step-card";
+  const header=document.createElement("div");header.className="step-header";
+  const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.className="step-check";
+  checkbox.checked=car.done[step.id]===true;checkbox.setAttribute("aria-label","Отбележи "+step.title);
+  checkbox.addEventListener("change",()=>{
+   if(checkbox.checked)car.done[step.id]=true;else delete car.done[step.id];
+   save();renderSteps(car);renderOverview(car);
+  });
+  const titleWrap=document.createElement("div");titleWrap.className="step-title-wrap";
+  const title=document.createElement("div");title.className="step-title";title.textContent=step.title;
+  const description=document.createElement("div");description.className="step-description";description.textContent=step.description;
+  const status=document.createElement("div");status.className="step-status";status.textContent=car.done[step.id]?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
+  titleWrap.append(title,description,status);header.append(checkbox,titleWrap);
+
+  const details=document.createElement("div");details.className="step-details";
+  const explanation=document.createElement("p");explanation.textContent=step.explanation;details.append(explanation);
+  if(step.warning){const warning=document.createElement("div");warning.className="step-warning";warning.textContent="⚠ ВНИМАНИЕ: "+step.warning;details.append(warning)}
+  if(step.command){
+   const resolvedCommand=step.command.replace(/\{VIN\}/g,car.vin||"{VIN}");
+   const label=document.createElement("div");label.className="command-label";label.textContent="КОМАНДА ЗА TERMINAL";
+   const command=document.createElement("pre");command.className="command-box";command.textContent=resolvedCommand;
+   const copy=document.createElement("button");copy.type="button";copy.className="btn small copy-command";copy.textContent="Копирай командата";
+   copy.addEventListener("click",()=>copyCommand(resolvedCommand,copy));details.append(label,command,copy);
+  }else{
+   const note=document.createElement("div");note.className="step-note";
+   note.textContent="За тази стъпка няма Terminal команда — следвай инструкциите в полето по-горе.";
+   details.append(note);
+  }
+  if(step.expected){
+   const expectedLabel=document.createElement("div");expectedLabel.className="command-label";expectedLabel.textContent="ОЧАКВАН РЕЗУЛТАТ";
+   const expected=document.createElement("div");expected.className="step-expected";expected.textContent=step.expected;
+   details.append(expectedLabel,expected);
+  }
+  card.append(header,details);container.append(card);
+ });
+}
+
+function renderRecords(containerId,records,type,car){
+ const container=$(containerId);container.replaceChildren();
+ if(!records.length){container.innerHTML='<div class="empty">Няма добавени записи. Натисни бутона „＋“ за нов запис.</div>';return}
+ [...records].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).forEach(record=>{
+  const card=document.createElement("article");card.className="record";
+  const heading=document.createElement("div");heading.className="record-top";
+  const title=document.createElement("div");title.className="record-title";title.textContent=record.title||"Запис";
+  const cost=document.createElement("strong");cost.textContent=record.cost?formatMoney(record.cost):"";
+  heading.append(title,cost);
+  const date=document.createElement("div");date.className="record-date";date.textContent=formatDate(record.date);
+  const meta=document.createElement("div");meta.className="record-meta";
+  const lines=[];
+  if(record.category)lines.push("Категория: "+record.category);
+  if(record.mileage)lines.push("Пробег: "+record.mileage.toLocaleString("bg-BG")+" km");
+  if(record.provider)lines.push("Извършител: "+record.provider);
+  if(record.partNumber)lines.push("Артикул: "+record.partNumber);
+  if(record.documentType)lines.push("Тип: "+record.documentType);
+  if(record.dueDate)lines.push("Срок: "+formatDate(record.dueDate));
+  if(record.dueMileage)lines.push("Пробег за обслужване: "+record.dueMileage.toLocaleString("bg-BG")+" km");
+  if(record.description)lines.push(record.description);
+  if(record.notes)lines.push(record.notes);
+  meta.textContent=lines.join("\n");card.append(heading,date,meta);
+
+  if(type==="reminder"){
+   const state=reminderState(record,car),status=document.createElement("div");status.className="record-date";
+   status.textContent=record.completed?"✓ Изпълнено":state.overdue?"⚠ Просрочено":state.soon?"Предстои скоро":"Активно напомняне";
+   card.append(status);
+   if(!record.completed){
+    const complete=document.createElement("button");complete.className="btn good small";
+    complete.style.marginTop="10px";complete.style.width="100%";
+    complete.textContent="Отбележи като изпълнено";
+    complete.addEventListener("click",()=>{record.completed=true;save();renderAll()});card.append(complete);
+   }
+  }else if(type==="document"&&record.fileUrl){
+   const safeUrl=safeHttpUrl(record.fileUrl);
+   if(safeUrl){
+    const link=document.createElement("a");link.href=safeUrl;link.target="_blank";
+    link.rel="noopener noreferrer";link.textContent="Отвори документа";
+    link.style.display="inline-block";link.style.marginTop="10px";card.append(link);
+   }else{
+    const warning=document.createElement("div");warning.className="record-date";
+    warning.textContent="Линкът не е валиден или не е разрешен.";card.append(warning);
+   }
+  }
+
+  const actions=document.createElement("div");actions.className="record-actions";
+  const del=document.createElement("button");del.className="btn danger small";del.textContent="Изтрий записа";
+  del.addEventListener("click",()=>{
+   if(!confirm("Да изтрия ли този запис?"))return;
+   const index=records.findIndex(r=>r.id===record.id);if(index>=0)records.splice(index,1);
+   save();renderAll();
+  });
+  actions.append(del);card.append(actions);container.append(card);
+ });
+}
+
+function renderAll(){
+ renderGarage();
+ const car=activeCar();if(!car)return;
+ renderOverview(car);renderProfile(car);renderSteps(car);
+ renderRecords("serviceList",car.serviceRecords,"service",car);
+ renderRecords("reminderList",car.reminders,"reminder",car);
+ renderRecords("modificationList",car.modifications,"modification",car);
+ renderRecords("expenseList",car.expenses,"expense",car);
+ renderRecords("documentList",car.documents,"document",car);
+}
+
+function addCar(){
+ const vin=$("newVin").value.trim().toUpperCase();
+ if(!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)){message("addCarMessage","VIN трябва да съдържа точно 17 валидни символа.");return}
+ if(cars.some(c=>c.vin===vin)){message("addCarMessage","Автомобил с този VIN вече съществува.");return}
+ const car=cleanCar({vin,nick:$("newNick").value||$("newModel").value||"BMW",done:{},details:{make:$("newMake").value,model:$("newModel").value,year:$("newYear").value}});
+ cars.push(car);activeVin=vin;save();closeSheet();
+ ["newVin","newNick","newMake","newModel","newYear"].forEach(id=>$(id).value="");
+ message("addCarMessage","");renderAll();
+}
+
+function saveProfile(){
+ const car=activeCar();if(!car)return;
+ car.details={
+  make:safeText($("pMake").value,60),model:safeText($("pModel").value,80),
+  year:safeNumber($("pYear").value),engine:safeText($("pEngine").value,100),
+  transmission:safeText($("pTransmission").value,100),mileage:safeNumber($("pMileage").value),
+  fuel:safeText($("pFuel").value,40),color:safeText($("pColor").value,60),
+  registration:safeText($("pRegistration").value,40),notes:safeText($("pNotes").value,4000)
+ };
+ save();renderAll();message("profileMessage","Профилът е запазен.");
+}
+
+function addRecord(type,record){
+ const car=activeCar();if(!car)return;
+ const key={service:"serviceRecords",reminder:"reminders",modification:"modifications",expense:"expenses",document:"documents"}[type];
+ car[key].push(cleanRecord(record,type));save();renderAll();
+}
+function getVal(id){return $(id).value.trim()}
+
+function addService(){
+ const car=activeCar();if(!car)return;
+ if(!getVal("sTitle"))return alert("Въведи описание на сервизната дейност.");
+ const date=getVal("sDate")||today(),mileage=safeNumber(getVal("sMileage"));
+ const intervalKm=safeNumber(getVal("sIntervalKm")),intervalMonths=safeNumber(getVal("sIntervalMonths"));
+ const serviceTitle=getVal("sTitle"),serviceId=makeId();
+ car.serviceRecords.push(cleanRecord({
+  id:serviceId,date,title:serviceTitle,mileage,provider:getVal("sProvider"),
+  cost:getVal("sCost"),notes:getVal("sNotes")
+ },"service"));
+ if(intervalKm||intervalMonths){
+  if(intervalKm&&!mileage&&!safeNumber(car.details.mileage)){
+   alert("За да изчислим следващия пробег, въведи текущия пробег в сервизния запис или в профила на автомобила.");
+   car.serviceRecords=car.serviceRecords.filter(r=>r.id!==serviceId);save();renderAll();return;
+  }
+  const baseMileage=mileage||safeNumber(car.details.mileage);
+  const dueMileage=intervalKm?baseMileage+intervalKm:0;
+  const dueDate=intervalMonths?addMonths(date,intervalMonths):"";
+  const nextTitle=getVal("sNextTitle")||"Следващо обслужване: "+serviceTitle;
+  car.reminders.push(cleanRecord({
+   id:makeId(),date:today(),title:nextTitle,dueDate,dueMileage,
+   category:"Сервиз",notes:"Автоматично създадено напомняне от сервизен запис: "+serviceTitle,
+   completed:false
+  },"reminder"));
+ }
+ save();renderAll();closeSheet();
+ ["sTitle","sMileage","sProvider","sCost","sNotes","sIntervalKm","sIntervalMonths","sNextTitle"].forEach(id=>$(id).value="");
+ message("localMessage",intervalKm||intervalMonths?"Сервизният запис и следващото напомняне са запазени.":"Сервизният запис е запазен.");
+}
+
+function addReminder(){
+ if(!getVal("rTitle"))return alert("Въведи име на напомнянето.");
+ addRecord("reminder",{title:getVal("rTitle"),date:today(),dueDate:getVal("rDate"),dueMileage:getVal("rMileage"),category:getVal("rCategory"),notes:getVal("rNotes"),completed:false});
+ ["rTitle","rDate","rMileage","rNotes"].forEach(id=>$(id).value="");
+ closeSheet();
+}
+
+function addModification(){
+ if(!getVal("mTitle"))return alert("Въведи име на модификацията.");
+ addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
+ ["mTitle","mDate","mCategory","mPartNumber","mCost","mDescription"].forEach(id=>$(id).value="");
+ closeSheet();
+}
+
+function addExpense(){
+ if(!getVal("eTitle")||!getVal("eCost"))return alert("Въведи описание и стойност на разхода.");
+ addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),notes:getVal("eNotes")});
+ ["eTitle","eDate","eCost","eNotes"].forEach(id=>$(id).value="");
+ closeSheet();
+}
+
+function addDocument(){
+ if(!getVal("dTitle"))return alert("Въведи име на документа.");
+ const rawUrl=getVal("dUrl"),safeUrl=safeHttpUrl(rawUrl);
+ if(rawUrl&&!safeUrl)return alert("Линкът трябва да бъде валиден адрес, започващ с http:// или https://.");
+ addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:safeUrl,notes:getVal("dNotes")});
+ ["dTitle","dDate","dUrl","dNotes"].forEach(id=>$(id).value="");
+ closeSheet();
+}
+
+function exportBackup(){
+ const data={app:"M-GARAGE PRO",version:DATA_VERSION,archiveType:"full",exportedAt:new Date().toISOString(),cars:cars.map(cleanCar).filter(Boolean),activeVin,theme:localStorage.getItem(THEME_KEY)||"dark"};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="M-GARAGE-PRO-backup-"+today()+".json";
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ message("localMessage","Архивът е експортиран.");
+}
+
+async function importBackup(file){
+ if(!file)return;
+ try{
+  const parsed=JSON.parse(await file.text());
+  if(!parsed||parsed.app!=="M-GARAGE PRO"||!Array.isArray(parsed.cars))throw new Error("Невалиден архив на M-GARAGE PRO.");
+  const imported=parsed.cars.map(cleanCar).filter(Boolean);
+  if(parsed.cars.length&&!imported.length)throw new Error("Не са намерени валидни VIN номера.");
+  if(!confirm("Импортът ще замени локалния гараж. Продължаваме ли?"))return;
+  cars=imported;activeVin=cars.some(c=>c.vin===parsed.activeVin)?parsed.activeVin:(cars[0]?.vin||"");
+  save();if(parsed.theme==="light"||parsed.theme==="dark")setTheme(parsed.theme);
+  renderAll();message("localMessage","Архивът е импортиран. Cloud синхронизацията ще обработи промените.");
+ }catch(error){message("localMessage","Грешка: "+error.message)}
+}
+
+$("quickAddCarBtn").addEventListener("click",()=>openSheet("car","Нов автомобил"));
+$("fabAdd").addEventListener("click",()=>{
+ if(currentScreen==="garage"){
+  showScreen("service");
+  showSeg("service");
+  openSheet("service","Нов сервизен запис");
+  return;
+ }
+ const titles={
+  service:"Нов сервизен запис",
+  reminders:"Ново напомняне",
+  mods:"Нова модификация",
+  expenses:"Нов разход",
+  documents:"Нов документ"
+ };
+ openSheet(currentSeg,titles[currentSeg]||"Нов запис");
+});
+
+$("sheetClose").addEventListener("click",closeSheet);
+$("sheetBackdrop").addEventListener("click",e=>{if(e.target===$("sheetBackdrop"))closeSheet()});
+
+$("bottomNav").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-screen]");
+ if(btn)showScreen(btn.dataset.screen);
+});
+
+$("serviceSegs").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-seg]");
+ if(btn)showSeg(btn.dataset.seg);
+});
+
+$("addCarButton").addEventListener("click",addCar);
+$("saveProfileButton").addEventListener("click",saveProfile);
+$("addServiceButton").addEventListener("click",addService);
+$("addReminderButton").addEventListener("click",addReminder);
+$("addModificationButton").addEventListener("click",addModification);
+$("addExpenseButton").addEventListener("click",addExpense);
+$("addDocumentButton").addEventListener("click",addDocument);
+$("backupButton").addEventListener("click",exportBackup);
+$("exportLocalButton").addEventListener("click",exportBackup);
+$("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
+$("localImportFile").addEventListener("change",e=>importBackup(e.target.files[0]));
+$("themeToggle").addEventListener("click",()=>setTheme((localStorage.getItem(THEME_KEY)||"dark")==="dark"?"light":"dark"));
+
+$("renameCarButton").addEventListener("click",()=>{
+ const car=activeCar();if(!car)return;
+ const name=prompt("Ново име на автомобила:",car.nick);
+ if(name&&name.trim()){car.nick=safeText(name,30);save();renderAll()}
+});
+$("resetStepsButton").addEventListener("click",()=>{
+ const car=activeCar();if(!car)return;
+ if(!confirm("Да нулирам ли MGU стъпките за този автомобил?"))return;
+ car.done={};save();renderAll();
+});
+$("deleteCarButton").addEventListener("click",()=>{
+ const car=activeCar();if(!car)return;
+ if(!confirm("Сигурен ли си, че искаш да изтриеш автомобила и неговите записи?"))return;
+ cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";
+ save();renderAll();
+});
+
+window.renderAll=renderAll;
+window.setTheme=setTheme;
+
+loadCars();
+setTheme(localStorage.getItem(THEME_KEY)||"dark");
+renderAll();
+save();
+</script>
+
+<script type="module" src="./cloud-sync.js"></script>
+</body>
+</html>
