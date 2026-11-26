@@ -3,7 +3,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4.1 (Accordion UI)
+   Version: 2.4.2 (Accordion UI + Widget Sync)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -719,7 +719,7 @@ function refreshDashboard() {
   } else if (currentUser && pending) {
     message = "Чакащи промени";
   } else if (currentUser && last) {
-    message = "Синхронизиран";
+    message = "Синхронизирано";
     color = "var(--good)";
   } else if (currentUser) {
     message = "Очаква синхронизация";
@@ -729,6 +729,7 @@ function refreshDashboard() {
   setIndicator("dashboardCloud", "● " + message, color);
 
   refreshPendingOwnership();
+  window.refreshGarageCloudWidget?.();
 }
 
 function status(message, type = "") {
@@ -749,6 +750,8 @@ function userStatus(message, type = "") {
     element.textContent = message;
     element.className = "form-msg" + (type ? " " + type : "");
   }
+
+  window.refreshGarageCloudWidget?.();
 }
 
 function restoreStatus(message, type = "") {
@@ -1686,6 +1689,7 @@ async function restoreBackup() {
   setBusy(true);
   syncRunning = true;
   lastSyncError = false;
+  window.setCloudSyncStatus?.("syncing");
 
   let uploaded = false;
 
@@ -1700,6 +1704,7 @@ async function restoreBackup() {
       )
     ) {
       restoreStatus("Възстановяването е отказано.");
+      window.setCloudSyncStatus?.("synced", localStorage.getItem(LAST_SYNC_KEY) || new Date().toISOString());
       return;
     }
 
@@ -1757,10 +1762,12 @@ async function restoreBackup() {
 
     saveLocalData(restored);
 
+    const finishedIso = new Date().toISOString();
     localStorage.setItem(RESTORE_KEY, restoreEvent.event_id);
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+    localStorage.setItem(LAST_SYNC_KEY, finishedIso);
 
     window.renderAll?.();
+    window.setCloudSyncStatus?.("synced", finishedIso);
 
     try {
       await writeHistory(
@@ -1790,6 +1797,7 @@ async function restoreBackup() {
   } catch (error) {
     console.error("M-GARAGE RESTORE:", error);
     lastSyncError = true;
+    window.setCloudSyncStatus?.("error");
 
     restoreStatus(
       uploaded
@@ -1951,6 +1959,7 @@ async function syncNow() {
 
   if (!navigator.onLine) {
     lastSyncError = true;
+    window.setCloudSyncStatus?.("error");
     status(
       "Няма интернет. Промените са запазени локално и чакат синхронизация."
     );
@@ -1959,6 +1968,7 @@ async function syncNow() {
 
   syncRunning = true;
   lastSyncError = false;
+  window.setCloudSyncStatus?.("syncing");
 
   setBusy(true);
   status("Синхронизацията започна...");
@@ -2026,6 +2036,7 @@ async function syncNow() {
           status(
             "Синхронизацията е спряна. Локалните промени са запазени."
           );
+          window.setCloudSyncStatus?.("pending");
           return;
         }
       }
@@ -2085,10 +2096,12 @@ async function syncNow() {
     }
 
     const now = new Date();
+    const nowIso = now.toISOString();
 
-    localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
+    localStorage.setItem(LAST_SYNC_KEY, nowIso);
 
     lastSyncError = false;
+    window.setCloudSyncStatus?.("synced", nowIso);
 
     let historyMessage = "";
 
@@ -2123,6 +2136,7 @@ async function syncNow() {
     console.error("M-GARAGE CLOUD SYNC:", error);
 
     lastSyncError = true;
+    window.setCloudSyncStatus?.("error");
 
     if (historyUserId) {
       try {
@@ -2183,6 +2197,7 @@ function scheduleAutomaticSync(delay = 1800) {
     } catch (error) {
       console.error("M-GARAGE AUTO SYNC:", error);
       lastSyncError = true;
+      window.setCloudSyncStatus?.("error");
       refreshDashboard();
     }
   }, delay);
@@ -2283,6 +2298,7 @@ async function initializeCloud() {
     }
   } catch (error) {
     lastSyncError = true;
+    window.setCloudSyncStatus?.("error");
     userStatus("Cloud Sync не е достъпен.");
     status(error.message);
   }
