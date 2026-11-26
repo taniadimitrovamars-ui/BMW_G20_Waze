@@ -312,6 +312,43 @@ a{color:var(--accent)}
 .seg-view{display:none}
 .seg-view.active{display:block;animation:screenIn .16s ease}
 
+/* Търсачка и филтри в Сервиз */
+.filter-bar{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+ margin-bottom:12px;
+}
+.search-input{
+ padding:10px 12px;
+ font-size:12px;
+ border-radius:12px;
+}
+.chip-filter-row{
+ display:flex;
+ gap:6px;
+ overflow-x:auto;
+ padding-bottom:2px;
+ scrollbar-width:none;
+}
+.chip-filter-row::-webkit-scrollbar{display:none}
+.filter-chip{
+ flex:0 0 auto;
+ border:1px solid var(--border);
+ background:var(--surface-2);
+ color:var(--muted);
+ border-radius:999px;
+ padding:6px 11px;
+ font-size:10.5px;
+ font-weight:850;
+ white-space:nowrap;
+}
+.filter-chip.active{
+ border-color:var(--accent);
+ background:var(--accent-soft);
+ color:var(--accent);
+}
+
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field{min-width:0}
 .field.full{grid-column:1/-1}
@@ -359,7 +396,7 @@ textarea{min-height:82px;resize:vertical}
  min-height:42px;transition:transform .14s,filter .14s;
  display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
-.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active{transform:scale(.97)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active{transform:scale(.97)}
 .btn.secondary{
  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
@@ -512,12 +549,6 @@ details.step-card > summary::-webkit-details-marker{display:none}
  overflow-x:auto;user-select:text;margin:0;
 }
 .copy-command{width:100%;margin-top:7px}
-
-.service-plan{
- background:var(--surface-2);border:1px solid var(--border);
- border-radius:15px;padding:13px;margin-top:12px;
-}
-.service-plan-title{font-size:10px;font-weight:900;margin-bottom:6px;color:var(--accent);letter-spacing:.7px}
 
 .due-item{
  display:flex;justify-content:space-between;gap:10px;
@@ -732,6 +763,13 @@ details[open] > summary{
     <button class="seg-btn" data-seg="mods" type="button">Модификации</button>
     <button class="seg-btn" data-seg="expenses" type="button">Разходи</button>
     <button class="seg-btn" data-seg="documents" type="button">Документи</button>
+   </div>
+
+   <div class="panel" style="margin-top:0">
+    <div class="filter-bar">
+     <input class="search-input" id="recordSearch" type="search" placeholder="Търси в текущия списък (дейност, бележка, сервиз, артикул...)">
+     <div class="chip-filter-row" id="recordFilterChips"></div>
+    </div>
    </div>
 
    <div class="seg-view active" id="seg-service">
@@ -1086,6 +1124,8 @@ let cars=[];
 let activeVin="";
 let currentScreen="garage";
 let currentSeg="service";
+let searchQuery="";
+let activeFilter="all";
 const $=id=>document.getElementById(id);
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
@@ -1264,10 +1304,63 @@ function showScreen(name){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 
+function renderFilterChips(car){
+ const chipRow=$("recordFilterChips");
+ if(!chipRow||!car)return;
+ chipRow.replaceChildren();
+
+ let options=[{value:"all",label:"Всички"}];
+ if(currentSeg==="reminders"){
+  options=[
+   {value:"all",label:"Всички"},
+   {value:"active",label:"Активни"},
+   {value:"overdue",label:"Просрочени"},
+   {value:"done",label:"Изпълнени"}
+  ];
+ }else if(currentSeg==="expenses"){
+  const cats=Array.from(new Set(car.expenses.map(r=>r.category).filter(Boolean)));
+  options=[{value:"all",label:"Всички"},...cats.map(c=>({value:c,label:c}))];
+ }else if(currentSeg==="mods"){
+  const cats=Array.from(new Set(car.modifications.map(r=>r.category).filter(Boolean)));
+  options=[{value:"all",label:"Всички"},...cats.map(c=>({value:c,label:c}))];
+ }else if(currentSeg==="documents"){
+  const types=Array.from(new Set(car.documents.map(r=>r.documentType).filter(Boolean)));
+  options=[{value:"all",label:"Всички"},...types.map(t=>({value:t,label:t}))];
+ }
+
+ if(!options.some(o=>o.value===activeFilter))activeFilter="all";
+
+ chipRow.classList.toggle("hidden",options.length<=1);
+ options.forEach(opt=>{
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.className="filter-chip"+(opt.value===activeFilter?" active":"");
+  btn.textContent=opt.label;
+  btn.addEventListener("click",()=>{
+   activeFilter=opt.value;
+   renderRecordsForActiveSeg(car);
+   renderFilterChips(car);
+  });
+  chipRow.append(btn);
+ });
+}
+
+function renderRecordsForActiveSeg(car){
+ if(!car)return;
+ renderRecords("serviceList",car.serviceRecords,"service",car);
+ renderRecords("reminderList",car.reminders,"reminder",car);
+ renderRecords("modificationList",car.modifications,"modification",car);
+ renderRecords("expenseList",car.expenses,"expense",car);
+ renderRecords("documentList",car.documents,"document",car);
+}
+
 function showSeg(seg){
  currentSeg=seg;
+ activeFilter="all";
  document.querySelectorAll(".seg-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.seg===seg));
  document.querySelectorAll(".seg-view").forEach(view=>view.classList.toggle("active",view.id==="seg-"+seg));
+ const car=activeCar();
+ if(car)renderFilterChips(car);
  updateFab();
 }
 
@@ -1499,10 +1592,46 @@ function renderSteps(car){
  });
 }
 
+function matchesSearchAndFilter(record,type,car){
+ const q=searchQuery.trim().toLowerCase();
+ if(q){
+  const hay=[
+   record.title,record.description,record.notes,record.provider,
+   record.category,record.partNumber,record.documentType,record.fileName
+  ].filter(Boolean).join(" ").toLowerCase();
+  if(!hay.includes(q))return false;
+ }
+
+ if(activeFilter==="all")return true;
+
+ if(type==="reminder"){
+  const st=reminderState(record,car);
+  if(activeFilter==="active")return !record.completed;
+  if(activeFilter==="overdue")return !record.completed&&st.overdue;
+  if(activeFilter==="done")return record.completed===true;
+ }
+ if(type==="expense")return record.category===activeFilter;
+ if(type==="modification")return record.category===activeFilter;
+ if(type==="document")return record.documentType===activeFilter;
+ return true;
+}
+
 function renderRecords(containerId,records,type,car){
  const container=$(containerId);container.replaceChildren();
- if(!records.length){container.innerHTML='<div class="empty">Няма добавени записи. Натисни бутона „＋“ за нов запис.</div>';return}
- [...records].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).forEach(record=>{
+ const filtered=[...records]
+  .sort((a,b)=>(b.date||"").localeCompare(a.date||""))
+  .filter(r=>matchesSearchAndFilter(r,type,car));
+
+ if(!records.length){
+  container.innerHTML='<div class="empty">Няма добавени записи. Натисни бутона „＋“ за нов запис.</div>';
+  return;
+ }
+ if(!filtered.length){
+  container.innerHTML='<div class="empty">Няма записи, отговарящи на текущия филтър или търсене.</div>';
+  return;
+ }
+
+ filtered.forEach(record=>{
   const card=document.createElement("article");card.className="record";
   const heading=document.createElement("div");heading.className="record-top";
   const title=document.createElement("div");title.className="record-title";title.textContent=record.title||"Запис";
@@ -1559,11 +1688,8 @@ function renderAll(){
  renderGarage();
  const car=activeCar();if(!car)return;
  renderOverview(car);renderProfile(car);renderSteps(car);
- renderRecords("serviceList",car.serviceRecords,"service",car);
- renderRecords("reminderList",car.reminders,"reminder",car);
- renderRecords("modificationList",car.modifications,"modification",car);
- renderRecords("expenseList",car.expenses,"expense",car);
- renderRecords("documentList",car.documents,"document",car);
+ renderFilterChips(car);
+ renderRecordsForActiveSeg(car);
 }
 
 function addCar(){
@@ -1677,6 +1803,13 @@ async function importBackup(file){
   renderAll();message("localMessage","Архивът е импортиран. Cloud синхронизацията ще обработи промените.");
  }catch(error){message("localMessage","Грешка: "+error.message)}
 }
+
+/* Търсачка в списъците */
+$("recordSearch")?.addEventListener("input",e=>{
+ searchQuery=e.target.value||"";
+ const car=activeCar();
+ if(car)renderRecordsForActiveSeg(car);
+});
 
 /* Бързи шаблони (чипове) */
 $("servicePresets")?.addEventListener("click",e=>{
