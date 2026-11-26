@@ -48,8 +48,8 @@ const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 const RESTORE_KEY = "mgu_cloud_restore_id";
 
 const STEP_IDS = [
-  "prep", "backup", "enable", "flash", "persist",
-  "status", "key", "store", "recode"
+  "prep0", "prep", "status0", "flash", "keys", "persist",
+  "ssh_fix", "store_key", "store", "waze", "recode", "after"
 ];
 
 /*
@@ -350,6 +350,12 @@ function createInterface() {
     </div>
 
     <div id="cloudUser" class="form-msg">Проверка на профила...</div>
+
+    <div class="alert warn" style="margin:10px 0">
+      Внимание: след вход профилът на автомобила (вкл. VIN, ако го въведеш в
+      РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака. Не споделяй този
+      акаунт и не публикувай снимки от приложението с VIN номера.
+    </div>
 
     <div id="cloudAuthForm">
       <div class="panel-row">
