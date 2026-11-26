@@ -266,6 +266,7 @@ a{color:var(--accent)}
  height:100%;
  object-fit:cover;
  object-position:center;
+ transition:object-position .2s ease;
 }
 .photo-preview-box{
  margin-top:10px;
@@ -281,6 +282,51 @@ a{color:var(--accent)}
  height:100%;
  object-fit:cover;
  display:block;
+}
+.photo-pos-row{
+ display:flex;
+ align-items:center;
+ gap:6px;
+ flex-wrap:wrap;
+ margin-top:8px;
+}
+.photo-pos-btn{
+ border:1px solid var(--border);
+ background:var(--surface-2);
+ color:var(--muted);
+ border-radius:999px;
+ padding:5px 10px;
+ font-size:10.5px;
+ font-weight:850;
+}
+.photo-pos-btn.active{
+ border-color:var(--accent);
+ background:var(--accent-soft);
+ color:var(--accent);
+}
+.mod-summary-strip{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;
+ margin-bottom:12px;
+}
+.mod-sum-box{
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:14px;
+ padding:10px 11px;
+ text-align:center;
+}
+.mod-sum-num{
+ font-size:16px;
+ font-weight:950;
+ font-variant-numeric:tabular-nums;
+}
+.mod-sum-lbl{
+ font-size:9.5px;
+ color:var(--muted);
+ font-weight:800;
+ margin-top:2px;
 }
 
 .status-pill{
@@ -768,7 +814,7 @@ textarea{min-height:82px;resize:vertical}
  display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
 .btn:hover{filter:brightness(1.04)}
-.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active,.glance-pill-btn:active{transform:scale(.97)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active,.glance-pill-btn:active,.photo-pos-btn:active{transform:scale(.97)}
 .btn.secondary{
  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
@@ -1328,6 +1374,7 @@ details[open] > summary{
    <div class="seg-view" id="seg-mods">
     <div class="panel">
      <div class="section-title">МОДИФИКАЦИИ И НАДГРАЖДАНИЯ</div>
+     <div id="modSummaryStrip" class="mod-summary-strip"></div>
      <div id="modificationList"></div>
     </div>
    </div>
@@ -1413,6 +1460,12 @@ details[open] > summary{
       <input id="pPhotoFile" type="file" accept="image/*">
       <div class="photo-preview-box hidden" id="pPhotoPreviewBox">
        <img id="pPhotoPreviewImg" alt="Преглед на снимката">
+      </div>
+      <div class="photo-pos-row" id="photoPosRow">
+       <span class="muted" style="font-size:10.5px;font-weight:800">Кадър:</span>
+       <button type="button" class="photo-pos-btn" data-pos="top">Горе</button>
+       <button type="button" class="photo-pos-btn active" data-pos="center">Център</button>
+       <button type="button" class="photo-pos-btn" data-pos="bottom">Долу</button>
       </div>
       <div class="btn-row" style="margin-top:8px">
        <button class="btn secondary small" id="pRemovePhotoBtn" type="button">Премахни снимката</button>
@@ -1748,6 +1801,7 @@ const THEME_KEY="mgu_theme";
 const PENDING_KEY="mgu_cloud_pending";
 const LAST_SYNC_KEY="mgu_cloud_last_sync";
 const SHARE_URL_KEY="mgu_share_url";
+const PHOTO_POS_KEY="mgu_photo_pos";
 const DATA_VERSION=4;
 
 const CATEGORY_ICONS={
@@ -1775,6 +1829,31 @@ function getCategoryIcon(category,fallbackTitle=""){
  if(low.includes("преглед"))return"📋";
  if(low.includes("филт"))return"🔧";
  return"📌";
+}
+
+function getPhotoPos(vin){
+ try{
+  const map=JSON.parse(localStorage.getItem(PHOTO_POS_KEY)||"{}");
+  const pos=map?.[vin];
+  return(pos==="top"||pos==="bottom"||pos==="center")?pos:"center";
+ }catch{
+  return"center";
+ }
+}
+
+function setPhotoPos(vin,pos){
+ if(!vin)return;
+ const safePos=(pos==="top"||pos==="bottom"||pos==="center")?pos:"center";
+ try{
+  const map=JSON.parse(localStorage.getItem(PHOTO_POS_KEY)||"{}");
+  map[vin]=safePos;
+  localStorage.setItem(PHOTO_POS_KEY,JSON.stringify(map));
+ }catch{}
+ document.querySelectorAll("#photoPosRow .photo-pos-btn").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.pos===safePos);
+ });
+ const car=activeCar();
+ if(car&&car.vin===vin)renderHeroPhoto(car);
 }
 
 function ensureDropPanelIcons(){
@@ -2373,6 +2452,19 @@ function showScreen(name){
  window.scrollTo({top:0,behavior:"smooth"});
 }
 
+function renderModSummaryStrip(car){
+ const strip=$("modSummaryStrip");
+ if(!strip||!car)return;
+ const installed=car.modifications.filter(m=>(m.status||"Монтирано")==="Монтирано").length;
+ const ordered=car.modifications.filter(m=>m.status==="Поръчано").length;
+ const modSum=car.modifications.reduce((s,m)=>s+safeNumber(m.cost),0);
+ strip.innerHTML=`
+  <div class="mod-sum-box"><div class="mod-sum-num" style="color:var(--good)">${installed}</div><div class="mod-sum-lbl">МОНТИРАНИ</div></div>
+  <div class="mod-sum-box"><div class="mod-sum-num" style="color:var(--warn)">${ordered}</div><div class="mod-sum-lbl">ПОРЪЧАНИ</div></div>
+  <div class="mod-sum-box"><div class="mod-sum-num" style="color:var(--accent)">${formatMoney(modSum)}</div><div class="mod-sum-lbl">ОБЩО МОД.</div></div>
+ `;
+}
+
 function renderFilterChips(car){
  const chipRow=$("recordFilterChips");
  if(!chipRow||!car)return;
@@ -2421,6 +2513,7 @@ function renderFilterChips(car){
 
 function renderRecordsForActiveSeg(car){
  if(!car)return;
+ renderModSummaryStrip(car);
  renderRecords("serviceList",car.serviceRecords,"service",car);
  renderRecords("reminderList",car.reminders,"reminder",car);
  renderRecords("modificationList",car.modifications,"modification",car);
@@ -2434,7 +2527,10 @@ function showSeg(seg){
  document.querySelectorAll(".seg-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.seg===seg));
  document.querySelectorAll(".seg-view").forEach(view=>view.classList.toggle("active",view.id==="seg-"+seg));
  const car=activeCar();
- if(car)renderFilterChips(car);
+ if(car){
+  renderFilterChips(car);
+  if(seg==="mods")renderModSummaryStrip(car);
+ }
  updateFab();
 }
 
@@ -3048,6 +3144,8 @@ function renderHeroPhoto(car){
  if(!frame||!img)return;
  const photo=safePhotoDataUrl(car.details.photo);
  if(photo){
+  const pos=getPhotoPos(car.vin);
+  img.style.objectPosition=pos==="top"?"50% 18%":pos==="bottom"?"50% 82%":"50% 50%";
   img.src=photo;
   img.alt=car.nick||car.details.model||"Снимка на автомобила";
   frame.classList.remove("hidden");
@@ -3106,6 +3204,9 @@ function renderOverview(car){
 
  const mguDone=STEPS.filter(s=>car.done[s.id]).length;
  const d=car.details;
+ const kmVal=safeNumber(d.mileage);
+ const finTotals=getFinancialTotals(car);
+ const perKmChip=(kmVal>0&&finTotals.total>0)?("Средно: "+(finTotals.total/kmVal).toFixed(2)+" €/km"):"";
  const chips=[
   [d.make,d.model].filter(Boolean).join(" "),
   d.year?String(d.year):"",
@@ -3114,6 +3215,7 @@ function renderOverview(car){
   d.fuel||"",
   d.color||"",
   d.registration?"Рег.: "+d.registration:"",
+  perKmChip,
   "MGU "+mguDone+"/"+STEPS.length
  ].filter(Boolean);
 
@@ -3237,6 +3339,10 @@ function renderProfile(car){
  if($("pPhotoFile"))$("pPhotoFile").value="";
  draftPhotoDataUrl=safePhotoDataUrl(d.photo);
  updatePhotoPreview(draftPhotoDataUrl);
+ const curPos=getPhotoPos(car.vin);
+ document.querySelectorAll("#photoPosRow .photo-pos-btn").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.pos===curPos);
+ });
 }
 
 async function copyCommand(command,button){
@@ -3517,6 +3623,13 @@ function saveProfile(){
  save();renderAll();message("profileMessage","Профилът е запазен.");
  showToast("Профилът е запазен","good");
 }
+
+$("photoPosRow")?.addEventListener("click",e=>{
+ const btn=e.target.closest("[data-pos]");
+ if(!btn)return;
+ const car=activeCar();
+ if(car)setPhotoPos(car.vin,btn.dataset.pos);
+});
 
 $("glSaveKmBtn")?.addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
