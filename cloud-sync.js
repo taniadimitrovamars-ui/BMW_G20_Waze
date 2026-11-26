@@ -155,6 +155,15 @@ function safeId(value) {
       : String(Date.now()));
 }
 
+function safePhoto(value) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return "";
+  if (/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(raw) && raw.length <= 1600000) {
+    return raw;
+  }
+  return "";
+}
+
 /* ==========================================
    SAFE DOCUMENT URL
 ========================================== */
@@ -257,6 +266,7 @@ function cleanCar(item) {
       fuel: safeString(details.fuel, 40),
       color: safeString(details.color, 60),
       registration: safeString(details.registration, 40),
+      photo: safePhoto(details.photo),
       notes: safeString(details.notes, 4000)
     },
 
