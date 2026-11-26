@@ -384,14 +384,14 @@ a{color:var(--accent)}
  gap:6px;
 }
 
-/* Оптимизирана компактна Hero карта */
+/* Оптимизирана компактна Hero карта с по-голяма снимка */
 .hero-card{
  position:relative;
  overflow:hidden;
  background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 14%,var(--surface-2)) 0%,var(--surface) 74%);
  border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));
  border-radius:20px;
- padding:14px;
+ padding:13px;
  margin:6px 0 10px;
  box-shadow:var(--shadow);
 }
@@ -411,11 +411,22 @@ a{color:var(--accent)}
 .hero-name{font-size:21px;font-weight:950;letter-spacing:-.4px;line-height:1.12}
 .hero-vin{
  font-size:10.5px;color:var(--muted);
- margin-top:3px;font-weight:700;letter-spacing:.35px;overflow-wrap:anywhere;
+ margin-top:2px;font-weight:700;letter-spacing:.35px;overflow-wrap:anywhere;
 }
 .hero-actions-row{
  position:relative;z-index:1;
- display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;
+ display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;
+}
+.reg-banner{
+ display:inline-flex;align-items:center;gap:5px;
+ padding:4px 10px;
+ border-radius:9px;
+ background:var(--surface-3);
+ border:1px solid color-mix(in srgb,var(--accent) 36%,var(--border));
+ color:var(--text);
+ font-size:10.5px;font-weight:900;letter-spacing:.4px;
+ font-variant-numeric:tabular-nums;
+ white-space:nowrap;
 }
 .glance-pill-btn{
  border:1px solid color-mix(in srgb,var(--accent) 42%,var(--border));
@@ -426,6 +437,7 @@ a{color:var(--accent)}
  font-size:10.5px;font-weight:900;
  display:inline-flex;align-items:center;gap:5px;
  transition:transform .14s ease,background .14s ease,border-color .14s ease;
+ white-space:nowrap;
 }
 .glance-pill-btn:hover{
  background:color-mix(in srgb,var(--accent) 22%,var(--surface-2));
@@ -447,13 +459,13 @@ a{color:var(--accent)}
 }
 .hero-photo-frame{
  position:relative;z-index:1;
- margin-top:10px;
+ margin-top:9px;
  border-radius:15px;
  overflow:hidden;
  border:1px solid var(--border);
  background:color-mix(in srgb,var(--bg) 60%,var(--surface-2));
- aspect-ratio:16 / 9;
- max-height:195px;
+ aspect-ratio:16 / 10;
+ max-height:235px;
  box-shadow:0 8px 20px rgba(0,0,0,.22);
 }
 .hero-photo-frame img{
@@ -536,17 +548,17 @@ a{color:var(--accent)}
 .stats{
  position:relative;z-index:1;
  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
- gap:7px;margin-top:10px;
+ gap:7px;margin-top:9px;
 }
 .stat{
- padding:9px 11px;
+ padding:8px 10px;
  background:color-mix(in srgb,var(--bg) 52%,var(--surface-2));
  border:1px solid var(--border);
  border-radius:13px;
  min-width:0;
 }
 .stat-label{font-size:8.5px;color:var(--muted);font-weight:900;letter-spacing:.65px}
-.stat-value{font-size:16.5px;font-weight:950;margin-top:3px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;line-height:1.15}
+.stat-value{font-size:16px;font-weight:950;margin-top:2px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;line-height:1.15}
 
 /* Оптимизиран компактен уиджит Документи и критични срокове */
 .docs-widget{
@@ -1568,6 +1580,7 @@ details[open] > summary{
      <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
     </div>
     <div class="hero-actions-row">
+     <div class="reg-banner hidden" id="heroRegBanner"></div>
      <button class="glance-pill-btn" id="quickGlanceBtn" type="button">⚡ Бърз поглед</button>
     </div>
     <div class="spec-chips" id="overviewDetails"></div>
@@ -1580,7 +1593,6 @@ details[open] > summary{
      <div class="stat"><div class="stat-label">РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
      <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
     </div>
-    <div id="lastServiceCardContainer"></div>
    </div>
 
    <div class="health-widget is-good" id="healthWidget">
@@ -2381,7 +2393,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪЖ, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъЖ, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -3956,45 +3968,6 @@ function renderHeroPhoto(car){
  }
 }
 
-function renderLastServiceCard(car){
- const wrap=$("lastServiceCardContainer");
- if(!wrap)return;
- wrap.replaceChildren();
- if(!car.serviceRecords.length)return;
-
- const latest=[...car.serviceRecords].sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))[0];
- if(!latest)return;
-
- const card=document.createElement("div");
- card.className="last-service-card";
-
- const left=document.createElement("div");
- left.style.minWidth="0";
-
- const t=document.createElement("div");
- t.className="ls-title";
- t.textContent="Последен сервиз: "+(latest.title||"Обслужване");
-
- const m=document.createElement("div");
- m.className="ls-meta";
- const metaParts=[formatDate(latest.date)];
- if(latest.mileage)metaParts.push(latest.mileage.toLocaleString("bg-BG")+" km");
- if(latest.provider)metaParts.push(latest.provider);
- m.textContent=metaParts.join(" · ");
-
- left.append(t,m);
- card.append(left);
-
- if(latest.cost){
-  const c=document.createElement("div");
-  c.className="ls-cost";
-  c.textContent=formatMoney(latest.cost);
-  card.append(c);
- }
-
- wrap.append(card);
-}
-
 function renderOverview(car){
  const isAtv=getVehicleIcon(car)==="🛞";
  const displayTitle=(car.nick||(isAtv?"ATV":"BMW")).trim();
@@ -4005,11 +3978,20 @@ function renderOverview(car){
  renderFinance(car);
  $("statReminders").textContent=car.reminders.filter(r=>!r.completed).length;
 
+ const regBanner=$("heroRegBanner");
+ if(regBanner){
+  const regVal=safeText(car.details.registration,40);
+  if(regVal){
+   regBanner.textContent="🪪 Рег.: "+regVal;
+   regBanner.classList.remove("hidden");
+  }else{
+   regBanner.textContent="";
+   regBanner.classList.add("hidden");
+  }
+ }
+
  const mguDone=STEPS.filter(s=>car.done[s.id]).length;
  const d=car.details;
- const kmVal=safeNumber(d.mileage);
- const finTotals=getFinancialTotals(car);
- const perKmChip=(kmVal>0&&finTotals.total>0)?("Средно: "+(finTotals.total/kmVal).toFixed(2)+" €/km"):"";
  const titleNorm=displayTitle.toLowerCase();
  const makeModel=[d.make,d.model].filter(Boolean).join(" ").trim();
  const showMakeModel=makeModel&&makeModel.toLowerCase()!==titleNorm&&!titleNorm.includes(makeModel.toLowerCase());
@@ -4022,8 +4004,6 @@ function renderOverview(car){
   d.transmission?("Кутия: "+d.transmission):"",
   d.fuel||"",
   d.color||"",
-  d.registration?("Рег.: "+d.registration):"",
-  perKmChip,
   !isAtv?("MGU "+mguDone+"/"+STEPS.length):""
  ].filter(Boolean);
 
@@ -4044,7 +4024,6 @@ function renderOverview(car){
  }
 
  renderHeroPhoto(car);
- renderLastServiceCard(car);
  renderHealthWidget(car);
  renderDocsWidget(car);
  renderTimeline(car);
