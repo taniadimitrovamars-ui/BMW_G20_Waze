@@ -1475,10 +1475,12 @@ function cleanRecord(record,type){
   mileage:safeNumber(r.mileage),cost:safeNumber(r.cost),currency:"EUR",
   provider:safeText(r.provider,150),notes:safeText(r.notes,2000)
  };
+ if(type==="service"){result.linkedReminderId=safeText(r.linkedReminderId,100)}
  if(type==="expense")result.category=safeText(r.category,100);
  if(type==="reminder"){
   result.dueDate=safeText(r.dueDate,40);result.dueMileage=safeNumber(r.dueMileage);
   result.completed=r.completed===true;result.category=safeText(r.category,80);
+  result.sourceServiceId=safeText(r.sourceServiceId,100);
  }
  if(type==="modification"){result.category=safeText(r.category,100);result.partNumber=safeText(r.partNumber,100)}
  if(type==="document"){
@@ -1750,7 +1752,7 @@ function resetFormFields(formKey){
   $("addServiceButton").textContent="Запази сервизен запис";
   ["sTitle","sMileage","sProvider","sCost","sNotes","sIntervalKm","sIntervalMonths","sNextTitle"].forEach(id=>$(id).value="");
   $("sDate").value=today();
-  if($("sAutoNextBox"))[$("sAutoNextBox").classList.remove("hidden"),$("sAutoNextBox").open=false];
+  if($("sAutoNextBox")){$("sAutoNextBox").classList.remove("hidden");$("sAutoNextBox").open=false}
  }else if(formKey==="reminders"){
   $("addReminderButton").textContent="Запази напомняне";
   ["rTitle","rDate","rMileage","rNotes"].forEach(id=>$(id).value="");
@@ -1791,7 +1793,7 @@ function openSheet(formKey,title,record=null){
    $("sProvider").value=record.provider||"";
    $("sCost").value=record.cost||"";
    $("sNotes").value=record.notes||"";
-   if($("sAutoNextBox")){$("sAutoNextBox").open=false;$("sAutoNextBox").classList.add("hidden")}
+   if($("sAutoNextBox")){$("sAutoNextBox").classList.remove("hidden");$("sAutoNextBox").open=false}
   }else if(formKey==="reminders"){
    $("addReminderButton").textContent="Запази промените";
    $("rTitle").value=record.title||"";
@@ -2514,17 +2516,65 @@ function addRecord(type,record){
 }
 function getVal(id){return $(id).value.trim()}
 
+function syncLinkedReminder(car,serviceRecord,intervalKm,intervalMonths,nextTitle){
+ let linkedReminderId=serviceRecord.linkedReminderId||"";
+ if(intervalKm||intervalMonths){
+  const baseMileage=safeNumber(serviceRecord.mileage)||safeNumber(car.details.mileage);
+  if(intervalKm&&!baseMileage){
+   return{error:"За да изчислим следващия пробег, въведи текущия пробег в сервизния запис или в профила на автомобила."};
+  }
+  const dueMileage=intervalKm?baseMileage+intervalKm:0;
+  const dueDate=intervalMonths?addMonths(serviceRecord.date,intervalMonths):"";
+  const resolvedTitle=nextTitle||("Следващо обслужване: "+serviceRecord.title);
+
+  let remIdx=linkedReminderId?car.reminders.findIndex(r=>r.id===linkedReminderId):-1;
+  if(remIdx<0){
+   remIdx=car.reminders.findIndex(r=>r.sourceServiceId===serviceRecord.id);
+  }
+
+  if(remIdx>=0){
+   const oldRem=car.reminders[remIdx];
+   linkedReminderId=oldRem.id;
+   car.reminders[remIdx]=cleanRecord({
+    ...oldRem,
+    id:oldRem.id,
+    title:resolvedTitle,
+    dueDate:dueDate||oldRem.dueDate,
+    dueMileage:dueMileage||oldRem.dueMileage,
+    completed:false,
+    sourceServiceId:serviceRecord.id
+   },"reminder");
+  }else{
+   linkedReminderId=makeId();
+   car.reminders.push(cleanRecord({
+    id:linkedReminderId,
+    date:today(),
+    title:resolvedTitle,
+    dueDate,
+    dueMileage,
+    category:"Сервиз",
+    notes:"Автоматично създадено напомняне от сервизен запис: "+serviceRecord.title,
+    completed:false,
+    sourceServiceId:serviceRecord.id
+   },"reminder"));
+  }
+ }
+ return{linkedReminderId};
+}
+
 function addService(){
  const car=activeCar();if(!car)return;
  if(!getVal("sTitle"))return alert("Въведи описание на сервизната дейност.");
  const date=getVal("sDate")||today(),mileage=safeNumber(getVal("sMileage"));
  const serviceTitle=getVal("sTitle");
+ const intervalKm=safeNumber(getVal("sIntervalKm")),intervalMonths=safeNumber(getVal("sIntervalMonths"));
+ const nextTitle=getVal("sNextTitle");
 
  if(editingRecord&&editingRecord.type==="service"){
   const idx=car.serviceRecords.findIndex(r=>r.id===editingRecord.id);
   if(idx>=0){
    const existing=car.serviceRecords[idx];
-   car.serviceRecords[idx]=cleanRecord({
+   const updatedService=cleanRecord({
     ...existing,
     id:existing.id,
     date,
@@ -2534,33 +2584,31 @@ function addService(){
     cost:getVal("sCost"),
     notes:getVal("sNotes")
    },"service");
+
+   const syncRes=syncLinkedReminder(car,updatedService,intervalKm,intervalMonths,nextTitle);
+   if(syncRes.error)return alert(syncRes.error);
+   updatedService.linkedReminderId=syncRes.linkedReminderId;
+
+   car.serviceRecords[idx]=updatedService;
    save();renderAll();closeSheet();
-   message("localMessage","Сервизният запис е обновен.");
+   message("localMessage","Сервизният запис и свързаното напомняне са обновени.");
    return;
   }
  }
 
- const intervalKm=safeNumber(getVal("sIntervalKm")),intervalMonths=safeNumber(getVal("sIntervalMonths"));
  const serviceId=makeId();
- car.serviceRecords.push(cleanRecord({
+ const newService=cleanRecord({
   id:serviceId,date,title:serviceTitle,mileage,provider:getVal("sProvider"),
   cost:getVal("sCost"),notes:getVal("sNotes")
- },"service"));
+ },"service");
+
  if(intervalKm||intervalMonths){
-  if(intervalKm&&!mileage&&!safeNumber(car.details.mileage)){
-   alert("За да изчислим следващия пробег, въведи текущия пробег в сервизния запис или в профила на автомобила.");
-   car.serviceRecords=car.serviceRecords.filter(r=>r.id!==serviceId);save();renderAll();return;
-  }
-  const baseMileage=mileage||safeNumber(car.details.mileage);
-  const dueMileage=intervalKm?baseMileage+intervalKm:0;
-  const dueDate=intervalMonths?addMonths(date,intervalMonths):"";
-  const nextTitle=getVal("sNextTitle")||"Следващо обслужване: "+serviceTitle;
-  car.reminders.push(cleanRecord({
-   id:makeId(),date:today(),title:nextTitle,dueDate,dueMileage,
-   category:"Сервиз",notes:"Автоматично създадено напомняне от сервизен запис: "+serviceTitle,
-   completed:false
-  },"reminder"));
+  const syncRes=syncLinkedReminder(car,newService,intervalKm,intervalMonths,nextTitle);
+  if(syncRes.error)return alert(syncRes.error);
+  newService.linkedReminderId=syncRes.linkedReminderId;
  }
+
+ car.serviceRecords.push(newService);
  save();renderAll();closeSheet();
  message("localMessage",intervalKm||intervalMonths?"Сервизният запис и следващото напомняне са запазени.":"Сервизният запис е запазен.");
 }
