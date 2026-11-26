@@ -215,6 +215,39 @@ a{color:var(--accent)}
  position:relative;z-index:1;
  font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;
 }
+.hero-photo-frame{
+ position:relative;z-index:1;
+ margin-top:14px;
+ border-radius:18px;
+ overflow:hidden;
+ border:1px solid var(--border);
+ background:color-mix(in srgb,var(--bg) 60%,var(--surface-2));
+ aspect-ratio:16 / 10;
+ box-shadow:0 10px 24px rgba(0,0,0,.22);
+}
+.hero-photo-frame img{
+ display:block;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:center;
+}
+.photo-preview-box{
+ margin-top:10px;
+ border:1px solid var(--border);
+ border-radius:16px;
+ overflow:hidden;
+ background:var(--surface-2);
+ aspect-ratio:16 / 10;
+ max-height:220px;
+}
+.photo-preview-box img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ display:block;
+}
+
 .status-pill{
  border-radius:999px;
  padding:6px 10px;
@@ -226,7 +259,7 @@ a{color:var(--accent)}
 .stats{
  position:relative;z-index:1;
  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
- gap:9px;margin-top:16px;
+ gap:9px;margin-top:14px;
 }
 .stat{
  padding:12px;
@@ -879,6 +912,9 @@ details[open] > summary{
      <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
     </div>
     <div class="hero-meta" id="overviewDetails"></div>
+    <div class="hero-photo-frame hidden" id="heroPhotoFrame">
+     <img id="heroPhotoImg" alt="Снимка на автомобила">
+    </div>
     <div class="stats">
      <div class="stat"><div class="stat-label">ПРОБЕГ</div><div class="stat-value" id="statMileage">0 km</div></div>
      <div class="stat"><div class="stat-label">СЕРВИЗИ</div><div class="stat-value" id="statServices">0</div></div>
@@ -1062,7 +1098,7 @@ details[open] > summary{
     <summary>
      <div>
       <div>АВТОМОБИЛЕН ПРОФИЛ</div>
-      <div class="drop-sub">Марка, модел, година, двигател, кутия, пробег и бележки</div>
+      <div class="drop-sub">Марка, модел, година, двигател, кутия, пробег, снимка и бележки</div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1076,6 +1112,16 @@ details[open] > summary{
      <div class="field"><label>ГОРИВО</label><select id="pFuel"><option value="">Не е посочено</option><option>Бензин</option><option>Дизел</option><option>Хибрид</option><option>Plug-in хибрид</option><option>Електрически</option><option>Газ</option></select></div>
      <div class="field"><label>ЦВЯТ</label><input id="pColor"></div>
      <div class="field"><label>РЕГИСТРАЦИЯ</label><input id="pRegistration"></div>
+     <div class="field full">
+      <label>СНИМКА НА АВТОМОБИЛА (ВИЗУАЛИЗИРА СЕ В ГАРАЖ)</label>
+      <input id="pPhotoFile" type="file" accept="image/*">
+      <div class="photo-preview-box hidden" id="pPhotoPreviewBox">
+       <img id="pPhotoPreviewImg" alt="Преглед на снимката">
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+       <button class="btn secondary small" id="pRemovePhotoBtn" type="button">Премахни снимката</button>
+      </div>
+     </div>
      <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="pNotes"></textarea></div>
     </div>
     <div class="btn-row"><button class="btn" id="saveProfileButton" type="button">Запази профила</button></div>
@@ -1368,10 +1414,17 @@ let currentSeg="service";
 let searchQuery="";
 let activeFilter="all";
 let forcedCloudState="";
+let draftPhotoDataUrl="";
 const $=id=>document.getElementById(id);
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
 function safeNumber(value){const n=Number(value);return Number.isFinite(n)&&n>0?n:0}
+function safePhotoDataUrl(value){
+ const raw=typeof value==="string"?value.trim():"";
+ if(!raw)return"";
+ if(/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(raw)&&raw.length<1600000)return raw;
+ return"";
+}
 function makeId(){return crypto.randomUUID?crypto.randomUUID():"id-"+Date.now()+"-"+Math.random().toString(16).slice(2)}
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addMonths(dateString,months){
@@ -1421,7 +1474,9 @@ function cleanCar(item){
    year:safeNumber(details.year),engine:safeText(details.engine,100),
    transmission:safeText(details.transmission,100),mileage:safeNumber(details.mileage),
    fuel:safeText(details.fuel,40),color:safeText(details.color,60),
-   registration:safeText(details.registration,40),notes:safeText(details.notes,4000)
+   registration:safeText(details.registration,40),
+   photo:safePhotoDataUrl(details.photo),
+   notes:safeText(details.notes,4000)
   },
   serviceRecords:Array.isArray(item.serviceRecords)?item.serviceRecords.slice(0,500).map(r=>cleanRecord(r,"service")):[],
   modifications:Array.isArray(item.modifications)?item.modifications.slice(0,500).map(r=>cleanRecord(r,"modification")):[],
@@ -1946,6 +2001,21 @@ function renderHealthWidget(car){
  spotContainer.append(spot);
 }
 
+function renderHeroPhoto(car){
+ const frame=$("heroPhotoFrame");
+ const img=$("heroPhotoImg");
+ if(!frame||!img)return;
+ const photo=safePhotoDataUrl(car.details.photo);
+ if(photo){
+  img.src=photo;
+  img.alt=car.nick||car.details.model||"Снимка на автомобила";
+  frame.classList.remove("hidden");
+ }else{
+  img.removeAttribute("src");
+  frame.classList.add("hidden");
+ }
+}
+
 function renderOverview(car){
  $("vehicleName").textContent=car.nick||"BMW";
  $("vehicleVin").textContent="VIN: "+car.vin;
@@ -1964,6 +2034,7 @@ function renderOverview(car){
   "MGU: "+mguDone+"/"+STEPS.length
  ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
 
+ renderHeroPhoto(car);
  renderHealthWidget(car);
 
  const active=car.reminders.filter(r=>!r.completed);
@@ -1999,12 +2070,70 @@ function renderOverview(car){
  });
 }
 
+function updatePhotoPreview(dataUrl){
+ const box=$("pPhotoPreviewBox");
+ const img=$("pPhotoPreviewImg");
+ if(!box||!img)return;
+ const valid=safePhotoDataUrl(dataUrl);
+ if(valid){
+  img.src=valid;
+  box.classList.remove("hidden");
+ }else{
+  img.removeAttribute("src");
+  box.classList.add("hidden");
+ }
+}
+
+function compressImageToDataUrl(file){
+ return new Promise((resolve,reject)=>{
+  if(!file||!file.type||!file.type.startsWith("image/")){
+   reject(new Error("Избери валиден файл със снимка."));
+   return;
+  }
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error("Неуспешно четене на снимката."));
+  reader.onload=()=>{
+   const image=new Image();
+   image.onerror=()=>reject(new Error("Снимката не може да бъде обработена."));
+   image.onload=()=>{
+    const maxW=1100;
+    const maxH=750;
+    let width=image.naturalWidth||image.width;
+    let height=image.naturalHeight||image.height;
+    const ratio=Math.min(1,maxW/width,maxH/height);
+    width=Math.max(1,Math.round(width*ratio));
+    height=Math.max(1,Math.round(height*ratio));
+
+    const canvas=document.createElement("canvas");
+    canvas.width=width;
+    canvas.height=height;
+    const ctx=canvas.getContext("2d");
+    if(!ctx){reject(new Error("Няма достъп до графичен контекст."));return}
+    ctx.drawImage(image,0,0,width,height);
+
+    let quality=0.82;
+    let out=canvas.toDataURL("image/jpeg",quality);
+    while(out.length>1450000&&quality>0.45){
+     quality-=0.1;
+     out=canvas.toDataURL("image/jpeg",quality);
+    }
+    resolve(out);
+   };
+   image.src=String(reader.result||"");
+  };
+  reader.readAsDataURL(file);
+ });
+}
+
 function renderProfile(car){
  const d=car.details;
  $("pMake").value=d.make;$("pModel").value=d.model;$("pYear").value=d.year||"";
  $("pEngine").value=d.engine;$("pTransmission").value=d.transmission;
  $("pMileage").value=d.mileage||"";$("pFuel").value=d.fuel;
  $("pColor").value=d.color;$("pRegistration").value=d.registration;$("pNotes").value=d.notes;
+ if($("pPhotoFile"))$("pPhotoFile").value="";
+ draftPhotoDataUrl=safePhotoDataUrl(d.photo);
+ updatePhotoPreview(draftPhotoDataUrl);
 }
 
 async function copyCommand(command,button){
@@ -2213,10 +2342,31 @@ function saveProfile(){
   year:safeNumber($("pYear").value),engine:safeText($("pEngine").value,100),
   transmission:safeText($("pTransmission").value,100),mileage:safeNumber($("pMileage").value),
   fuel:safeText($("pFuel").value,40),color:safeText($("pColor").value,60),
-  registration:safeText($("pRegistration").value,40),notes:safeText($("pNotes").value,4000)
+  registration:safeText($("pRegistration").value,40),
+  photo:safePhotoDataUrl(draftPhotoDataUrl),
+  notes:safeText($("pNotes").value,4000)
  };
  save();renderAll();message("profileMessage","Профилът е запазен.");
 }
+
+$("pPhotoFile")?.addEventListener("change",async e=>{
+ const file=e.target.files?.[0];
+ if(!file)return;
+ try{
+  draftPhotoDataUrl=await compressImageToDataUrl(file);
+  updatePhotoPreview(draftPhotoDataUrl);
+  message("profileMessage","Снимката е готова. Натисни „Запази профила“, за да я приложиш.");
+ }catch(error){
+  message("profileMessage","Грешка при снимката: "+error.message);
+ }
+});
+
+$("pRemovePhotoBtn")?.addEventListener("click",()=>{
+ draftPhotoDataUrl="";
+ if($("pPhotoFile"))$("pPhotoFile").value="";
+ updatePhotoPreview("");
+ message("profileMessage","Снимката е премахната от черновата. Натисни „Запази профила“ за потвърждение.");
+});
 
 function addRecord(type,record){
  const car=activeCar();if(!car)return;
