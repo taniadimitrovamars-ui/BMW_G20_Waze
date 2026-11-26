@@ -892,28 +892,68 @@ a{color:var(--accent)}
 .ls-meta{font-size:10px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
 .ls-cost{font-size:11.5px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
+/* Компактна хронология (до 3 записа + бутон лупичка за пълна хронология) */
+.tl-head-bar{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:6px;
+ margin-bottom:6px;
+}
+.tl-head-bar .chip-filter-row{
+ flex:1;
+ min-width:0;
+ margin-bottom:0!important;
+}
+.tl-all-btn{
+ width:28px;
+ height:28px;
+ flex:0 0 28px;
+ border-radius:9px;
+ border:1px solid color-mix(in srgb,var(--accent) 45%,var(--border));
+ background:var(--accent-soft);
+ color:var(--accent);
+ font-size:13px;
+ line-height:1;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ transition:background .14s ease,border-color .14s ease,transform .14s ease;
+}
+.tl-all-btn:hover{
+ background:color-mix(in srgb,var(--accent) 24%,var(--surface-2));
+ border-color:var(--accent);
+}
 .timeline-item{
  display:flex;
- gap:11px;
- align-items:flex-start;
- padding:10px 0;
+ gap:8px;
+ align-items:center;
+ padding:5px 2px;
  border-bottom:1px solid var(--border);
 }
-.timeline-item:last-child{border-bottom:0;padding-bottom:0}
+.timeline-item:last-child{border-bottom:0;padding-bottom:2px}
 .tl-dot{
- width:30px;height:30px;flex:0 0 30px;
- border-radius:10px;
+ width:22px;height:22px;flex:0 0 22px;
+ border-radius:7px;
  background:var(--surface-2);
  border:1px solid var(--border);
  display:flex;align-items:center;justify-content:center;
- font-size:14px;
- margin-top:1px;
+ font-size:11px;
+ line-height:1;
 }
 .tl-body{flex:1;min-width:0}
-.tl-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.tl-title{font-size:12px;font-weight:900;overflow-wrap:anywhere}
-.tl-cost{font-size:11.5px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
-.tl-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;font-variant-numeric:tabular-nums}
+.tl-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tl-title{
+ font-size:11px;font-weight:900;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ line-height:1.2;
+}
+.tl-cost{font-size:10.5px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-meta{
+ font-size:9px;color:var(--muted);margin-top:1px;line-height:1.25;
+ font-variant-numeric:tabular-nums;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 
 .glance-grid{
  display:grid;
@@ -1059,8 +1099,8 @@ a{color:var(--accent)}
  background:var(--surface-2);
  color:var(--muted);
  border-radius:999px;
- padding:6px 11px;
- font-size:10.5px;
+ padding:5px 10px;
+ font-size:10px;
  font-weight:850;
  white-space:nowrap;
 }
@@ -1118,7 +1158,7 @@ textarea{min-height:82px;resize:vertical}
  display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
 .btn:hover{filter:brightness(1.04)}
-.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active,.glance-pill-btn:active,.photo-pos-btn:active{transform:scale(.97)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active,.glance-pill-btn:active,.photo-pos-btn:active,.tl-all-btn:active{transform:scale(.97)}
 .btn.secondary{
  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
@@ -1657,17 +1697,20 @@ details[open] > summary{
       <span class="panel-icon">🕒</span>
       <div>
        <div>ХРОНОЛОГИЯ (TIMELINE)</div>
-       <div class="drop-sub">Сервизи, модификации, разходи и изпълнени задачи по дата</div>
+       <div class="drop-sub">Последни 3 операции · пълна хронология през лупичката</div>
       </div>
      </div>
      <span class="chev">▾</span>
     </summary>
-    <div class="chip-filter-row" id="timelineFilterChips" style="margin-bottom:8px">
-     <button class="filter-chip active" data-tl="all" type="button">Всички</button>
-     <button class="filter-chip" data-tl="service" type="button">Сервиз</button>
-     <button class="filter-chip" data-tl="mod" type="button">Модификации</button>
-     <button class="filter-chip" data-tl="expense" type="button">Разходи</button>
-     <button class="filter-chip" data-tl="reminder" type="button">Изпълнени</button>
+    <div class="tl-head-bar">
+     <div class="chip-filter-row" id="timelineFilterChips">
+      <button class="filter-chip active" data-tl="all" type="button">Всички</button>
+      <button class="filter-chip" data-tl="service" type="button">Сервиз</button>
+      <button class="filter-chip" data-tl="mod" type="button">Модификации</button>
+      <button class="filter-chip" data-tl="expense" type="button">Разходи</button>
+      <button class="filter-chip" data-tl="reminder" type="button">Изпълнени</button>
+     </div>
+     <button class="tl-all-btn hidden" id="tlOpenFullBtn" type="button" title="Цялата хронология" aria-label="Отвори цялата хронология">🔍</button>
     </div>
     <div id="timelineList"></div>
    </details>
@@ -2000,6 +2043,17 @@ details[open] > summary{
   <div class="sheet-head">
    <div class="sheet-title" id="sheetTitle">Нов запис</div>
    <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
+  </div>
+
+  <div class="sheet-form hidden" id="form-timeline">
+   <div class="chip-filter-row" id="modalTimelineChips" style="margin-bottom:10px">
+    <button class="filter-chip active" data-mtl="all" type="button">Всички</button>
+    <button class="filter-chip" data-mtl="service" type="button">Сервиз</button>
+    <button class="filter-chip" data-mtl="mod" type="button">Модификации</button>
+    <button class="filter-chip" data-mtl="expense" type="button">Разходи</button>
+    <button class="filter-chip" data-mtl="reminder" type="button">Изпълнени</button>
+   </div>
+   <div id="fullTimelineList"></div>
   </div>
 
   <div class="sheet-form hidden" id="form-glance">
@@ -2393,7 +2447,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъЖ, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -2412,6 +2466,7 @@ let searchQuery="";
 let mguSearchQuery="";
 let activeFilter="all";
 let timelineFilter="all";
+let modalTimelineFilter="all";
 let mguOnlyTodo=false;
 let draftPhotoDataUrl="";
 let editingRecord=null;
@@ -3217,6 +3272,13 @@ function openSheet(formKey,title,record=null){
  if(target)target.classList.remove("hidden");
  $("sheetTitle").textContent=title;
 
+ if(formKey==="timeline"){
+  const car=activeCar();
+  if(car)renderFullTimelineModal(car);
+  backdrop.classList.remove("hidden");
+  return;
+ }
+
  if(formKey==="glance"){
   const car=activeCar();
   if(car)renderQuickGlance(car);
@@ -3479,11 +3541,8 @@ function getFinancialTotals(car){
  return{services,modifications,expenses,total:services+modifications+expenses};
 }
 
-function renderTimeline(car){
- const container=$("timelineList");
- if(!container||!car)return;
- container.replaceChildren();
-
+function getTimelineItems(car){
+ if(!car)return[];
  const items=[];
  car.serviceRecords.forEach(r=>{
   items.push({
@@ -3529,54 +3588,97 @@ function renderTimeline(car){
    sub:["Изпълнено",r.category,r.notes].filter(Boolean).join(" · ")
   });
  });
+ return items.sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""));
+}
 
- const filtered=items
-  .filter(it=>timelineFilter==="all"||it.kind===timelineFilter)
-  .sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))
-  .slice(0,12);
+function buildTimelineRow(it,compact=true){
+ const row=document.createElement("div");
+ row.className="timeline-item";
+ if(!compact){
+  row.style.alignItems="flex-start";
+  row.style.padding="8px 4px";
+ }
 
- if(!filtered.length){
-  container.innerHTML='<div class="empty">Няма събития в хронологията за избрания филтър.</div>';
+ const dot=document.createElement("div");
+ dot.className="tl-dot";
+ dot.textContent=it.icon;
+
+ const body=document.createElement("div");
+ body.className="tl-body";
+
+ const top=document.createElement("div");
+ top.className="tl-top";
+
+ const title=document.createElement("div");
+ title.className="tl-title";
+ if(!compact){
+  title.style.whiteSpace="normal";
+  title.style.overflowWrap="anywhere";
+ }
+ title.textContent=it.title;
+
+ top.append(title);
+ if(it.cost){
+  const cost=document.createElement("div");
+  cost.className="tl-cost";
+  cost.textContent=formatMoney(it.cost);
+  top.append(cost);
+ }
+
+ const meta=document.createElement("div");
+ meta.className="tl-meta";
+ if(!compact){
+  meta.style.whiteSpace="normal";
+  meta.style.overflowWrap="anywhere";
+  meta.style.fontSize="10px";
+  meta.style.marginTop="2px";
+ }
+ const parts=[formatDate(it.date)];
+ if(it.mileage)parts.push(it.mileage.toLocaleString("bg-BG")+" km");
+ if(it.sub)parts.push(it.sub);
+ meta.textContent=parts.join(" · ");
+
+ body.append(top,meta);
+ row.append(dot,body);
+ return row;
+}
+
+function renderTimeline(car){
+ const container=$("timelineList");
+ const openFullBtn=$("tlOpenFullBtn");
+ if(!container||!car)return;
+ container.replaceChildren();
+
+ const allFiltered=getTimelineItems(car).filter(it=>timelineFilter==="all"||it.kind===timelineFilter);
+ if(openFullBtn){
+  openFullBtn.classList.toggle("hidden",allFiltered.length<=3);
+ }
+
+ const preview=allFiltered.slice(0,3);
+ if(!preview.length){
+  container.innerHTML='<div class="empty" style="padding:12px 10px">Няма операции за избрания филтър.</div>';
   return;
  }
 
- filtered.forEach(it=>{
-  const row=document.createElement("div");
-  row.className="timeline-item";
+ preview.forEach(it=>container.append(buildTimelineRow(it,true)));
+}
 
-  const dot=document.createElement("div");
-  dot.className="tl-dot";
-  dot.textContent=it.icon;
+function renderFullTimelineModal(car){
+ const container=$("fullTimelineList");
+ if(!container||!car)return;
+ container.replaceChildren();
 
-  const body=document.createElement("div");
-  body.className="tl-body";
-
-  const top=document.createElement("div");
-  top.className="tl-top";
-
-  const title=document.createElement("div");
-  title.className="tl-title";
-  title.textContent=it.title;
-
-  top.append(title);
-  if(it.cost){
-   const cost=document.createElement("div");
-   cost.className="tl-cost";
-   cost.textContent=formatMoney(it.cost);
-   top.append(cost);
-  }
-
-  const meta=document.createElement("div");
-  meta.className="tl-meta";
-  const parts=[formatDate(it.date)];
-  if(it.mileage)parts.push(it.mileage.toLocaleString("bg-BG")+" km");
-  if(it.sub)parts.push(it.sub);
-  meta.textContent=parts.join(" · ");
-
-  body.append(top,meta);
-  row.append(dot,body);
-  container.append(row);
+ document.querySelectorAll("#modalTimelineChips .filter-chip").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.mtl===modalTimelineFilter);
  });
+
+ const items=getTimelineItems(car).filter(it=>modalTimelineFilter==="all"||it.kind===modalTimelineFilter);
+ if(!items.length){
+  container.innerHTML='<div class="empty">Няма операции за избрания филтър.</div>';
+  return;
+ }
+
+ items.forEach(it=>container.append(buildTimelineRow(it,false)));
 }
 
 function renderExpenseCharts(car,totals,container){
@@ -4777,6 +4879,21 @@ $("timelineFilterChips")?.addEventListener("click",e=>{
  });
  const car=activeCar();
  if(car)renderTimeline(car);
+});
+
+$("tlOpenFullBtn")?.addEventListener("click",()=>{
+ const car=activeCar();
+ if(!car)return;
+ modalTimelineFilter=timelineFilter;
+ openSheet("timeline","🕒 Цялата хронология · "+(car.nick||car.details.model||"Машина"));
+});
+
+$("modalTimelineChips")?.addEventListener("click",e=>{
+ const chip=e.target.closest("[data-mtl]");
+ if(!chip)return;
+ modalTimelineFilter=chip.dataset.mtl||"all";
+ const car=activeCar();
+ if(car)renderFullTimelineModal(car);
 });
 
 $("shareUrlInput")?.addEventListener("input",e=>{
