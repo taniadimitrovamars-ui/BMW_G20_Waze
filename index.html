@@ -1152,7 +1152,10 @@ details[open] > summary{
 
  <div id="garageEmpty" class="panel empty">
   Все още няма добавени автомобили.<br>
-  <button class="btn small" id="emptyAddCarBtn" type="button" style="margin-top:12px">＋ Добави автомобил</button>
+  <div class="btn-row" style="justify-content:center;max-width:360px;margin:12px auto 0">
+   <button class="btn small" id="emptyAddCarBtn" type="button">＋ Добави автомобил</button>
+   <button class="btn secondary small" id="emptyLoadDemoBtn" type="button">👀 Зареди демо кола</button>
+  </div>
  </div>
 
  <main id="mainContent" class="hidden">
@@ -1461,6 +1464,24 @@ details[open] > summary{
     <div id="localMessage" class="form-msg"></div>
    </details>
 
+   <details class="drop-panel" id="cloudSyncPanel">
+    <summary>
+     <div class="panel-lead">
+      <span class="panel-icon">☁️</span>
+      <div>
+       <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
+       <div class="drop-sub">Акаунт, синхронизация, облачен архив, устройства и история</div>
+      </div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="muted" id="dashboardCloud">Локален режим · Готов за синхронизация</div>
+    <div class="muted" id="cloudUser" style="margin-top:4px">Профил: не е влязло устройство</div>
+    <div class="btn-row">
+     <button class="btn small" id="cloudSync" type="button">↻ Синхронизирай сега</button>
+    </div>
+   </details>
+
    <details class="drop-panel">
     <summary>
      <div class="panel-lead">
@@ -1549,7 +1570,7 @@ details[open] > summary{
      </div>
      <span class="chev">▾</span>
     </summary>
-    <div class="muted">QR кодът сочи към целия адрес на приложението (основния URL без специфичен таб/модал), за да може да се отвори чисто на друго устройство или да се добави на началния екран.</div>
+    <div class="muted">Линкът отваря приложението с готова демо кола, ако гаражът на устройството е празен, за да може да се разгледа веднага без да се въвежда ръчно VIN.</div>
     <div class="field" style="margin-top:10px">
      <label>АДРЕС НА ПРИЛОЖЕНИЕТО (URL)</label>
      <input id="shareUrlInput" type="url" placeholder="https://...">
@@ -1561,6 +1582,7 @@ details[open] > summary{
     <div class="btn-row">
      <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
      <button class="btn secondary small" id="resetShareUrlBtn" type="button">Цяло приложение</button>
+     <button class="btn secondary small" id="loadDemoNowBtn" type="button">Демо кола</button>
     </div>
    </details>
   </section>
@@ -1769,6 +1791,130 @@ function getCategoryIcon(category,fallbackTitle=""){
  if(low.includes("преглед"))return"📋";
  if(low.includes("филт"))return"🔧";
  return"📌";
+}
+
+function ensureDropPanelIcons(){
+ document.querySelectorAll("#screen-more details.drop-panel > summary").forEach(sum=>{
+  if(sum.querySelector(".panel-icon"))return;
+  const chev=sum.querySelector(".chev");
+  const titleText=(sum.textContent||"").toLowerCase();
+  let icon="🧩";
+  if(titleText.includes("cloud"))icon="☁️";
+  else if(titleText.includes("профил"))icon="🚗";
+  else if(titleText.includes("управление"))icon="🎛️";
+  else if(titleText.includes("данни")||titleText.includes("архив"))icon="💾";
+  else if(titleText.includes("справочник"))icon="📘";
+  else if(titleText.includes("pwa"))icon="📲";
+  else if(titleText.includes("qr")||titleText.includes("споделян"))icon="📱";
+
+  const lead=document.createElement("div");
+  lead.className="panel-lead";
+  const badge=document.createElement("span");
+  badge.className="panel-icon";
+  badge.textContent=icon;
+
+  const textWrap=document.createElement("div");
+  Array.from(sum.childNodes).forEach(node=>{
+   if(node===chev)return;
+   textWrap.appendChild(node);
+  });
+
+  lead.append(badge,textWrap);
+  sum.replaceChildren(lead);
+  if(chev)sum.appendChild(chev);
+ });
+}
+
+function createDemoCar(){
+ const nextKm=89500;
+ const nextOilDate=addMonths(today(),9);
+ return cleanCar({
+  vin:"WBA5R7C51KAJ84645",
+  nick:"BMW 330i xDrive (Демо)",
+  done:{prep0:true,prep:true,status0:true},
+  details:{
+   make:"BMW",
+   model:"330i xDrive G20",
+   year:2019,
+   engine:"B46D · Stage 2",
+   transmission:"8HP Автомат",
+   mileage:79500,
+   fuel:"Бензин",
+   color:"Сив металик",
+   registration:"DEMO 330",
+   notes:"Демо профил за преглед на приложението. Можеш да добавиш свой автомобил или да изтриеш този запис."
+  },
+  serviceRecords:[
+   {
+    id:"demo-srv-1",
+    date:today(),
+    title:"Масло и филтри (0W-30)",
+    provider:"М-Гараж Сервиз",
+    mileage:79500,
+    cost:190,
+    notes:"Смяна на моторно масло, маслен и въздушен филтър"
+   }
+  ],
+  modifications:[
+   {
+    id:"demo-mod-1",
+    date:today(),
+    title:"MGU / Waze на таблото",
+    category:"Софтуер",
+    status:"Монтирано",
+    partNumber:"ID7-MGU",
+    cost:0,
+    description:"Конфигурация за дисплей и мултимедия"
+   }
+  ],
+  expenses:[
+   {
+    id:"demo-exp-1",
+    date:today(),
+    title:"Зареждане на гориво 100 октана",
+    category:"Гориво",
+    mileage:79500,
+    cost:85,
+    notes:"Пълен резервоар"
+   }
+  ],
+  reminders:[
+   {
+    id:"demo-rem-1",
+    date:today(),
+    title:"Следваща смяна на масло и филтри",
+    category:"Масло",
+    dueMileage:nextKm,
+    dueDate:nextOilDate,
+    notes:"На всеки 10 000 km или 12 месеца",
+    completed:false
+   }
+  ],
+  documents:[]
+ });
+}
+
+function loadDemoCar(silentToast=false){
+ const demo=createDemoCar();
+ if(!demo)return;
+ const existingIdx=cars.findIndex(c=>c.vin===demo.vin);
+ if(existingIdx>=0)cars[existingIdx]=demo;
+ else cars.push(demo);
+ activeVin=demo.vin;
+ save();
+ renderAll();
+ if(!silentToast)showToast("Заредена е демо кола за разглеждане","good");
+}
+
+function shouldAutoLoadDemo(){
+ if(cars.length>0)return false;
+ try{
+  const params=new URLSearchParams(window.location.search||"");
+  const hash=(window.location.hash||"").toLowerCase();
+  return params.get("qr")==="1"||params.get("demo")==="1"||hash.includes("qr")||hash.includes("demo");
+ }catch{
+  return false;
+ }
 }
 
 const STEPS=[
@@ -1986,6 +2132,18 @@ function getFullAppUrl(){
  }
 }
 
+function getQrShareUrl(){
+ const base=getFullAppUrl();
+ if(!base)return"https://example.com";
+ try{
+  const u=new URL(base);
+  u.searchParams.set("qr","1");
+  return u.href;
+ }catch{
+  return base+(base.includes("?")?"&":"?")+"qr=1";
+ }
+}
+
 function renderShareQr(){
  try{
   const input=$("shareUrlInput");
@@ -1994,7 +2152,7 @@ function renderShareQr(){
   if(!img)return;
 
   const rawVal=input?input.value.trim():"";
-  const activeUrl=safeHttpUrl(rawVal)||getFullAppUrl()||"https://example.com";
+  const activeUrl=safeHttpUrl(rawVal)||getQrShareUrl();
   if(input&&!input.value.trim())input.value=activeUrl;
 
   img.src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data="+encodeURIComponent(activeUrl);
@@ -2224,7 +2382,10 @@ function showScreen(name){
  document.querySelectorAll(".nav-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.screen===name));
  document.querySelectorAll(".screen").forEach(sec=>sec.classList.toggle("active",sec.id==="screen-"+name));
  updateFab();
- if(name==="more")renderShareQr();
+ if(name==="more"){
+  ensureDropPanelIcons();
+  renderShareQr();
+ }
  window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -3338,6 +3499,7 @@ function renderRecords(containerId,records,type,car){
 }
 
 function renderAll(){
+ ensureDropPanelIcons();
  renderGarage();
  const car=activeCar();if(!car)return;
  renderOverview(car);renderProfile(car);renderSteps(car);
@@ -3666,7 +3828,7 @@ $("shareUrlInput")?.addEventListener("input",e=>{
 });
 
 $("copyShareLinkBtn")?.addEventListener("click",async()=>{
- const url=safeHttpUrl($("shareUrlInput")?.value)||getFullAppUrl()||"";
+ const url=safeHttpUrl($("shareUrlInput")?.value)||getQrShareUrl();
  if(!url){showToast("Няма валиден URL адрес","warn");return}
  try{
   if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(url);
@@ -3680,12 +3842,15 @@ $("copyShareLinkBtn")?.addEventListener("click",async()=>{
 });
 
 $("resetShareUrlBtn")?.addEventListener("click",()=>{
- const fullApp=getFullAppUrl()||"https://example.com";
+ const qrAppUrl=getQrShareUrl();
  localStorage.removeItem(SHARE_URL_KEY);
- if($("shareUrlInput"))$("shareUrlInput").value=fullApp;
+ if($("shareUrlInput"))$("shareUrlInput").value=qrAppUrl;
  renderShareQr();
- showToast("Зададен е пълният адрес на приложението");
+ showToast("Зададен е QR линк за бърз старт");
 });
+
+$("loadDemoNowBtn")?.addEventListener("click",()=>loadDemoCar(false));
+$("emptyLoadDemoBtn")?.addEventListener("click",()=>loadDemoCar(false));
 
 $("recordSearch")?.addEventListener("input",e=>{
  searchQuery=e.target.value||"";
@@ -3871,24 +4036,31 @@ window.setCloudSyncStatus=setCloudSyncStatus;
 
 const cloudObserver=new MutationObserver(()=>{
  forcedCloudState="";
+ ensureDropPanelIcons();
  refreshGarageCloudWidget();
 });
 window.addEventListener("DOMContentLoaded",()=>{
+ ensureDropPanelIcons();
  const dCloud=$("dashboardCloud");
  const cUser=$("cloudUser");
+ const moreSec=$("screen-more");
  if(dCloud)cloudObserver.observe(dCloud,{childList:true,characterData:true,subtree:true});
  if(cUser)cloudObserver.observe(cUser,{childList:true,characterData:true,subtree:true});
+ if(moreSec)cloudObserver.observe(moreSec,{childList:true,subtree:true});
  refreshGarageCloudWidget();
 });
 window.addEventListener("storage",e=>{
  if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshGarageCloudWidget();
 });
 
-const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getFullAppUrl()||"";
+const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getQrShareUrl();
 if($("shareUrlInput")&&savedShareUrl)$("shareUrlInput").value=savedShareUrl;
 
 initPwaSupport();
 loadCars();
+if(shouldAutoLoadDemo()){
+ loadDemoCar(true);
+}
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
 renderAll();
 save();
