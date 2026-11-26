@@ -541,6 +541,29 @@ a{color:var(--accent)}
 .ls-meta{font-size:10.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 .ls-cost{font-size:12px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
+.timeline-item{
+ display:flex;
+ gap:11px;
+ align-items:flex-start;
+ padding:10px 0;
+ border-bottom:1px solid var(--border);
+}
+.timeline-item:last-child{border-bottom:0;padding-bottom:0}
+.tl-dot{
+ width:30px;height:30px;flex:0 0 30px;
+ border-radius:10px;
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ display:flex;align-items:center;justify-content:center;
+ font-size:14px;
+ margin-top:1px;
+}
+.tl-body{flex:1;min-width:0}
+.tl-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.tl-title{font-size:12px;font-weight:900;overflow-wrap:anywhere}
+.tl-cost{font-size:11.5px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;font-variant-numeric:tabular-nums}
+
 .glance-grid{
  display:grid;
  grid-template-columns:repeat(2,minmax(0,1fr));
@@ -845,6 +868,14 @@ textarea{min-height:82px;resize:vertical}
  background:var(--accent-soft);color:var(--accent);
  white-space:nowrap;
 }
+.mod-status-tag{
+ font-size:9px;font-weight:900;
+ padding:2px 7px;border-radius:999px;
+ background:var(--surface-3);color:var(--muted);
+ white-space:nowrap;
+}
+.mod-status-tag.installed{background:var(--good-soft);color:var(--good)}
+.mod-status-tag.ordered{background:var(--warn-soft);color:var(--warn)}
 .record-cost{font-variant-numeric:tabular-nums;white-space:nowrap}
 .record-date{font-size:10px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
 .record-meta{
@@ -1189,6 +1220,24 @@ details[open] > summary{
     </div>
    </div>
 
+   <details class="drop-panel" open>
+    <summary>
+     <div>
+      <div>ХРОНОЛОГИЯ (TIMELINE)</div>
+      <div class="drop-sub">Сервизи, модификации, разходи и изпълнени задачи по дата</div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="chip-filter-row" id="timelineFilterChips" style="margin-bottom:8px">
+     <button class="filter-chip active" data-tl="all" type="button">Всички</button>
+     <button class="filter-chip" data-tl="service" type="button">Сервиз</button>
+     <button class="filter-chip" data-tl="mod" type="button">Модификации</button>
+     <button class="filter-chip" data-tl="expense" type="button">Разходи</button>
+     <button class="filter-chip" data-tl="reminder" type="button">Изпълнени</button>
+    </div>
+    <div id="timelineList"></div>
+   </details>
+
    <details class="drop-panel">
     <summary>
      <div>
@@ -1308,23 +1357,23 @@ details[open] > summary{
    <details class="drop-panel" open>
     <summary>
      <div>
-      <div>СПОДЕЛЯНЕ И QR КОД</div>
-      <div class="drop-sub">Бързо отваряне на приложението на телефон чрез QR или линк</div>
+      <div>СПОДЕЛЯНЕ И QR КОД (ЦЯЛО ПРИЛОЖЕНИЕ)</div>
+      <div class="drop-sub">Бързо отваряне на цялото приложение на телефон чрез QR или линк</div>
      </div>
      <span class="chev">▾</span>
     </summary>
-    <div class="muted">Сканирай QR кода с камерата на телефона, за да отвориш приложението. Ако отваряш от локален файл, можеш да въведеш публичния URL адрес.</div>
+    <div class="muted">QR кодът сочи към целия адрес на приложението (основния URL без специфичен таб/модал), за да може да се отвори чисто на друго устройство или да се добави на началния екран.</div>
     <div class="field" style="margin-top:10px">
-     <label>АДРЕС ЗА СПОДЕЛЯНЕ (URL)</label>
+     <label>АДРЕС НА ПРИЛОЖЕНИЕТО (URL)</label>
      <input id="shareUrlInput" type="url" placeholder="https://...">
     </div>
     <div class="qr-box">
-     <img id="qrImg" alt="QR код за споделяне на приложението" width="188" height="188">
+     <img id="qrImg" alt="QR код за споделяне на цялото приложение" width="188" height="188">
      <div class="qr-caption" id="qrCaption"></div>
     </div>
     <div class="btn-row">
      <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
-     <button class="btn secondary small" id="resetShareUrlBtn" type="button">Текущ адрес</button>
+     <button class="btn secondary small" id="resetShareUrlBtn" type="button">Цяло приложение</button>
     </div>
    </details>
 
@@ -1559,6 +1608,7 @@ details[open] > summary{
    <div class="form-grid">
     <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
     <div class="field"><label>КАТЕГОРИЯ</label><input id="mCategory" placeholder="Двигател"></div>
+    <div class="field"><label>СТАТУС</label><select id="mStatus"><option>Монтирано</option><option>Поръчано</option><option>Планирано</option></select></div>
     <div class="field"><label>АРТИКУЛ / НОМЕР</label><input id="mPartNumber"></div>
     <div class="field"><label>ДАТА</label><input id="mDate" type="date"></div>
     <div class="field"><label>СТОЙНОСТ (€)</label><input id="mCost" type="number" min="0" step="0.01"></div>
@@ -1580,7 +1630,8 @@ details[open] > summary{
     <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
     <div class="field"><label>СТОЙНОСТ (€)</label><input id="eCost" type="number" min="0" step="0.01"></div>
     <div class="field"><label>КАТЕГОРИЯ</label><select id="eCategory"><option>Гориво</option><option>Сервиз</option><option>Части</option><option>Застраховка</option><option>Данък</option><option>Гуми</option><option>Други</option></select></div>
-    <div class="field"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
+    <div class="field"><label>ПРОБЕГ (KM, ПО ЖЕЛАНИЕ)</label><input id="eMileage" type="number" min="0" placeholder="Например 85000"></div>
+    <div class="field full"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
    </div>
    <div class="btn-row"><button class="btn" id="addExpenseButton" type="button">Запази разход</button></div>
   </div>
@@ -1678,6 +1729,7 @@ let currentScreen="garage";
 let currentSeg="service";
 let searchQuery="";
 let activeFilter="all";
+let timelineFilter="all";
 let mguOnlyTodo=false;
 let forcedCloudState="";
 let draftPhotoDataUrl="";
@@ -1752,6 +1804,20 @@ function safeHttpUrl(value){
  catch(error){return""}
 }
 
+function getFullAppUrl(){
+ try{
+  const loc=window.location;
+  if(!loc||!loc.href)return"";
+  if(loc.protocol==="http:"||loc.protocol==="https:"){
+   const basePath=loc.pathname.replace(/[^/]*$/,"/");
+   return safeHttpUrl(loc.origin+basePath)||safeHttpUrl(loc.href.split("#")[0])||"";
+  }
+  return safeHttpUrl(loc.href.split("#")[0])||"";
+ }catch{
+  return"";
+ }
+}
+
 function renderShareQr(){
  try{
   const input=$("shareUrlInput");
@@ -1760,7 +1826,7 @@ function renderShareQr(){
   if(!img)return;
 
   const rawVal=input?input.value.trim():"";
-  const activeUrl=safeHttpUrl(rawVal)||safeHttpUrl(window.location.href)||"https://example.com";
+  const activeUrl=safeHttpUrl(rawVal)||getFullAppUrl()||"https://example.com";
   if(input&&!input.value.trim())input.value=activeUrl;
 
   img.src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data="+encodeURIComponent(activeUrl);
@@ -1785,7 +1851,11 @@ function cleanRecord(record,type){
   result.completed=r.completed===true;result.category=safeText(r.category,80);
   result.sourceServiceId=safeText(r.sourceServiceId,100);
  }
- if(type==="modification"){result.category=safeText(r.category,100);result.partNumber=safeText(r.partNumber,100)}
+ if(type==="modification"){
+  result.category=safeText(r.category,100);
+  result.partNumber=safeText(r.partNumber,100);
+  result.status=safeText(r.status||"Монтирано",40)||"Монтирано";
+ }
  if(type==="document"){
   result.fileName=safeText(r.fileName,200);result.fileUrl=safeHttpUrl(r.fileUrl);
   result.documentType=safeText(r.documentType,100);
@@ -2007,8 +2077,13 @@ function renderFilterChips(car){
   const cats=Array.from(new Set(car.expenses.map(r=>r.category).filter(Boolean)));
   options=[{value:"all",label:"Всички"},...cats.map(c=>({value:c,label:c}))];
  }else if(currentSeg==="mods"){
+  const statuses=Array.from(new Set(car.modifications.map(r=>r.status||"Монтирано").filter(Boolean)));
   const cats=Array.from(new Set(car.modifications.map(r=>r.category).filter(Boolean)));
-  options=[{value:"all",label:"Всички"},...cats.map(c=>({value:c,label:c}))];
+  options=[
+   {value:"all",label:"Всички"},
+   ...statuses.map(s=>({value:"status:"+s,label:s})),
+   ...cats.map(c=>({value:"cat:"+c,label:c}))
+  ];
  }else if(currentSeg==="documents"){
   const types=Array.from(new Set(car.documents.map(r=>r.documentType).filter(Boolean)));
   options=[{value:"all",label:"Всички"},...types.map(t=>({value:t,label:t}))];
@@ -2064,10 +2139,11 @@ function resetFormFields(formKey){
  }else if(formKey==="mods"){
   $("addModificationButton").textContent="Запази модификация";
   ["mTitle","mCategory","mPartNumber","mCost","mDescription"].forEach(id=>$(id).value="");
+  $("mStatus").value="Монтирано";
   $("mDate").value=today();
  }else if(formKey==="expenses"){
   $("addExpenseButton").textContent="Запази разход";
-  ["eTitle","eCost","eNotes"].forEach(id=>$(id).value="");
+  ["eTitle","eCost","eMileage","eNotes"].forEach(id=>$(id).value="");
   $("eCategory").value="Гориво";
   $("eDate").value=today();
  }else if(formKey==="documents"){
@@ -2212,6 +2288,11 @@ function openSheet(formKey,title,record=null){
    $("addModificationButton").textContent="Запази промените";
    $("mTitle").value=record.title||"";
    $("mCategory").value=record.category||"";
+   if(record.status&&Array.from($("mStatus").options).some(o=>o.value===record.status)){
+    $("mStatus").value=record.status;
+   }else{
+    $("mStatus").value="Монтирано";
+   }
    $("mPartNumber").value=record.partNumber||"";
    $("mDate").value=toIsoDate(record.date)||today();
    $("mCost").value=record.cost||"";
@@ -2226,6 +2307,7 @@ function openSheet(formKey,title,record=null){
    }else{
     $("eCategory").value="Други";
    }
+   $("eMileage").value=record.mileage||"";
    $("eNotes").value=record.notes||"";
   }else if(formKey==="documents"){
    $("addDocumentButton").textContent="Запази промените";
@@ -2304,6 +2386,106 @@ function getFinancialTotals(car){
  const modifications=car.modifications.reduce((sum,r)=>sum+safeNumber(r.cost),0);
  const expenses=car.expenses.reduce((sum,r)=>sum+safeNumber(r.cost),0);
  return{services,modifications,expenses,total:services+modifications+expenses};
+}
+
+function renderTimeline(car){
+ const container=$("timelineList");
+ if(!container||!car)return;
+ container.replaceChildren();
+
+ const items=[];
+ car.serviceRecords.forEach(r=>{
+  items.push({
+   kind:"service",
+   icon:"🛠️",
+   title:r.title||"Сервизен запис",
+   date:r.date||"",
+   mileage:r.mileage||0,
+   cost:r.cost||0,
+   sub:[r.provider,r.notes].filter(Boolean).join(" · ")
+  });
+ });
+ car.modifications.forEach(r=>{
+  items.push({
+   kind:"mod",
+   icon:"⚙️",
+   title:r.title||"Модификация",
+   date:r.date||"",
+   mileage:0,
+   cost:r.cost||0,
+   sub:[r.status||"Монтирано",r.category,r.partNumber,r.description].filter(Boolean).join(" · ")
+  });
+ });
+ car.expenses.forEach(r=>{
+  items.push({
+   kind:"expense",
+   icon:getCategoryIcon(r.category,r.title),
+   title:r.title||"Разход",
+   date:r.date||"",
+   mileage:r.mileage||0,
+   cost:r.cost||0,
+   sub:[r.category,r.notes].filter(Boolean).join(" · ")
+  });
+ });
+ car.reminders.filter(r=>r.completed).forEach(r=>{
+  items.push({
+   kind:"reminder",
+   icon:"✓",
+   title:r.title||"Изпълнено напомняне",
+   date:r.dueDate||r.date||"",
+   mileage:r.dueMileage||0,
+   cost:0,
+   sub:["Изпълнено",r.category,r.notes].filter(Boolean).join(" · ")
+  });
+ });
+
+ const filtered=items
+  .filter(it=>timelineFilter==="all"||it.kind===timelineFilter)
+  .sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))
+  .slice(0,12);
+
+ if(!filtered.length){
+  container.innerHTML='<div class="empty">Няма събития в хронологията за избрания филтър.</div>';
+  return;
+ }
+
+ filtered.forEach(it=>{
+  const row=document.createElement("div");
+  row.className="timeline-item";
+
+  const dot=document.createElement("div");
+  dot.className="tl-dot";
+  dot.textContent=it.icon;
+
+  const body=document.createElement("div");
+  body.className="tl-body";
+
+  const top=document.createElement("div");
+  top.className="tl-top";
+
+  const title=document.createElement("div");
+  title.className="tl-title";
+  title.textContent=it.title;
+
+  top.append(title);
+  if(it.cost){
+   const cost=document.createElement("div");
+   cost.className="tl-cost";
+   cost.textContent=formatMoney(it.cost);
+   top.append(cost);
+  }
+
+  const meta=document.createElement("div");
+  meta.className="tl-meta";
+  const parts=[formatDate(it.date)];
+  if(it.mileage)parts.push(it.mileage.toLocaleString("bg-BG")+" km");
+  if(it.sub)parts.push(it.sub);
+  meta.textContent=parts.join(" · ");
+
+  body.append(top,meta);
+  row.append(dot,body);
+  container.append(row);
+ });
 }
 
 function renderFinance(car){
@@ -2641,6 +2823,7 @@ function renderOverview(car){
  renderHeroPhoto(car);
  renderLastServiceCard(car);
  renderHealthWidget(car);
+ renderTimeline(car);
 
  const active=car.reminders.filter(r=>!r.completed);
  const overdue=active.filter(r=>reminderState(r,car).overdue);
@@ -2855,7 +3038,7 @@ function matchesSearchAndFilter(record,type,car){
  if(q){
   const hay=[
    record.title,record.description,record.notes,record.provider,
-   record.category,record.partNumber,record.documentType,record.fileName
+   record.category,record.partNumber,record.status,record.documentType,record.fileName
   ].filter(Boolean).join(" ").toLowerCase();
   if(!hay.includes(q))return false;
  }
@@ -2869,7 +3052,10 @@ function matchesSearchAndFilter(record,type,car){
   if(activeFilter==="done")return record.completed===true;
  }
  if(type==="expense")return record.category===activeFilter;
- if(type==="modification")return record.category===activeFilter;
+ if(type==="modification"){
+  if(activeFilter.startsWith("status:"))return (record.status||"Монтирано")===activeFilter.slice(7);
+  if(activeFilter.startsWith("cat:"))return record.category===activeFilter.slice(4);
+ }
  if(type==="document")return record.documentType===activeFilter;
  return true;
 }
@@ -2905,6 +3091,13 @@ function renderRecords(containerId,records,type,car){
    titleWrap.append(autoBadge);
   }
 
+  if(type==="modification"&&record.status){
+   const stBadge=document.createElement("span");
+   stBadge.className="mod-status-tag"+(record.status==="Монтирано"?" installed":record.status==="Поръчано"?" ordered":"");
+   stBadge.textContent=record.status;
+   titleWrap.append(stBadge);
+  }
+
   const cost=document.createElement("strong");
   cost.className="record-cost";
   cost.textContent=record.cost?formatMoney(record.cost):"";
@@ -2914,6 +3107,7 @@ function renderRecords(containerId,records,type,car){
   const meta=document.createElement("div");meta.className="record-meta";
   const lines=[];
   if(record.category)lines.push("Категория: "+record.category);
+  if(record.status&&type==="modification")lines.push("Статус: "+record.status);
   if(record.mileage)lines.push("Пробег: "+record.mileage.toLocaleString("bg-BG")+" km");
   if(record.provider)lines.push("Извършител: "+record.provider);
   if(record.partNumber)lines.push("Артикул: "+record.partNumber);
@@ -3177,6 +3371,7 @@ function addModification(){
     title:getVal("mTitle"),
     date:getVal("mDate")||today(),
     category:getVal("mCategory"),
+    status:getVal("mStatus"),
     partNumber:getVal("mPartNumber"),
     cost:getVal("mCost"),
     description:getVal("mDescription")
@@ -3186,7 +3381,7 @@ function addModification(){
    return;
   }
  }
- addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
+ addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),status:getVal("mStatus"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
  closeSheet();
  showToast("Модификацията е запазена","good");
 }
@@ -3205,6 +3400,7 @@ function addExpense(){
     date:getVal("eDate")||today(),
     cost:getVal("eCost"),
     category:getVal("eCategory"),
+    mileage:getVal("eMileage"),
     notes:getVal("eNotes")
    },"expense");
    save();renderAll();closeSheet();
@@ -3212,7 +3408,7 @@ function addExpense(){
    return;
   }
  }
- addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),notes:getVal("eNotes")});
+ addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),mileage:getVal("eMileage"),notes:getVal("eNotes")});
  closeSheet();
  showToast("Разходът е запазен","good");
 }
@@ -3274,6 +3470,17 @@ async function importBackup(file){
  }
 }
 
+$("timelineFilterChips")?.addEventListener("click",e=>{
+ const chip=e.target.closest("[data-tl]");
+ if(!chip)return;
+ timelineFilter=chip.dataset.tl||"all";
+ document.querySelectorAll("#timelineFilterChips .filter-chip").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.tl===timelineFilter);
+ });
+ const car=activeCar();
+ if(car)renderTimeline(car);
+});
+
 $("shareUrlInput")?.addEventListener("input",e=>{
  const val=e.target.value.trim();
  const valid=safeHttpUrl(val);
@@ -3282,7 +3489,7 @@ $("shareUrlInput")?.addEventListener("input",e=>{
 });
 
 $("copyShareLinkBtn")?.addEventListener("click",async()=>{
- const url=safeHttpUrl($("shareUrlInput")?.value)||safeHttpUrl(window.location.href)||"";
+ const url=safeHttpUrl($("shareUrlInput")?.value)||getFullAppUrl()||"";
  if(!url){showToast("Няма валиден URL адрес","warn");return}
  try{
   if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(url);
@@ -3291,16 +3498,16 @@ $("copyShareLinkBtn")?.addEventListener("click",async()=>{
    temp.style.position="fixed";temp.style.opacity="0";document.body.append(temp);
    temp.focus();temp.select();document.execCommand("copy");temp.remove();
   }
-  showToast("Линкът е копиран","good");
+  showToast("Линкът към приложението е копиран","good");
  }catch{showToast("Неуспешно копиране","danger")}
 });
 
 $("resetShareUrlBtn")?.addEventListener("click",()=>{
- const current=safeHttpUrl(window.location.href)||"https://example.com";
+ const fullApp=getFullAppUrl()||"https://example.com";
  localStorage.removeItem(SHARE_URL_KEY);
- if($("shareUrlInput"))$("shareUrlInput").value=current;
+ if($("shareUrlInput"))$("shareUrlInput").value=fullApp;
  renderShareQr();
- showToast("Зададен е текущият адрес");
+ showToast("Зададен е пълният адрес на приложението");
 });
 
 $("recordSearch")?.addEventListener("input",e=>{
@@ -3494,7 +3701,7 @@ window.addEventListener("storage",e=>{
  if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshGarageCloudWidget();
 });
 
-const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||safeHttpUrl(window.location.href)||"";
+const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getFullAppUrl()||"";
 if($("shareUrlInput")&&savedShareUrl)$("shareUrlInput").value=savedShareUrl;
 
 loadCars();
