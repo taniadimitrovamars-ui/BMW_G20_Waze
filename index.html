@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1018">
+<meta name="theme-color" content="#080c12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
@@ -68,7 +68,6 @@ a{color:var(--accent)}
  padding:12px 14px 20px;
 }
 
-/* Top App Bar */
 .topbar{
  position:sticky;
  top:0;
@@ -114,7 +113,6 @@ a{color:var(--accent)}
  white-space:nowrap;
 }
 
-/* Screens */
 .screen{display:none}
 .screen.active{display:block;animation:screenIn .18s ease}
 @keyframes screenIn{
@@ -139,7 +137,6 @@ a{color:var(--accent)}
 }
 .muted,.backup-info{color:var(--muted);font-size:12px;line-height:1.6}
 
-/* Garage Switcher Bar */
 .garage-bar{
  display:flex;
  align-items:center;
@@ -173,7 +170,6 @@ a{color:var(--accent)}
  font-size:11px;font-weight:900;
 }
 
-/* Hero Vehicle Card */
 .hero-card{
  position:relative;
  overflow:hidden;
@@ -229,7 +225,6 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
 
-/* Segmented Control inside Service Hub */
 .seg-bar{
  display:flex;
  gap:6px;
@@ -260,7 +255,6 @@ a{color:var(--accent)}
 .seg-view{display:none}
 .seg-view.active{display:block;animation:screenIn .16s ease}
 
-/* Forms & Sheet */
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field{min-width:0}
 .field.full{grid-column:1/-1}
@@ -295,7 +289,6 @@ textarea{min-height:82px;resize:vertical}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn-row .btn{flex:1}
 
-/* Bottom Sheet Modal */
 .sheet-backdrop{
  position:fixed;inset:0;z-index:60;
  background:rgba(3,7,13,.68);
@@ -325,7 +318,6 @@ textarea{min-height:82px;resize:vertical}
  font-size:16px;
 }
 
-/* Floating Action Button */
 .fab{
  position:fixed;
  right:max(16px,calc(50% - 310px));
@@ -339,7 +331,6 @@ textarea{min-height:82px;resize:vertical}
  display:inline-flex;align-items:center;gap:6px;
 }
 
-/* Cards & Lists */
 .record{
  border:1px solid var(--border);background:var(--surface-2);
  border-radius:16px;padding:13px 14px;margin:9px 0;
@@ -379,7 +370,6 @@ textarea{min-height:82px;resize:vertical}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
 
-/* MGU Steps */
 .step-card{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:17px;padding:14px;margin:10px 0;
@@ -445,7 +435,6 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
 .finance-caption{font-size:10px;color:var(--muted)}
 
-/* Accordion inside Reference */
 details.ref-box{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:15px;padding:12px 14px;margin:9px 0;
@@ -457,7 +446,6 @@ details.ref-box summary{
 details.ref-box summary::-webkit-details-marker{display:none}
 details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 
-/* Cloud compatibility hook (.rules) */
 .rules{margin-top:12px}
 .rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
 .rules ~ * button:disabled{opacity:.55!important}
@@ -466,7 +454,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 .rules ~ * .muted,.rules ~ * small{color:var(--muted)}
 .rules ~ * .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
 
-/* Fixed Bottom App Navigation */
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
  min-height:calc(var(--nav-h) + env(safe-area-inset-bottom));
@@ -517,7 +504,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
   </div>
  </header>
 
- <!-- Компактна лента за избор на автомобил -->
  <div class="garage-bar" id="garageBar" aria-label="Автомобили в гаража"></div>
 
  <div id="garageEmpty" class="panel empty hidden">
@@ -526,7 +512,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
  </div>
 
  <main id="mainContent" class="hidden">
-  <!-- ЕКРАН 1: ГАРАЖ / ОБЗОР -->
   <section class="screen active" id="screen-garage">
    <div class="hero-card">
     <div class="hero-top">
@@ -557,7 +542,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    </div>
   </section>
 
-  <!-- ЕКРАН 2: СЕРВИЗ ХЪБ (Сервиз / Напомняния / Модификации / Разходи / Документи) -->
   <section class="screen" id="screen-service">
    <div class="seg-bar" id="serviceSegs" role="tablist">
     <button class="seg-btn active" data-seg="service" type="button">Сервиз</button>
@@ -605,7 +589,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    </div>
   </section>
 
-  <!-- ЕКРАН 3: MGU ПРОЦЕДУРА -->
   <section class="screen" id="screen-mgu">
    <div class="panel">
     <div class="section-title">BMW MGU · ПЪЛНА ПРОЦЕДУРА</div>
@@ -630,7 +613,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div id="stepsList"></div>
   </section>
 
-  <!-- ЕКРАН 4: ОЩЕ (Профил, Справочник, Управление и Архив/Cloud) -->
   <section class="screen" id="screen-more">
    <div class="panel">
     <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ</div>
@@ -727,10 +709,8 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
  <div class="footer">M-GARAGE PRO 4.0 · YOUR VEHICLE. YOUR DATA.</div>
 </div>
 
-<!-- Плаващ бутон за бързо добавяне -->
 <button class="fab" id="fabAdd" type="button">＋ Добави</button>
 
-<!-- Bottom Sheet модален панел за форми -->
 <div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
  <div class="sheet">
   <div class="sheet-head">
@@ -738,7 +718,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
   </div>
 
-  <!-- Форма: Нов автомобил -->
   <div class="sheet-form hidden" id="form-car">
    <div class="form-grid">
     <div class="field full"><label>VIN НОМЕР – 17 СИМВОЛА</label><input id="newVin" maxlength="17" placeholder="Например: WBA..."></div>
@@ -753,7 +732,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div id="addCarMessage" class="form-msg"></div>
   </div>
 
-  <!-- Форма: Сервиз -->
   <div class="sheet-form hidden" id="form-service">
    <div class="form-grid">
     <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
@@ -775,7 +753,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div class="btn-row"><button class="btn" id="addServiceButton" type="button">Запази сервизен запис</button></div>
   </div>
 
-  <!-- Форма: Напомняне -->
   <div class="sheet-form hidden" id="form-reminders">
    <div class="form-grid">
     <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
@@ -787,7 +764,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div class="btn-row"><button class="btn" id="addReminderButton" type="button">Запази напомняне</button></div>
   </div>
 
-  <!-- Форма: Модификация -->
   <div class="sheet-form hidden" id="form-mods">
    <div class="form-grid">
     <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
@@ -800,7 +776,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div class="btn-row"><button class="btn" id="addModificationButton" type="button">Запази модификация</button></div>
   </div>
 
-  <!-- Форма: Разход -->
   <div class="sheet-form hidden" id="form-expenses">
    <div class="form-grid">
     <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
@@ -812,7 +787,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div class="btn-row"><button class="btn" id="addExpenseButton" type="button">Запази разход</button></div>
   </div>
 
-  <!-- Форма: Документ -->
   <div class="sheet-form hidden" id="form-documents">
    <div class="form-grid">
     <div class="field full"><label>ИМЕ НА ДОКУМЕНТА</label><input id="dTitle" placeholder="Фактура / сервизен протокол"></div>
@@ -826,7 +800,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
  </div>
 </div>
 
-<!-- Долна навигация на приложението -->
 <nav class="bottom-nav" id="bottomNav" aria-label="Навигация на приложението">
  <div class="bottom-nav-inner">
   <button class="nav-btn active" data-screen="garage" type="button">
