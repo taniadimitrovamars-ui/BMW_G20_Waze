@@ -2624,6 +2624,72 @@ function resetFormFields(formKey){
  }
 }
 
+function renewReminderRecord(record,car){
+ if(!record||!car)return null;
+ record.completed=true;
+
+ const cat=(record.category||"").toLowerCase();
+ const titleLow=(record.title||"").toLowerCase();
+ const currentKm=safeNumber(car.details.mileage);
+ const prevDueKm=safeNumber(record.dueMileage);
+ const prevBaseKm=safeNumber(record.mileage);
+
+ let addKm=0;
+ let addMonthsVal=0;
+
+ if(cat.includes("масло")||cat.includes("филт")||titleLow.includes("масло")){
+  addKm=10000;
+  addMonthsVal=12;
+ }else if(cat.includes("спирач")||titleLow.includes("спирач")||titleLow.includes("наклад")){
+  addKm=20000;
+  addMonthsVal=12;
+ }else if(cat.includes("гум")||titleLow.includes("гум")){
+  addMonthsVal=6;
+ }else if(cat.includes("преглед")||cat.includes("застрах")||titleLow.includes("преглед")||titleLow.includes("застрах")||titleLow.includes("гражданск")){
+  addMonthsVal=12;
+ }else{
+  if(prevDueKm>0&&prevBaseKm>0&&prevDueKm>prevBaseKm)addKm=prevDueKm-prevBaseKm;
+  else if(prevDueKm>0)addKm=10000;
+  addMonthsVal=12;
+ }
+
+ let nextMileage=0;
+ if(addKm>0){
+  const anchorKm=currentKm>0?currentKm:(prevDueKm>0?prevDueKm:0);
+  nextMileage=anchorKm>0?anchorKm+addKm:addKm;
+ }
+
+ let nextDate="";
+ const baseDateObj=parseFlexibleDate(today())||new Date();
+ if(addMonthsVal>0){
+  nextDate=addMonths(toIsoDate(baseDateObj),addMonthsVal);
+ }else if(record.dueDate){
+  nextDate=addMonths(toIsoDate(baseDateObj),12);
+ }
+
+ const nextRem=cleanRecord({
+  id:makeId(),
+  date:today(),
+  mileage:currentKm,
+  title:record.title||"Напомняне",
+  category:record.category||"Друго",
+  dueMileage:nextMileage,
+  dueDate:nextDate,
+  notes:record.notes||"",
+  completed:false
+ },"reminder");
+
+ car.reminders.push(nextRem);
+ save();
+ renderAll();
+
+ const summaryParts=[];
+ if(nextMileage)summaryParts.push(nextMileage.toLocaleString("bg-BG")+" km");
+ if(nextDate)summaryParts.push(formatDate(nextDate));
+ showToast("Подновено: "+(summaryParts.join(" · ")||"нов цикъл"),"good");
+ return nextRem;
+}
+
 function renderQuickGlance(car){
  if(!car)return;
  const totals=getFinancialTotals(car);
@@ -2669,12 +2735,16 @@ function renderQuickGlance(car){
   topRow.append(info,tag);
   card.append(topRow);
 
+  const actRow=document.createElement("div");
+  actRow.style.display="flex";
+  actRow.style.gap="8px";
+  actRow.style.marginTop="10px";
+
   const doneBtn=document.createElement("button");
   doneBtn.type="button";
   doneBtn.className="btn good small";
-  doneBtn.style.marginTop="10px";
-  doneBtn.style.width="100%";
-  doneBtn.textContent="✓ Отбележи напомнянето като изпълнено";
+  doneBtn.style.flex="1";
+  doneBtn.textContent="✓ Изпълнено";
   doneBtn.addEventListener("click",()=>{
    top.completed=true;
    save();
@@ -2682,7 +2752,19 @@ function renderQuickGlance(car){
    renderQuickGlance(activeCar());
    showToast("Напомнянето е отбелязано като изпълнено","good");
   });
-  card.append(doneBtn);
+
+  const renewBtn=document.createElement("button");
+  renewBtn.type="button";
+  renewBtn.className="btn small";
+  renewBtn.style.flex="1";
+  renewBtn.textContent="↻ Поднови";
+  renewBtn.addEventListener("click",()=>{
+   renewReminderRecord(top,activeCar());
+   renderQuickGlance(activeCar());
+  });
+
+  actRow.append(doneBtn,renewBtn);
+  card.append(actRow);
   remBox.append(card);
  }else{
   remBox.innerHTML='<div class="alert good" style="margin:0 0 10px">Няма активни напомняния за обслужване.</div>';
@@ -3310,15 +3392,22 @@ function renderHealthWidget(car){
  const doneBtn=document.createElement("button");
  doneBtn.type="button";
  doneBtn.className="btn good small";
- doneBtn.style.flex="1";
- doneBtn.textContent="✓ Отбележи изпълнено";
+ doneBtn.textContent="✓ Изпълнено";
  doneBtn.addEventListener("click",()=>{
   topItem.completed=true;
   save();
   renderAll();
   showToast("Напомнянето е отбелязано като изпълнено","good");
  });
- spotActions.append(editBtn,doneBtn);
+
+ const renewBtn=document.createElement("button");
+ renewBtn.type="button";
+ renewBtn.className="btn small";
+ renewBtn.style.flex="1";
+ renewBtn.textContent="↻ Поднови";
+ renewBtn.addEventListener("click",()=>renewReminderRecord(topItem,activeCar()));
+
+ spotActions.append(editBtn,doneBtn,renewBtn);
  spot.append(spotActions);
  spotContainer.append(spot);
 }
@@ -3736,13 +3825,30 @@ function renderRecords(containerId,records,type,car){
    status.textContent=record.completed?"✓ Изпълнено":state.overdue?"⚠ Просрочено":state.soon?"Предстои скоро":"Активно напомняне";
    card.append(status);
    if(!record.completed){
-    const complete=document.createElement("button");complete.className="btn good small";
-    complete.style.marginTop="10px";complete.style.width="100%";
-    complete.textContent="Отбележи като изпълнено";
+    const remRow=document.createElement("div");
+    remRow.style.display="flex";
+    remRow.style.gap="8px";
+    remRow.style.marginTop="10px";
+
+    const complete=document.createElement("button");
+    complete.type="button";
+    complete.className="btn good small";
+    complete.style.flex="1";
+    complete.textContent="✓ Изпълнено";
     complete.addEventListener("click",()=>{
      record.completed=true;save();renderAll();
      showToast("Напомнянето е изпълнено","good");
-    });card.append(complete);
+    });
+
+    const renew=document.createElement("button");
+    renew.type="button";
+    renew.className="btn small";
+    renew.style.flex="1";
+    renew.textContent="↻ Поднови";
+    renew.addEventListener("click",()=>renewReminderRecord(record,activeCar()));
+
+    remRow.append(complete,renew);
+    card.append(remRow);
    }
   }else if(type==="document"&&record.fileUrl){
    const safeUrl=safeHttpUrl(record.fileUrl);
