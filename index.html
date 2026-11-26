@@ -392,7 +392,7 @@ a{color:var(--accent)}
  border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));
  border-radius:20px;
  padding:13px;
- margin:6px 0 10px;
+ margin:6px 0 8px;
  box-shadow:var(--shadow);
 }
 .hero-card:after{
@@ -539,7 +539,7 @@ a{color:var(--accent)}
 
 .status-pill{
  border-radius:999px;
- padding:4px 8px;
+ padding:3px 8px;
  font-size:8.5px;font-weight:900;letter-spacing:.5px;
  background:var(--accent-soft);color:var(--accent);
  white-space:nowrap;
@@ -560,7 +560,7 @@ a{color:var(--accent)}
 .stat-label{font-size:8.5px;color:var(--muted);font-weight:900;letter-spacing:.65px}
 .stat-value{font-size:16px;font-weight:950;margin-top:2px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;line-height:1.15}
 
-/* Оптимизиран компактен уиджит Документи и критични срокове */
+/* Компактен уиджит Документи и критични срокове */
 .docs-widget{
  background:var(--surface);
  border:1px solid var(--border);
@@ -666,15 +666,18 @@ a{color:var(--accent)}
  line-height:1.15;
 }
 .dw-link-btn{
+ width:24px;
+ height:24px;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
  border:1px solid var(--border);
  background:var(--surface-3);
  color:var(--accent);
  border-radius:7px;
- padding:2px 6px;
- font-size:9px;
+ font-size:11px;
  font-weight:900;
  text-decoration:none;
- white-space:nowrap;
 }
 .dw-icon-btn{
  width:24px;
@@ -694,19 +697,20 @@ a{color:var(--accent)}
  flex:1;
  min-height:28px;
  padding:4px 8px;
- font-size:10px;
+ font-size:12px;
  border-radius:9px;
  gap:4px;
 }
 
+/* Оптимизиран компактен уиджит Състояние и напомняния */
 .health-widget{
  position:relative;
  overflow:hidden;
  background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 78%);
  border:1px solid var(--border);
- border-radius:var(--radius);
- padding:15px 16px;
- margin:12px 0;
+ border-radius:16px;
+ padding:10px 12px;
+ margin:8px 0;
  box-shadow:var(--shadow);
  transition:border-color .2s ease;
 }
@@ -716,34 +720,35 @@ a{color:var(--accent)}
 
 .hw-head{
  display:flex;
- align-items:flex-start;
+ align-items:center;
  justify-content:space-between;
- gap:10px;
+ gap:8px;
 }
 .hw-kicker{
- font-size:10px;
+ font-size:9px;
  font-weight:900;
- letter-spacing:1.1px;
+ letter-spacing:.9px;
  color:var(--muted);
  text-transform:uppercase;
 }
 .hw-status{
- font-size:13.5px;
+ font-size:12px;
  font-weight:950;
- margin-top:4px;
- letter-spacing:.2px;
+ margin-top:2px;
+ letter-spacing:.15px;
+ line-height:1.2;
 }
 .hw-pills{
  display:flex;
  align-items:center;
- gap:6px;
+ gap:4px;
  flex-wrap:wrap;
  justify-content:flex-end;
 }
 .hw-chip{
- font-size:9.5px;
+ font-size:9px;
  font-weight:900;
- padding:4px 9px;
+ padding:3px 7px;
  border-radius:999px;
  background:var(--surface-3);
  color:var(--muted);
@@ -757,52 +762,63 @@ a{color:var(--accent)}
 .hw-metrics{
  display:grid;
  grid-template-columns:repeat(2,minmax(0,1fr));
- gap:8px;
- margin-top:12px;
+ gap:6px;
+ margin-top:8px;
 }
 .hw-metric{
  background:color-mix(in srgb,var(--bg) 48%,var(--surface-2));
  border:1px solid var(--border);
- border-radius:14px;
- padding:10px 12px;
+ border-radius:11px;
+ padding:6px 9px;
  min-width:0;
 }
 .hw-metric-label{
- font-size:9px;
+ font-size:8.5px;
  font-weight:900;
- letter-spacing:.6px;
+ letter-spacing:.55px;
  color:var(--muted);
  text-transform:uppercase;
+ line-height:1.15;
 }
 .hw-metric-val{
- font-size:15px;
+ font-size:13.5px;
  font-weight:950;
- margin-top:3px;
+ margin-top:2px;
  overflow-wrap:anywhere;
  font-variant-numeric:tabular-nums;
+ line-height:1.2;
 }
 .hw-metric-sub{
- font-size:10px;
+ font-size:9px;
  color:var(--muted);
- margin-top:2px;
+ margin-top:1px;
  font-variant-numeric:tabular-nums;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
 }
 
 .hw-meter-wrap{
- margin-top:12px;
+ margin-top:8px;
 }
 .hw-meter-row{
  display:flex;
  justify-content:space-between;
  align-items:center;
- font-size:10px;
+ gap:6px;
+ font-size:9.5px;
  color:var(--muted);
  font-weight:800;
- margin-bottom:5px;
+ margin-bottom:4px;
  font-variant-numeric:tabular-nums;
 }
+.hw-meter-row span:first-child{
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
 .hw-meter-track{
- height:7px;
+ height:5px;
  border-radius:999px;
  background:var(--surface-3);
  overflow:hidden;
@@ -815,52 +831,59 @@ a{color:var(--accent)}
 }
 
 .hw-spotlight{
- margin-top:12px;
+ margin-top:8px;
  background:var(--surface-2);
  border:1px solid var(--border);
- border-radius:15px;
- padding:11px 12px;
+ border-radius:12px;
+ padding:7px 9px;
 }
 .hw-spot-top{
  display:flex;
  align-items:flex-start;
  justify-content:space-between;
- gap:8px;
+ gap:6px;
 }
 .hw-spot-title{
- font-size:12.5px;
+ font-size:11.5px;
  font-weight:900;
  overflow-wrap:anywhere;
+ line-height:1.25;
 }
 .hw-spot-meta{
- font-size:10.5px;
+ font-size:9.5px;
  color:var(--muted);
- margin-top:4px;
- line-height:1.45;
+ margin-top:2px;
+ line-height:1.35;
  font-variant-numeric:tabular-nums;
 }
 .hw-spot-actions{
  display:flex;
- gap:8px;
- margin-top:10px;
- flex-wrap:wrap;
+ gap:5px;
+ margin-top:6px;
+}
+.hw-icon-btn{
+ flex:1;
+ min-height:28px;
+ padding:4px 6px;
+ font-size:12px;
+ border-radius:9px;
 }
 
 .hw-quick-row{
  display:flex;
- gap:8px;
- margin-top:12px;
+ gap:6px;
+ margin-top:8px;
 }
 .hw-quick-oil{
  flex:1;
  border:1px dashed color-mix(in srgb,var(--accent) 65%,var(--border));
  background:var(--accent-soft);
  color:var(--accent);
- border-radius:12px;
- padding:8px 11px;
- font-size:11px;
+ border-radius:10px;
+ padding:5px 9px;
+ font-size:10.5px;
  font-weight:900;
- min-height:36px;
+ min-height:30px;
  transition:transform .14s ease,background .14s ease;
  font-variant-numeric:tabular-nums;
 }
@@ -868,13 +891,17 @@ a{color:var(--accent)}
 
 .hw-footer-actions{
  display:flex;
- gap:8px;
- margin-top:10px;
- padding-right:104px;
+ gap:6px;
+ margin-top:6px;
+ padding-right:92px;
 }
 .hw-footer-actions .btn{
  flex:1;
  min-width:0;
+ min-height:28px;
+ padding:4px 8px;
+ font-size:12px;
+ border-radius:9px;
 }
 
 .last-service-card{
@@ -1374,16 +1401,9 @@ details.step-card > summary::-webkit-details-marker{display:none}
 }
 .copy-command{width:100%;margin-top:7px}
 
-.due-item{
- display:flex;justify-content:space-between;gap:10px;
- align-items:center;padding:10px 0;border-bottom:1px solid var(--border);
-}
-.due-item:last-child{border-bottom:0}
-.due-name{font-size:12px;font-weight:850}
-.due-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45;font-variant-numeric:tabular-nums}
 .due-tag{
- font-size:9px;font-weight:950;padding:6px 9px;border-radius:999px;
- background:var(--surface-3);white-space:nowrap;
+ font-size:8.5px;font-weight:950;padding:3px 7px;border-radius:999px;
+ background:var(--surface-3);white-space:nowrap;line-height:1.2;
 }
 .due-tag.warn{color:var(--warn)}
 .due-tag.danger{color:var(--danger)}
@@ -1471,7 +1491,7 @@ details.drop-panel{
 details.drop-panel{
  background:var(--surface);
  padding:14px 16px;
- margin:12px 0;
+ margin:10px 0;
  box-shadow:var(--shadow);
 }
 details.ref-box[open],
@@ -1670,12 +1690,12 @@ details[open] > summary{
     <div id="hwSpotlightContainer"></div>
 
     <div class="hw-quick-row">
-     <button class="hw-quick-oil" id="hwQuickOilBtn" type="button">🛢️ +10 000 km масло</button>
+     <button class="hw-quick-oil" id="hwQuickOilBtn" type="button" title="Добави напомняне за масло след +10 000 km">🛢️ +10 000 km</button>
     </div>
 
     <div class="hw-footer-actions">
-     <button class="btn small" id="hwAddReminderBtn" type="button">＋ Напомняне</button>
-     <button class="btn secondary small" id="hwOpenAllBtn" type="button">Всички напомняния</button>
+     <button class="btn small" id="hwAddReminderBtn" type="button" title="Ново напомняне" aria-label="Ново напомняне">＋</button>
+     <button class="btn secondary small" id="hwOpenAllBtn" type="button" title="Всички напомняния" aria-label="Всички напомняния">☰</button>
     </div>
    </div>
 
@@ -1686,8 +1706,8 @@ details[open] > summary{
     </div>
     <div class="dw-list" id="dwList"></div>
     <div class="dw-foot">
-     <button class="btn small" id="dwAddDocBtn" type="button" title="Добави документ">＋ Документ</button>
-     <button class="btn secondary small" id="dwOpenAllBtn" type="button" title="Всички документи">☰ Всички</button>
+     <button class="btn small" id="dwAddDocBtn" type="button" title="Добави документ" aria-label="Добави документ">＋</button>
+     <button class="btn secondary small" id="dwOpenAllBtn" type="button" title="Всички документи" aria-label="Всички документи">☰</button>
     </div>
    </div>
 
@@ -1713,21 +1733,6 @@ details[open] > summary{
      <button class="tl-all-btn hidden" id="tlOpenFullBtn" type="button" title="Цялата хронология" aria-label="Отвори цялата хронология">🔍</button>
     </div>
     <div id="timelineList"></div>
-   </details>
-
-   <details class="drop-panel">
-    <summary>
-     <div class="panel-lead">
-      <span class="panel-icon">📅</span>
-      <div>
-       <div>ПЛАНИРАНИ ОБСЛУЖВАНИЯ</div>
-       <div class="drop-sub">Пълен списък с предстоящи и просрочени задачи</div>
-      </div>
-     </div>
-     <span class="chev">▾</span>
-    </summary>
-    <div id="overviewAlerts"></div>
-    <div id="upcomingServices" style="margin-top:10px"></div>
    </details>
 
    <details class="drop-panel">
@@ -3044,7 +3049,7 @@ function renderDocsWidget(car){
  const pool=criticalDocs.length?criticalDocs:car.documents;
  const items=[...pool]
   .sort((a,b)=>(toIsoDate(a.date)||"9999-12-31").localeCompare(toIsoDate(b.date)||"9999-12-31"))
-  .slice(0,4);
+  .slice(0,3);
 
  if(!items.length){
   listEl.innerHTML='<div class="empty" style="padding:10px 8px">Няма документи (ГТП, винетка, застраховка, фактури).</div>';
@@ -3111,6 +3116,7 @@ function renderDocsWidget(car){
    a.rel="noopener noreferrer";
    a.textContent="↗";
    a.title="Отвори документа";
+   a.setAttribute("aria-label","Отвори "+(doc.title||"документ"));
    right.append(a);
   }
 
@@ -3204,14 +3210,15 @@ function renderQuickGlance(car){
 
   const actRow=document.createElement("div");
   actRow.style.display="flex";
-  actRow.style.gap="8px";
-  actRow.style.marginTop="10px";
+  actRow.style.gap="6px";
+  actRow.style.marginTop="8px";
 
   const doneBtn=document.createElement("button");
   doneBtn.type="button";
-  doneBtn.className="btn good small";
-  doneBtn.style.flex="1";
-  doneBtn.textContent="✓ Изпълнено";
+  doneBtn.className="btn good small hw-icon-btn";
+  doneBtn.textContent="✓";
+  doneBtn.title="Отбележи като изпълнено";
+  doneBtn.setAttribute("aria-label","Отбележи като изпълнено");
   doneBtn.addEventListener("click",()=>{
    top.completed=true;
    save();
@@ -3222,9 +3229,10 @@ function renderQuickGlance(car){
 
   const renewBtn=document.createElement("button");
   renewBtn.type="button";
-  renewBtn.className="btn small";
-  renewBtn.style.flex="1";
-  renewBtn.textContent="↻ Поднови";
+  renewBtn.className="btn small hw-icon-btn";
+  renewBtn.textContent="↻";
+  renewBtn.title="Поднови интервала";
+  renewBtn.setAttribute("aria-label","Поднови интервала");
   renewBtn.addEventListener("click",()=>{
    renewReminderRecord(top,activeCar());
    renderQuickGlance(activeCar());
@@ -3878,15 +3886,15 @@ function renderHealthWidget(car){
  widget.classList.remove("is-good","is-warn","is-danger");
  if(overdueCount>0){
   widget.classList.add("is-danger");
-  statusEl.textContent="● ИЗИСКВА ВНИМАНИЕ";
+  statusEl.textContent="● ПРОСРОЧЕНО";
   statusEl.style.color="var(--danger)";
  }else if(soonCount>0){
   widget.classList.add("is-warn");
-  statusEl.textContent="● НАБЛИЖАВА ОБСЛУЖВАНЕ";
+  statusEl.textContent="● НАБЛИЖАВА";
   statusEl.style.color="var(--warn)";
  }else{
   widget.classList.add("is-good");
-  statusEl.textContent="● ВСИЧКО Е В НОРМА";
+  statusEl.textContent="● В НОРМА";
   statusEl.style.color="var(--good)";
  }
 
@@ -3897,9 +3905,9 @@ function renderHealthWidget(car){
   sp.textContent=text;
   badgesEl.append(sp);
  };
- if(overdueCount>0)addChip(overdueCount+" просрочени","danger");
+ if(overdueCount>0)addChip(overdueCount+" проср.","danger");
  if(soonCount>0)addChip(soonCount+" скоро","warn");
- addChip(active.length+" активни",active.length?"good":"");
+ addChip(String(active.length),active.length?"good":"");
 
  const currentKm=safeNumber(car.details.mileage);
  const kmCandidates=active.filter(r=>r.dueMileage>0).map(r=>({
@@ -3914,16 +3922,16 @@ function renderHealthWidget(car){
   if(nearestKm.diff<0){
    kmLeftEl.textContent=Math.abs(nearestKm.diff).toLocaleString("bg-BG")+" km";
    kmLeftEl.style.color="var(--danger)";
-   kmSubEl.textContent="Просрочено спрямо "+nearestKm.target.toLocaleString("bg-BG")+" km";
+   kmSubEl.textContent="Над "+nearestKm.target.toLocaleString("bg-BG")+" km";
   }else{
    kmLeftEl.textContent=nearestKm.diff.toLocaleString("bg-BG")+" km";
    kmLeftEl.style.color=nearestKm.diff<=1000?"var(--warn)":"var(--good)";
-   kmSubEl.textContent="Цел: "+nearestKm.target.toLocaleString("bg-BG")+" km";
+   kmSubEl.textContent="До "+nearestKm.target.toLocaleString("bg-BG")+" km";
   }
  }else{
   kmLeftEl.textContent="—";
   kmLeftEl.style.color="var(--text)";
-  kmSubEl.textContent="Няма зададен пробег";
+  kmSubEl.textContent="Без пробег";
  }
 
  const dateCandidates=active.filter(r=>r.dueDate).map(r=>{
@@ -3937,20 +3945,20 @@ function renderHealthWidget(car){
   if(nearestDate.days!==null&&nearestDate.days<0){
    dateLeftEl.textContent=formatDays(nearestDate.days);
    dateLeftEl.style.color="var(--danger)";
-   dateSubEl.textContent="Просрочено от "+formatDate(nearestDate.date);
+   dateSubEl.textContent="От "+formatDate(nearestDate.date);
   }else if(nearestDate.days!==null){
    dateLeftEl.textContent=formatDays(nearestDate.days);
    dateLeftEl.style.color=nearestDate.days<=30?"var(--warn)":"var(--good)";
-   dateSubEl.textContent="Срок: "+formatDate(nearestDate.date);
+   dateSubEl.textContent="До "+formatDate(nearestDate.date);
   }else{
    dateLeftEl.textContent="—";
    dateLeftEl.style.color="var(--text)";
-   dateSubEl.textContent="Срок: "+formatDate(nearestDate.date);
+   dateSubEl.textContent="До "+formatDate(nearestDate.date);
   }
  }else{
   dateLeftEl.textContent="—";
   dateLeftEl.style.color="var(--text)";
-  dateSubEl.textContent="Няма зададена дата";
+  dateSubEl.textContent="Без дата";
  }
 
  let pct=100;
@@ -3960,13 +3968,13 @@ function renderHealthWidget(car){
   const span=15000;
   pct=diff<=0?0:Math.max(2,Math.min(100,Math.round((diff/span)*100)));
   const icon=getCategoryIcon(kmCandidates[0].category,kmCandidates[0].title);
-  meterLabelEl.textContent=icon+" Ресурс до „"+(kmCandidates[0].title||"обслужване")+"“";
+  meterLabelEl.textContent=icon+" "+(kmCandidates[0].title||"Обслужване");
  }else if(dateCandidates.length>0&&dateCandidates[0].days!==null){
   const days=dateCandidates[0].days;
   const span=365;
   pct=days<=0?0:Math.max(2,Math.min(100,Math.round((days/span)*100)));
   const icon=getCategoryIcon(dateCandidates[0].category,dateCandidates[0].title);
-  meterLabelEl.textContent=icon+" Оставащо време до „"+(dateCandidates[0].title||"срок")+"“";
+  meterLabelEl.textContent=icon+" "+(dateCandidates[0].title||"Срок");
  }else{
   pct=100;
   meterLabelEl.textContent="Няма активни интервали";
@@ -3985,8 +3993,10 @@ function renderHealthWidget(car){
  if(!sorted.length){
   const emptyBox=document.createElement("div");
   emptyBox.className="alert good";
-  emptyBox.style.margin="12px 0 0";
-  emptyBox.textContent="Няма установени просрочени или наближаващи напомняния. Използвай бързия бутон за масло или добави ново.";
+  emptyBox.style.margin="8px 0 0";
+  emptyBox.style.padding="8px 10px";
+  emptyBox.style.fontSize="10.5px";
+  emptyBox.textContent="Няма активни напомняния.";
   spotContainer.append(emptyBox);
   return;
  }
@@ -4008,15 +4018,14 @@ function renderHealthWidget(car){
  const stMeta=document.createElement("div");
  stMeta.className="hw-spot-meta";
  const parts=[];
- if(topItem.dueDate)parts.push("Срок: "+formatDate(topItem.dueDate));
- if(topItem.dueMileage)parts.push("Пробег: "+topItem.dueMileage.toLocaleString("bg-BG")+" km");
- if(topItem.category)parts.push(topItem.category);
- stMeta.textContent=parts.join(" · ")||"Без зададен срок";
+ if(topItem.dueDate)parts.push(formatDate(topItem.dueDate));
+ if(topItem.dueMileage)parts.push(topItem.dueMileage.toLocaleString("bg-BG")+" km");
+ stMeta.textContent=parts.join(" · ")||"Без срок";
  left.append(stTitle,stMeta);
 
  const badge=document.createElement("span");
  badge.className="due-tag "+(topState.overdue?"danger":topState.soon?"warn":"good");
- badge.textContent=topState.overdue?"ПРОСРОЧЕНО":topState.soon?"НАБЛИЖАВА":"ПЛАНИРАНО";
+ badge.textContent=topState.overdue?"ПРОСРОЧЕНО":topState.soon?"СКОРО":"OK";
 
  spotTop.append(left,badge);
  spot.append(spotTop);
@@ -4026,14 +4035,18 @@ function renderHealthWidget(car){
 
  const editBtn=document.createElement("button");
  editBtn.type="button";
- editBtn.className="btn secondary small";
- editBtn.textContent="✎ Редакция";
+ editBtn.className="btn secondary small hw-icon-btn";
+ editBtn.textContent="✎";
+ editBtn.title="Редакция";
+ editBtn.setAttribute("aria-label","Редакция на напомнянето");
  editBtn.addEventListener("click",()=>openEditRecord("reminder",topItem));
 
  const doneBtn=document.createElement("button");
  doneBtn.type="button";
- doneBtn.className="btn good small";
- doneBtn.textContent="✓ Изпълнено";
+ doneBtn.className="btn good small hw-icon-btn";
+ doneBtn.textContent="✓";
+ doneBtn.title="Отбележи като изпълнено";
+ doneBtn.setAttribute("aria-label","Отбележи като изпълнено");
  doneBtn.addEventListener("click",()=>{
   topItem.completed=true;
   save();
@@ -4043,9 +4056,10 @@ function renderHealthWidget(car){
 
  const renewBtn=document.createElement("button");
  renewBtn.type="button";
- renewBtn.className="btn small";
- renewBtn.style.flex="1";
- renewBtn.textContent="↻ Поднови";
+ renewBtn.className="btn small hw-icon-btn";
+ renewBtn.textContent="↻";
+ renewBtn.title="Поднови интервала";
+ renewBtn.setAttribute("aria-label","Поднови интервала");
  renewBtn.addEventListener("click",()=>renewReminderRecord(topItem,activeCar()));
 
  spotActions.append(editBtn,doneBtn,renewBtn);
@@ -4129,40 +4143,6 @@ function renderOverview(car){
  renderHealthWidget(car);
  renderDocsWidget(car);
  renderTimeline(car);
-
- const active=car.reminders.filter(r=>!r.completed);
- const overdue=active.filter(r=>reminderState(r,car).overdue);
- const soon=active.filter(r=>reminderState(r,car).soon);
- const alerts=[];
- if(overdue.length)alerts.push('<div class="alert danger">⚠ Имаш '+overdue.length+' просрочено/и напомняне/ия. Провери списъка и планирай обслужването.</div>');
- if(soon.length)alerts.push('<div class="alert warn">Предстоят '+soon.length+' обслужване/ия в следващите 30 дни или 1000 km.</div>');
- if(!overdue.length&&!soon.length)alerts.push('<div class="alert good">Няма установени просрочени или наближаващи напомняния.</div>');
- $("overviewAlerts").innerHTML=alerts.join("");
-
- const upcoming=$("upcomingServices");
- const sorted=[...active].sort((a,b)=>{
-  const sa=reminderState(a,car),sb=reminderState(b,car);
-  const da=sa.daysLeft!==null&&Number.isFinite(sa.daysLeft)?sa.daysLeft:99999;
-  const db=sb.daysLeft!==null&&Number.isFinite(sb.daysLeft)?sb.daysLeft:99999;
-  return Number(sb.overdue)-Number(sa.overdue)||da-db;
- }).slice(0,5);
-
- if(!sorted.length){upcoming.innerHTML='<div class="empty">Няма планирани обслужвания. Добави от „Сервиз“ или „Напомняния“.</div>';return}
- upcoming.replaceChildren();
- sorted.forEach(r=>{
-  const state=reminderState(r,car),item=document.createElement("div");item.className="due-item";
-  const left=document.createElement("div");
-  const icon=getCategoryIcon(r.category,r.title);
-  const name=document.createElement("div");name.className="due-name";name.textContent=icon+" "+(r.title||"Напомняне");
-  const meta=document.createElement("div");meta.className="due-meta";
-  const details=[];if(r.dueDate)details.push("Срок: "+formatDate(r.dueDate));
-  if(r.dueMileage)details.push("Пробег: "+r.dueMileage.toLocaleString("bg-BG")+" km");
-  if(r.category)details.push(r.category);
-  meta.textContent=details.join(" · ")||"Без зададен срок";left.append(name,meta);
-  const tag=document.createElement("div");tag.className="due-tag "+(state.overdue?"danger":state.soon?"warn":"good");
-  tag.textContent=state.overdue?"ПРОСРОЧЕНО":state.soon?"НАБЛИЖАВА":"ПЛАНИРАНО";
-  item.append(left,tag);upcoming.append(item);
- });
 }
 
 function updatePhotoPreview(dataUrl){
@@ -5099,20 +5079,12 @@ $("deleteCarButton").addEventListener("click",()=>{
 window.renderAll=renderAll;
 window.setTheme=setTheme;
 
-const cloudObserver=new MutationObserver(()=>{
- ensureDropPanelIcons();
- refreshTopCloudButton();
-});
 window.addEventListener("DOMContentLoaded",()=>{
  ensureDropPanelIcons();
- const dCloud=$("dashboardCloud");
- const moreSec=$("screen-more");
- if(dCloud)cloudObserver.observe(dCloud,{childList:true,characterData:true,subtree:true});
- if(moreSec)cloudObserver.observe(moreSec,{childList:true,characterData:true,subtree:true});
  refreshTopCloudButton();
 });
 window.addEventListener("storage",e=>{
- if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshTopCloudButton();
+ if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY||e.key===STORAGE_KEY)refreshTopCloudButton();
 });
 
 const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getQrShareUrl();
