@@ -3,54 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090c10">
+<meta name="theme-color" content="#080c12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
-<title>M-GARAGE PRO 4.0 · M PERFORMANCE</title>
+<title>M-GARAGE PRO 4.0</title>
 
 <style>
 :root{
- --bg:#090c10;
- --surface:#11161f;
- --surface-2:#171e2b;
- --surface-3:#1f293b;
- --text:#f3f6fb;
- --muted:#8f9cb0;
- --border:#263142;
- --accent:#23a6ff;
- --m-blue:#1d4ed8;
- --m-red:#e11d48;
- --accent-soft:rgba(35,166,255,.15);
- --good:#22c55e;
- --good-soft:rgba(34,197,94,.14);
- --warn:#f59e0b;
- --warn-soft:rgba(245,158,11,.15);
- --danger:#ef4444;
- --danger-soft:rgba(239,68,68,.15);
- --shadow:0 14px 36px rgba(0,0,0,.42);
+ --bg:#080c12;
+ --surface:#101722;
+ --surface-2:#172130;
+ --surface-3:#1f2c3f;
+ --topbar-bg:rgba(8,12,18,.92);
+ --nav-bg:rgba(16,23,34,.95);
+ --text:#f0f5fc;
+ --muted:#8c9cb0;
+ --border:#253447;
+ --accent:#258bff;
+ --accent-soft:rgba(37,139,255,.15);
+ --good:#28c58a;
+ --good-soft:rgba(40,197,138,.14);
+ --warn:#f0b547;
+ --warn-soft:rgba(240,181,71,.14);
+ --danger:#f06464;
+ --danger-soft:rgba(240,100,100,.14);
+ --shadow:0 14px 34px rgba(0,0,0,.32);
  --radius:20px;
  --nav-h:68px;
 }
 html[data-theme="light"]{
- --bg:#edf1f6;
+ --bg:#eef3f8;
  --surface:#ffffff;
  --surface-2:#f4f7fb;
- --surface-3:#e6edf5;
- --text:#0f172a;
- --muted:#5b6b80;
- --border:#d6dfe9;
- --accent:#0284c7;
- --m-blue:#1e40af;
- --m-red:#dc2626;
- --accent-soft:rgba(2,132,199,.11);
- --good:#15803d;
- --good-soft:rgba(21,128,61,.11);
- --warn:#b45309;
- --warn-soft:rgba(180,83,9,.11);
- --danger:#dc2626;
- --danger-soft:rgba(220,38,38,.11);
- --shadow:0 10px 26px rgba(15,23,42,.08);
+ --surface-3:#e8eff7;
+ --topbar-bg:rgba(238,243,248,.92);
+ --nav-bg:rgba(255,255,255,.95);
+ --text:#132030;
+ --muted:#63758a;
+ --border:#dce4ee;
+ --accent:#0878e8;
+ --accent-soft:rgba(8,120,232,.1);
+ --good:#128b5a;
+ --good-soft:rgba(18,139,90,.1);
+ --warn:#a96c00;
+ --warn-soft:rgba(169,108,0,.1);
+ --danger:#c93636;
+ --danger-soft:rgba(201,54,54,.1);
+ --shadow:0 10px 26px rgba(23,43,68,.07);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -59,7 +59,7 @@ body{
  background:var(--bg);
  color:var(--text);
  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
- padding:0 0 calc(var(--nav-h) + 32px + env(safe-area-inset-bottom));
+ padding:0 0 calc(var(--nav-h) + 28px + env(safe-area-inset-bottom));
  -webkit-font-smoothing:antialiased;
 }
 button,input,select,textarea{font:inherit}
@@ -72,14 +72,6 @@ a{color:var(--accent)}
  padding:12px 14px 20px;
 }
 
-/* M Stripe helper */
-.m-stripe{
- height:3px;
- border-radius:999px;
- background:linear-gradient(90deg,var(--accent) 0 34%,var(--m-blue) 34% 67%,var(--m-red) 67% 100%);
-}
-
-/* Top App Bar */
 .topbar{
  position:sticky;
  top:0;
@@ -90,22 +82,20 @@ a{color:var(--accent)}
  gap:10px;
  padding:calc(10px + env(safe-area-inset-top)) 4px 12px;
  margin-bottom:6px;
- background:color-mix(in srgb,var(--bg) 88%,transparent);
+ background:var(--topbar-bg);
  backdrop-filter:blur(16px);
  -webkit-backdrop-filter:blur(16px);
- border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);
 }
 .brand{font-size:19px;font-weight:950;letter-spacing:.9px;line-height:1.05}
 .brand span{color:var(--accent)}
-.brand em{font-style:normal;color:var(--m-red);font-size:13px;letter-spacing:.4px;margin-left:3px;font-weight:900}
 .version{
  font-size:9px;
  color:var(--muted);
- letter-spacing:1.4px;
- margin-top:4px;
+ letter-spacing:1.5px;
+ margin-top:3px;
  font-weight:800;
 }
-.top-actions{display:flex;align-items:center;gap:7px}
+.top-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{
  width:38px;height:38px;
  border:1px solid var(--border);
@@ -118,7 +108,7 @@ a{color:var(--accent)}
 .pill-btn{
  height:38px;
  padding:0 12px;
- border:1px solid color-mix(in srgb,var(--accent) 45%,var(--border));
+ border:1px solid var(--border);
  background:var(--surface);
  color:var(--text);
  border-radius:12px;
@@ -127,7 +117,6 @@ a{color:var(--accent)}
  white-space:nowrap;
 }
 
-/* Screens */
 .screen{display:none}
 .screen.active{display:block;animation:screenIn .18s ease}
 @keyframes screenIn{
@@ -152,7 +141,6 @@ a{color:var(--accent)}
 }
 .muted,.backup-info{color:var(--muted);font-size:12px;line-height:1.6}
 
-/* Garage Switcher Bar */
 .garage-bar{
  display:flex;
  align-items:center;
@@ -173,7 +161,7 @@ a{color:var(--accent)}
 }
 .garage-chip.active{
  border-color:var(--accent);
- background:linear-gradient(135deg,var(--accent),var(--m-blue));
+ background:var(--accent);
  color:#fff;
 }
 .add-car-chip{
@@ -186,62 +174,27 @@ a{color:var(--accent)}
  font-size:11px;font-weight:900;
 }
 
-/* Hero Vehicle Card + Photo */
 .hero-card{
  position:relative;
  overflow:hidden;
- background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 75%);
+ background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 75%);
  border:1px solid var(--border);
  border-radius:24px;
- padding:0 0 18px;
+ padding:18px;
  margin:8px 0 12px;
  box-shadow:var(--shadow);
 }
-.hero-card .m-stripe{border-radius:0}
-.hero-photo-wrap{
- position:relative;
- width:100%;
- height:196px;
- background:
-  radial-gradient(circle at 80% 20%,rgba(35,166,255,.18),transparent 55%),
-  radial-gradient(circle at 20% 85%,rgba(225,29,72,.14),transparent 55%),
-  var(--surface-2);
- border-bottom:1px solid var(--border);
- overflow:hidden;
+.hero-card:after{
+ content:"";
+ position:absolute;
+ right:-55px;top:-65px;
+ width:190px;height:190px;
+ border-radius:50%;
+ background:var(--accent-soft);
+ pointer-events:none;
 }
-.hero-photo{
- width:100%;height:100%;
- object-fit:cover;
- display:block;
-}
-.hero-photo-placeholder{
- width:100%;height:100%;
- display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
- color:var(--muted);font-size:12px;font-weight:750;
- padding:16px;text-align:center;
-}
-.hero-photo-badge{
- font-size:9px;font-weight:900;letter-spacing:1.2px;
- padding:4px 9px;border-radius:999px;
- background:var(--accent-soft);color:var(--accent);
- border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);
-}
-.hero-photo-actions{
- position:absolute;right:10px;bottom:10px;
- display:flex;gap:6px;z-index:2;
-}
-.photo-btn{
- height:32px;padding:0 11px;
- border-radius:999px;
- border:1px solid rgba(255,255,255,.18);
- background:rgba(9,12,16,.76);
- color:#f8fafc;
- backdrop-filter:blur(10px);
- font-size:11px;font-weight:850;
- display:inline-flex;align-items:center;gap:5px;
-}
-.hero-body{padding:16px 18px 0}
 .hero-top{
+ position:relative;z-index:1;
  display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
 }
 .hero-name{font-size:24px;font-weight:950;letter-spacing:-.5px;line-height:1.15}
@@ -250,6 +203,7 @@ a{color:var(--accent)}
  margin-top:5px;font-weight:700;letter-spacing:.4px;overflow-wrap:anywhere;
 }
 .hero-meta{
+ position:relative;z-index:1;
  font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;
 }
 .status-pill{
@@ -257,17 +211,17 @@ a{color:var(--accent)}
  padding:6px 10px;
  font-size:9px;font-weight:900;letter-spacing:.6px;
  background:var(--accent-soft);color:var(--accent);
- border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);
  white-space:nowrap;
 }
 
 .stats{
+ position:relative;z-index:1;
  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
  gap:9px;margin-top:16px;
 }
 .stat{
  padding:12px;
- background:color-mix(in srgb,var(--bg) 55%,var(--surface-2));
+ background:var(--surface-2);
  border:1px solid var(--border);
  border-radius:16px;
  min-width:0;
@@ -275,42 +229,6 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
 
-/* Cloud Sync Mini Card in Dashboard */
-.cloud-mini{
- border:1px solid var(--border);
- border-radius:20px;
- padding:15px 16px;
- margin:12px 0;
- background:linear-gradient(145deg,color-mix(in srgb,var(--accent-soft) 55%,var(--surface)) 0%,var(--surface) 75%);
- box-shadow:var(--shadow);
-}
-.cloud-mini-head{
- display:flex;align-items:center;justify-content:space-between;gap:10px;
- margin-bottom:10px;
-}
-.cloud-mini-title{
- font-size:10px;font-weight:950;letter-spacing:1.1px;color:var(--accent);
- text-transform:uppercase;
-}
-.cloud-mini-sub{
- font-size:11px;color:var(--muted);margin-top:2px;
-}
-.cloud-mini-grid{
- display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
- margin:10px 0;
-}
-.cloud-mini-cell{
- background:color-mix(in srgb,var(--bg) 52%,var(--surface-2));
- border:1px solid var(--border);
- border-radius:13px;padding:9px 11px;min-width:0;
-}
-.cloud-mini-k{font-size:9px;font-weight:900;color:var(--muted);letter-spacing:.6px}
-.cloud-mini-v{font-size:12px;font-weight:850;margin-top:3px;overflow-wrap:anywhere}
-.cloud-mini-line{
- font-size:11px;color:var(--muted);line-height:1.45;margin-top:6px;overflow-wrap:anywhere;
-}
-
-/* Segmented Control inside Service Hub */
 .seg-bar{
  display:flex;
  gap:6px;
@@ -336,12 +254,11 @@ a{color:var(--accent)}
 .seg-btn.active{
  background:var(--accent);
  color:#fff;
- box-shadow:0 4px 12px rgba(35,166,255,.25);
+ box-shadow:0 4px 12px rgba(37,139,255,.25);
 }
 .seg-view{display:none}
 .seg-view.active{display:block;animation:screenIn .16s ease}
 
-/* Forms & Sheet */
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .field{min-width:0}
 .field.full{grid-column:1/-1}
@@ -355,23 +272,10 @@ input,select,textarea{
  border:1px solid var(--border);
  border-radius:13px;padding:12px;outline:none;
 }
-input[type="file"]{padding:9px;font-size:11px}
 input:focus,select:focus,textarea:focus{
  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);
 }
 textarea{min-height:82px;resize:vertical}
-
-.photo-preview-box{
- display:flex;align-items:center;gap:12px;
- padding:10px;border-radius:14px;
- background:var(--surface-2);border:1px solid var(--border);
- margin-top:8px;
-}
-.photo-thumb{
- width:76px;height:52px;border-radius:10px;
- object-fit:cover;background:var(--surface-3);flex:0 0 auto;
- border:1px solid var(--border);
-}
 
 .btn{
  border:0;border-radius:13px;padding:12px 15px;
@@ -389,19 +293,18 @@ textarea{min-height:82px;resize:vertical}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .btn-row .btn{flex:1}
 
-/* Bottom Sheet Modal */
 .sheet-backdrop{
  position:fixed;inset:0;z-index:60;
- background:rgba(3,7,13,.72);
+ background:rgba(3,7,13,.75);
  backdrop-filter:blur(6px);
  display:flex;align-items:flex-end;justify-content:center;
  padding:12px 12px calc(12px + env(safe-area-inset-bottom));
 }
-.sheet-backdrop.hidden{display:none}
+.sheet-backdrop.hidden{display:none!important}
 .sheet{
  width:100%;max-width:640px;max-height:86vh;overflow-y:auto;
  background:var(--surface);border:1px solid var(--border);
- border-radius:24px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.55);
+ border-radius:24px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.5);
  animation:sheetUp .2s ease;
 }
 @keyframes sheetUp{
@@ -419,21 +322,19 @@ textarea{min-height:82px;resize:vertical}
  font-size:16px;
 }
 
-/* Floating Action Button */
 .fab{
  position:fixed;
- right:max(16px,calc(50% - 310px));
+ right:16px;
  bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
  z-index:30;
  height:46px;padding:0 16px;
  border-radius:999px;border:0;
- background:linear-gradient(135deg,var(--accent),var(--m-blue));color:#fff;
+ background:var(--accent);color:#fff;
  font-size:12px;font-weight:900;letter-spacing:.3px;
- box-shadow:0 10px 26px rgba(35,166,255,.35);
+ box-shadow:0 10px 26px rgba(37,139,255,.38);
  display:inline-flex;align-items:center;gap:6px;
 }
 
-/* Cards & Lists */
 .record{
  border:1px solid var(--border);background:var(--surface-2);
  border-radius:16px;padding:13px 14px;margin:9px 0;
@@ -464,16 +365,15 @@ textarea{min-height:82px;resize:vertical}
  background:var(--surface-2);border:1px solid var(--border);
  font-size:11.5px;line-height:1.6;
 }
-.alert.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn-soft) 55%,var(--surface-2))}
-.alert.good{border-color:var(--good);background:color-mix(in srgb,var(--good-soft) 55%,var(--surface-2))}
-.alert.danger{border-color:var(--danger);background:color-mix(in srgb,var(--danger-soft) 55%,var(--surface-2))}
+.alert.warn{border-color:var(--warn);background:var(--warn-soft)}
+.alert.good{border-color:var(--good);background:var(--good-soft)}
+.alert.danger{border-color:var(--danger);background:var(--danger-soft)}
 
 .form-msg{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
 .hidden{display:none!important}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
 
-/* MGU Steps */
 .step-card{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:17px;padding:14px;margin:10px 0;
@@ -535,11 +435,10 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .finance-label{font-size:11px;font-weight:750}
 .finance-value{font-size:11px;font-weight:900;text-align:right}
 .finance-track{grid-column:1/-1;height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden}
-.finance-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--m-blue));border-radius:999px;min-width:0}
+.finance-fill{height:100%;background:var(--accent);border-radius:999px;min-width:0}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
 .finance-caption{font-size:10px;color:var(--muted)}
 
-/* Accordion inside Reference */
 details.ref-box{
  background:var(--surface-2);border:1px solid var(--border);
  border-radius:15px;padding:12px 14px;margin:9px 0;
@@ -551,7 +450,6 @@ details.ref-box summary{
 details.ref-box summary::-webkit-details-marker{display:none}
 details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 
-/* Cloud compatibility hook (.rules) */
 .rules{margin-top:12px}
 .rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
 .rules ~ * button:disabled{opacity:.55!important}
@@ -560,12 +458,11 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 .rules ~ * .muted,.rules ~ * small{color:var(--muted)}
 .rules ~ * .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
 
-/* Fixed Bottom App Navigation */
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
  min-height:calc(var(--nav-h) + env(safe-area-inset-bottom));
  padding:6px 10px calc(6px + env(safe-area-inset-bottom));
- background:color-mix(in srgb,var(--surface) 92%,transparent);
+ background:var(--nav-bg);
  backdrop-filter:blur(18px);
  -webkit-backdrop-filter:blur(18px);
  border-top:1px solid var(--border);
@@ -590,7 +487,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 @media(max-width:400px){
  .form-grid{grid-template-columns:1fr}
  .hero-name{font-size:21px}
- .hero-photo-wrap{height:172px}
 }
 @media(prefers-reduced-motion:reduce){
  *,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
@@ -602,7 +498,7 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
 <div class="app">
  <header class="topbar">
   <div>
-   <div class="brand">M-<span>GARAGE</span> PRO<em>M</em></div>
+   <div class="brand">M-<span>GARAGE</span> PRO</div>
    <div class="version">G20 · MGU · WAZE · 4.0</div>
   </div>
   <div class="top-actions">
@@ -612,7 +508,6 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
   </div>
  </header>
 
- <!-- Компактна лента за избор на автомобил -->
  <div class="garage-bar" id="garageBar" aria-label="Автомобили в гаража"></div>
 
  <div id="garageEmpty" class="panel empty hidden">
@@ -621,69 +516,23 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
  </div>
 
  <main id="mainContent" class="hidden">
-  <!-- ЕКРАН 1: ГАРАЖ / ДАШБОРД -->
+  <!-- ЕКРАН 1: ГАРАЖ / ОБЗОР -->
   <section class="screen active" id="screen-garage">
    <div class="hero-card">
-    <div class="m-stripe"></div>
-    <div class="hero-photo-wrap">
-     <img id="heroPhoto" class="hero-photo hidden" alt="Снимка на автомобила">
-     <div id="heroPhotoPlaceholder" class="hero-photo-placeholder">
-      <span class="hero-photo-badge">M PERFORMANCE GARAGE</span>
-      <span>Няма качена снимка на автомобила</span>
-     </div>
-     <div class="hero-photo-actions">
-      <button class="photo-btn" id="heroUploadPhotoBtn" type="button">📷 Снимка</button>
-      <button class="photo-btn hidden" id="heroRemovePhotoBtn" type="button" aria-label="Премахни снимката">✕</button>
-     </div>
-     <input id="heroPhotoInput" type="file" accept="image/*" hidden>
-    </div>
-
-    <div class="hero-body">
-     <div class="hero-top">
-      <div>
-       <div class="hero-name" id="vehicleName">BMW</div>
-       <div class="hero-vin" id="vehicleVin"></div>
-      </div>
-      <div class="status-pill" id="vehicleStatus">M ACTIVE</div>
-     </div>
-     <div class="hero-meta" id="overviewDetails"></div>
-     <div class="stats">
-      <div class="stat"><div class="stat-label">ПРОБЕГ</div><div class="stat-value" id="statMileage">0 km</div></div>
-      <div class="stat"><div class="stat-label">СЕРВИЗИ</div><div class="stat-value" id="statServices">0</div></div>
-      <div class="stat"><div class="stat-label">РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
-      <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
-     </div>
-    </div>
-   </div>
-
-   <!-- Мини панел за CLOUD SYNC · M-GARAGE PRO 2.4 -->
-   <div class="cloud-mini" id="cloudMiniPanel">
-    <div class="cloud-mini-head">
+    <div class="hero-top">
      <div>
-      <div class="cloud-mini-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
-      <div class="cloud-mini-sub" id="miniCloudUser">Проверка на профила...</div>
+      <div class="hero-name" id="vehicleName">BMW</div>
+      <div class="hero-vin" id="vehicleVin"></div>
      </div>
-     <button class="btn secondary small" id="openCloudFullBtn" type="button">Панел ↗</button>
+     <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
     </div>
-    <div class="cloud-mini-grid">
-     <div class="cloud-mini-cell">
-      <div class="cloud-mini-k">МРЕЖА</div>
-      <div class="cloud-mini-v" id="miniCloudNet">● Проверка...</div>
-     </div>
-     <div class="cloud-mini-cell">
-      <div class="cloud-mini-k">CLOUD СТАТУС</div>
-      <div class="cloud-mini-v" id="miniCloudState">● Проверка...</div>
-     </div>
-     <div class="cloud-mini-cell">
-      <div class="cloud-mini-k">ПОСЛЕДЕН СИНХ</div>
-      <div class="cloud-mini-v" id="miniCloudLast">Няма данни</div>
-     </div>
-     <div class="cloud-mini-cell">
-      <div class="cloud-mini-k">ЧАКАЩИ</div>
-      <div class="cloud-mini-v" id="miniCloudPending">0</div>
-     </div>
+    <div class="hero-meta" id="overviewDetails"></div>
+    <div class="stats">
+     <div class="stat"><div class="stat-label">ПРОБЕГ</div><div class="stat-value" id="statMileage">0 km</div></div>
+     <div class="stat"><div class="stat-label">СЕРВИЗИ</div><div class="stat-value" id="statServices">0</div></div>
+     <div class="stat"><div class="stat-label">РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
+     <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
     </div>
-    <div class="cloud-mini-line" id="miniCloudMessage">Данните се съхраняват локално.</div>
    </div>
 
    <div class="panel">
@@ -771,20 +620,11 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
    <div id="stepsList"></div>
   </section>
 
-  <!-- ЕКРАН 4: ОЩЕ (Профил, Справочник, Управление и Архив/Cloud) -->
+  <!-- ЕКРАН 4: ОЩЕ -->
   <section class="screen" id="screen-more">
    <div class="panel">
-    <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ И СНИМКА</div>
+    <div class="section-title">АВТОМОБИЛЕН ПРОФИЛ</div>
     <div class="form-grid">
-     <div class="field full">
-      <label>СНИМКА НА АВТОМОБИЛА</label>
-      <input id="pPhotoFile" type="file" accept="image/*">
-      <div class="photo-preview-box">
-       <img id="pPhotoPreview" class="photo-thumb hidden" alt="Преглед на снимката">
-       <div class="muted" id="pPhotoInfo" style="flex:1">Няма избрана снимка.</div>
-       <button class="btn secondary small hidden" id="pRemovePhotoBtn" type="button">Премахни</button>
-      </div>
-     </div>
      <div class="field"><label>МАРКА</label><input id="pMake"></div>
      <div class="field"><label>МОДЕЛ</label><input id="pModel"></div>
      <div class="field"><label>ГОДИНА</label><input id="pYear" type="number"></div>
@@ -809,214 +649,4 @@ details.ref-box[open] summary{margin-bottom:10px;color:var(--accent)}
       <div style="margin-top:6px"><strong>Магазин:</strong> github.com/robertnisipeanu/mgu-store</div>
       <div style="margin-top:6px"><strong>Приложения (Waze on cluster):</strong> github.com/robertnisipeanu/idrive-apps</div>
       <div style="margin-top:6px"><strong>Boot loop възстановяване:</strong> issue #63 в idrive-apps — дръж го отворен на телефона по време на флаша.</div>
-      <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към момента) — за „Not supported“ на Waze on cluster.</div>
-     </div>
-    </details>
-
-    <details class="ref-box">
-     <summary>Ако нещо се обърка <span>▾</span></summary>
-     <div class="alert danger">
-      <ul class="golden-rules">
-       <li><strong>Head unit-ът се рестартира в цикъл</strong> (лого, черен екран, лого…): не предприемай нищо в паника. Отвори issue #63 в idrive-apps — възстановяването там е през root SSH, който се отваря само за ~5 секунди на цикъл. Mac-ът с ключа остава свързан през ENET. Пиши веднага.</li>
-       <li><strong>„No route to host“:</strong> изключи Wi-Fi на Mac-а, провери кабела, колата да е будна.</li>
-       <li><strong>„Permission denied (publickey)“:</strong> не пускай втори флаш. Направи снимка.</li>
-       <li><strong>Store: „nothing was installed“:</strong> няма промяна в колата. Снимка на целия изход.</li>
-       <li><strong>Waze on cluster „Not supported“:</strong> спри и питай автора (issue #99).</li>
-       <li><strong>B7F8E5 не се трие:</strong> направи Persist (стъпка 5), после изтрий грешката.</li>
-       <li><strong>Нужни са ти кодираните стойности отново:</strong> виж стъпка 9 (връщане на кодирането).</li>
-      </ul>
-     </div>
-    </details>
-
-    <details class="ref-box">
-     <summary>Какво не е потвърдено <span>▾</span></summary>
-     <div class="alert warn">
-      <ul class="golden-rules">
-       <li>Авторът на idrive-apps не е потвърдил точно версия 11/2021.61 на софтуера (issue #99 без видим отговор). По други issue-та 21-07 е работила, но тази версия не е тествана от никого познат.</li>
-       <li>Точният текст на изхода на командите <code>persist</code>, <code>close</code>, на Waze on cluster и на BimmerCode Restore — дадени са само признаци за успех, не точен текст.</li>
-       <li>Дали <code>persist</code> и <code>close</code> влияят на Store-а и на Waze.</li>
-       <li>Точните имена на пунктове в менюто на BimmerCode за твоята версия на приложението.</li>
-       <li>Дали гаранцията или дилърът ще имат проблем със софтуера.</li>
-       <li>Дали бъдеща актуализация на iStep ще презапише промените (един потребител във форум пише, че новият софтуер изтрива кодирането).</li>
-      </ul>
-     </div>
-    </details>
-
-    <details class="ref-box">
-     <summary>Поверителност на облачния синх <span>▾</span></summary>
-     <div class="alert warn">
-      Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
-     </div>
-    </details>
-   </div>
-
-   <div class="panel">
-    <div class="section-title">УПРАВЛЕНИЕ НА АВТОМОБИЛА</div>
-    <div class="btn-row">
-     <button class="btn secondary" id="renameCarButton" type="button">Преименувай</button>
-     <button class="btn secondary" id="resetStepsButton" type="button">Нулирай MGU стъпки</button>
-    </div>
-    <div class="btn-row">
-     <button class="btn danger" id="deleteCarButton" type="button">Изтрий автомобила</button>
-    </div>
-   </div>
-
-   <section class="panel rules">
-    <div class="section-title">ДАННИ И РЕЗЕРВНИ КОПИЯ</div>
-    <div class="backup-info">Данните се записват на устройството. При активен Cloud профил модулът за синхронизация обработва промените автоматично. Препоръчително е периодично да експортираш архив.</div>
-    <div class="btn-row">
-     <button class="btn secondary" id="exportLocalButton" type="button">Експорт на архив</button>
-     <button class="btn secondary" id="importLocalButton" type="button">Импорт на архив</button>
-     <input id="localImportFile" type="file" accept=".json,application/json" hidden>
-    </div>
-    <div id="localMessage" class="form-msg"></div>
-   </section>
-  </section>
- </main>
-
- <div class="footer">M-GARAGE PRO 4.0 · M PERFORMANCE EDITION</div>
-</div>
-
-<!-- Плаващ бутон за бързо добавяне -->
-<button class="fab" id="fabAdd" type="button">＋ Добави</button>
-
-<!-- Bottom Sheet модален панел за форми -->
-<div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
- <div class="sheet">
-  <div class="sheet-head">
-   <div class="sheet-title" id="sheetTitle">Нов запис</div>
-   <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
-  </div>
-
-  <!-- Форма: Нов автомобил -->
-  <div class="sheet-form hidden" id="form-car">
-   <div class="form-grid">
-    <div class="field full"><label>VIN НОМЕР – 17 СИМВОЛА</label><input id="newVin" maxlength="17" placeholder="Например: WBA..."></div>
-    <div class="field"><label>ИМЕ В ГАРАЖА</label><input id="newNick" placeholder="Моят BMW"></div>
-    <div class="field"><label>МАРКА</label><input id="newMake" placeholder="BMW"></div>
-    <div class="field"><label>МОДЕЛ</label><input id="newModel" placeholder="330i"></div>
-    <div class="field"><label>ГОДИНА</label><input id="newYear" type="number" min="1900" max="2100"></div>
-    <div class="field full">
-     <label>СНИМКА НА АВТОМОБИЛА (ПО ЖЕЛАНИЕ)</label>
-     <input id="newPhotoFile" type="file" accept="image/*">
-     <div class="photo-preview-box">
-      <img id="newPhotoPreview" class="photo-thumb hidden" alt="Преглед">
-      <div class="muted" id="newPhotoInfo" style="flex:1">Автоматично ще се оптимизира за бързо зареждане.</div>
-      <button class="btn secondary small hidden" id="newRemovePhotoBtn" type="button">Изчисти</button>
-     </div>
-    </div>
-   </div>
-   <div class="btn-row">
-    <button class="btn" id="addCarButton" type="button">Запази автомобила</button>
-   </div>
-   <div id="addCarMessage" class="form-msg"></div>
-  </div>
-
-  <!-- Форма: Сервиз -->
-  <div class="sheet-form hidden" id="form-service">
-   <div class="form-grid">
-    <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
-    <div class="field"><label>ПРОБЕГ (KM)</label><input id="sMileage" type="number" min="0"></div>
-    <div class="field full"><label>СЕРВИЗ / ДЕЙНОСТ</label><input id="sTitle" placeholder="Масло и филтри"></div>
-    <div class="field full"><label>ИЗВЪРШИТЕЛ / СЕРВИЗ</label><input id="sProvider"></div>
-    <div class="field"><label>СТОЙНОСТ (€)</label><input id="sCost" type="number" min="0" step="0.01"></div>
-    <div class="field"><label>БЕЛЕЖКИ</label><input id="sNotes"></div>
-   </div>
-   <div class="service-plan">
-    <div class="service-plan-title">АВТОМАТИЧНО СЛЕДВАЩО ОБСЛУЖВАНЕ</div>
-    <div class="muted">Интервал в километри, месеци или и двете.</div>
-    <div class="form-grid" style="margin-top:10px">
-     <div class="field"><label>СЛЕД КОЛКО KM?</label><input id="sIntervalKm" type="number" min="1" placeholder="Например 10000"></div>
-     <div class="field"><label>СЛЕД КОЛКО МЕСЕЦА?</label><input id="sIntervalMonths" type="number" min="1" max="120" placeholder="Например 12"></div>
-     <div class="field full"><label>ИМЕ НА СЛЕДВАЩОТО ОБСЛУЖВАНЕ</label><input id="sNextTitle" placeholder="Следваща смяна на масло"></div>
-    </div>
-   </div>
-   <div class="btn-row"><button class="btn" id="addServiceButton" type="button">Запази сервизен запис</button></div>
-  </div>
-
-  <!-- Форма: Напомняне -->
-  <div class="sheet-form hidden" id="form-reminders">
-   <div class="form-grid">
-    <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
-    <div class="field"><label>КАТЕГОРИЯ</label><select id="rCategory"><option>Масло</option><option>Филтри</option><option>Спирачки</option><option>Гуми</option><option>Технически преглед</option><option>Застраховка</option><option>Друго</option></select></div>
-    <div class="field"><label>КРАЕН СРОК</label><input id="rDate" type="date"></div>
-    <div class="field"><label>ПРОБЕГ ЗА СЕРВИЗ (KM)</label><input id="rMileage" type="number" min="0"></div>
-    <div class="field"><label>БЕЛЕЖКИ</label><input id="rNotes"></div>
-   </div>
-   <div class="btn-row"><button class="btn" id="addReminderButton" type="button">Запази напомняне</button></div>
-  </div>
-
-  <!-- Форма: Модификация -->
-  <div class="sheet-form hidden" id="form-mods">
-   <div class="form-grid">
-    <div class="field full"><label>МОДИФИКАЦИЯ</label><input id="mTitle" placeholder="Downpipe / Stage 2"></div>
-    <div class="field"><label>КАТЕГОРИЯ</label><input id="mCategory" placeholder="Двигател"></div>
-    <div class="field"><label>АРТИКУЛ / НОМЕР</label><input id="mPartNumber"></div>
-    <div class="field"><label>ДАТА</label><input id="mDate" type="date"></div>
-    <div class="field"><label>СТОЙНОСТ (€)</label><input id="mCost" type="number" min="0" step="0.01"></div>
-    <div class="field full"><label>ОПИСАНИЕ</label><textarea id="mDescription"></textarea></div>
-   </div>
-   <div class="btn-row"><button class="btn" id="addModificationButton" type="button">Запази модификация</button></div>
-  </div>
-
-  <!-- Форма: Разход -->
-  <div class="sheet-form hidden" id="form-expenses">
-   <div class="form-grid">
-    <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
-    <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
-    <div class="field"><label>СТОЙНОСТ (€)</label><input id="eCost" type="number" min="0" step="0.01"></div>
-    <div class="field"><label>КАТЕГОРИЯ</label><select id="eCategory"><option>Гориво</option><option>Сервиз</option><option>Части</option><option>Застраховка</option><option>Данък</option><option>Гуми</option><option>Други</option></select></div>
-    <div class="field"><label>БЕЛЕЖКИ</label><input id="eNotes"></div>
-   </div>
-   <div class="btn-row"><button class="btn" id="addExpenseButton" type="button">Запази разход</button></div>
-  </div>
-
-  <!-- Форма: Документ -->
-  <div class="sheet-form hidden" id="form-documents">
-   <div class="form-grid">
-    <div class="field full"><label>ИМЕ НА ДОКУМЕНТА</label><input id="dTitle" placeholder="Фактура / сервизен протокол"></div>
-    <div class="field"><label>ТИП</label><select id="dType"><option>Фактура</option><option>Сервизен документ</option><option>Застраховка</option><option>Технически преглед</option><option>Снимка</option><option>Друг</option></select></div>
-    <div class="field"><label>ДАТА</label><input id="dDate" type="date"></div>
-    <div class="field full"><label>ЛИНК КЪМ ФАЙЛ (ПО ЖЕЛАНИЕ)</label><input id="dUrl" type="url" placeholder="https://..."></div>
-    <div class="field full"><label>БЕЛЕЖКИ</label><textarea id="dNotes"></textarea></div>
-   </div>
-   <div class="btn-row"><button class="btn" id="addDocumentButton" type="button">Запази документ</button></div>
-  </div>
- </div>
-</div>
-
-<!-- Долна навигация на приложението -->
-<nav class="bottom-nav" id="bottomNav" aria-label="Навигация на приложението">
- <div class="bottom-nav-inner">
-  <button class="nav-btn active" data-screen="garage" type="button">
-   <span class="nav-icon">🏎️</span>
-   <span>Гараж</span>
-  </button>
-  <button class="nav-btn" data-screen="service" type="button">
-   <span class="nav-icon">🛠️</span>
-   <span>Сервиз</span>
-  </button>
-  <button class="nav-btn" data-screen="mgu" type="button">
-   <span class="nav-icon">💻</span>
-   <span>MGU</span>
-  </button>
-  <button class="nav-btn" data-screen="more" type="button">
-   <span class="nav-icon">⚙️</span>
-   <span>Още</span>
-  </button>
- </div>
-</nav>
-
-<script>
-"use strict";
-
-const STORAGE_KEY="mgu_cars";
-const ACTIVE_KEY="mgu_active";
-const THEME_KEY="mgu_theme";
-const DATA_VERSION=4;
-
-const STEPS=[
-{id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
-{id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
-{id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪЖ, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от
+      <div style="margin-top:6px"><strong>Въпрос към автора:</strong> issue #99 в idrive-apps (без видим отговор към
