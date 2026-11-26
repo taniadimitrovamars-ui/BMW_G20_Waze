@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
-<title>M-GARAGE PRO 4.0</title>
+<title>M-GARAGE PRO 4.1</title>
 
 <style>
 :root{
@@ -55,17 +55,19 @@ body{
  background:var(--bg);
  color:var(--text);
  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
- padding:0 0 calc(var(--nav-h) + 28px + env(safe-area-inset-bottom));
+ padding:0 0 calc(var(--nav-h) + 84px + env(safe-area-inset-bottom));
  -webkit-font-smoothing:antialiased;
 }
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 a{color:var(--accent)}
 
+.num-tabular{font-variant-numeric:tabular-nums}
+
 .app{
  max-width:680px;
  margin:auto;
- padding:12px 14px 20px;
+ padding:12px 14px 28px;
 }
 
 .topbar{
@@ -186,8 +188,8 @@ a{color:var(--accent)}
 .hero-card{
  position:relative;
  overflow:hidden;
- background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 70%);
- border:1px solid var(--border);
+ background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 12%,var(--surface-2)) 0%,var(--surface) 72%);
+ border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));
  border-radius:24px;
  padding:18px;
  margin:8px 0 12px;
@@ -211,9 +213,19 @@ a{color:var(--accent)}
  font-size:11px;color:var(--muted);
  margin-top:5px;font-weight:700;letter-spacing:.4px;overflow-wrap:anywhere;
 }
-.hero-meta{
+.spec-chips{
  position:relative;z-index:1;
- font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;
+ display:flex;flex-wrap:wrap;gap:6px;
+ margin-top:10px;
+}
+.spec-chip{
+ font-size:10.5px;font-weight:800;
+ color:var(--text);
+ background:color-mix(in srgb,var(--bg) 42%,var(--surface-3));
+ border:1px solid var(--border);
+ border-radius:999px;
+ padding:4px 10px;
+ line-height:1.25;
 }
 .hero-photo-frame{
  position:relative;z-index:1;
@@ -269,10 +281,10 @@ a{color:var(--accent)}
  min-width:0;
 }
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
-.stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
+.stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 
 .garage-cloud-widget{
- background:var(--surface);
+ background:var(--surface-2);
  border:1px solid var(--border);
  border-radius:var(--radius);
  padding:14px 16px;
@@ -363,6 +375,7 @@ a{color:var(--accent)}
  background:var(--surface-3);
  color:var(--muted);
  white-space:nowrap;
+ font-variant-numeric:tabular-nums;
 }
 .hw-chip.good{background:var(--good-soft);color:var(--good)}
 .hw-chip.warn{background:var(--warn-soft);color:var(--warn)}
@@ -393,11 +406,13 @@ a{color:var(--accent)}
  font-weight:950;
  margin-top:3px;
  overflow-wrap:anywhere;
+ font-variant-numeric:tabular-nums;
 }
 .hw-metric-sub{
  font-size:10px;
  color:var(--muted);
  margin-top:2px;
+ font-variant-numeric:tabular-nums;
 }
 
 .hw-meter-wrap{
@@ -411,6 +426,7 @@ a{color:var(--accent)}
  color:var(--muted);
  font-weight:800;
  margin-bottom:5px;
+ font-variant-numeric:tabular-nums;
 }
 .hw-meter-track{
  height:7px;
@@ -448,11 +464,13 @@ a{color:var(--accent)}
  color:var(--muted);
  margin-top:4px;
  line-height:1.45;
+ font-variant-numeric:tabular-nums;
 }
 .hw-spot-actions{
  display:flex;
  gap:8px;
  margin-top:10px;
+ flex-wrap:wrap;
 }
 
 .hw-quick-row{
@@ -471,6 +489,7 @@ a{color:var(--accent)}
  font-weight:900;
  min-height:36px;
  transition:transform .14s ease,background .14s ease;
+ font-variant-numeric:tabular-nums;
 }
 .hw-quick-oil:active{transform:scale(.97)}
 
@@ -478,10 +497,27 @@ a{color:var(--accent)}
  display:flex;
  gap:8px;
  margin-top:10px;
+ padding-right:104px;
 }
 .hw-footer-actions .btn{
  flex:1;
+ min-width:0;
 }
+
+.last-service-card{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:15px;
+ padding:11px 13px;
+ margin-top:10px;
+}
+.ls-title{font-size:12px;font-weight:900;overflow-wrap:anywhere}
+.ls-meta{font-size:10.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.ls-cost{font-size:12px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
 .seg-bar{
  display:flex;
@@ -636,10 +672,10 @@ textarea{min-height:82px;resize:vertical}
 
 .fab{
  position:fixed;
- right:max(16px,calc(50% - 310px));
- bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
+ right:max(14px,calc(50% - 320px));
+ bottom:calc(var(--nav-h) + 12px + env(safe-area-inset-bottom));
  z-index:30;
- height:46px;padding:0 16px;
+ height:44px;padding:0 15px;
  border-radius:999px;border:0;
  background:var(--accent);color:#fff;
  font-size:12px;font-weight:900;letter-spacing:.3px;
@@ -647,16 +683,53 @@ textarea{min-height:82px;resize:vertical}
  display:inline-flex;align-items:center;gap:6px;
 }
 
+.toast{
+ position:fixed;
+ left:50%;
+ bottom:calc(var(--nav-h) + 66px + env(safe-area-inset-bottom));
+ transform:translateX(-50%) translateY(10px);
+ z-index:70;
+ max-width:min(92vw,520px);
+ background:var(--surface-3);
+ color:var(--text);
+ border:1px solid color-mix(in srgb,var(--accent) 50%,var(--border));
+ border-radius:999px;
+ padding:9px 15px;
+ font-size:12px;
+ font-weight:850;
+ box-shadow:0 14px 32px rgba(0,0,0,.42);
+ opacity:0;
+ pointer-events:none;
+ transition:opacity .18s ease,transform .18s ease;
+ text-align:center;
+}
+.toast.show{
+ opacity:1;
+ transform:translateX(-50%) translateY(0);
+}
+.toast.good{border-color:var(--good);color:var(--good)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}
+.toast.danger{border-color:var(--danger);color:var(--danger)}
+
 .record{
  border:1px solid var(--border);background:var(--surface-2);
  border-radius:16px;padding:13px 14px;margin:9px 0;
 }
 .record-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.record-title-wrap{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
 .record-title{font-weight:850;font-size:13px;overflow-wrap:anywhere}
-.record-date{font-size:10px;color:var(--muted);margin-top:4px}
+.auto-tag{
+ font-size:9px;font-weight:900;
+ padding:2px 7px;border-radius:999px;
+ background:var(--accent-soft);color:var(--accent);
+ white-space:nowrap;
+}
+.record-cost{font-variant-numeric:tabular-nums;white-space:nowrap}
+.record-date{font-size:10px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
 .record-meta{
  font-size:11px;color:var(--muted);margin-top:8px;
  white-space:pre-line;overflow-wrap:anywhere;line-height:1.55;
+ font-variant-numeric:tabular-nums;
 }
 .record-actions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
 .record-actions button{flex:1}
@@ -689,13 +762,21 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 details.step-card{
  background:var(--surface-2);
  border:1px solid var(--border);
+ border-left:4px solid var(--border);
  border-radius:17px;
  padding:13px 14px;
  margin:10px 0;
  transition:border-color .16s ease;
 }
+details.step-card.is-done{
+ border-left-color:var(--good);
+}
+details.step-card.is-risk{
+ border-left-color:var(--warn);
+}
 details.step-card[open]{
  border-color:color-mix(in srgb,var(--accent) 55%,var(--border));
+ border-left-width:4px;
 }
 details.step-card > summary{
  list-style:none;
@@ -709,6 +790,7 @@ details.step-card > summary::-webkit-details-marker{display:none}
 .step-title-wrap{flex:1;min-width:0}
 .step-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .step-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.35}
+.step-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .step-badge{
  flex:0 0 auto;
  font-size:9px;
@@ -720,6 +802,7 @@ details.step-card > summary::-webkit-details-marker{display:none}
  letter-spacing:.5px;
 }
 .step-badge.cmd{background:var(--accent-soft);color:var(--accent)}
+.step-badge.risk{background:var(--warn-soft);color:var(--warn)}
 .step-description{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px}
 .step-meta-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
 .step-status{font-size:9px;font-weight:900;color:var(--good)}
@@ -754,7 +837,7 @@ details.step-card > summary::-webkit-details-marker{display:none}
 }
 .due-item:last-child{border-bottom:0}
 .due-name{font-size:12px;font-weight:850}
-.due-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45}
+.due-meta{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45;font-variant-numeric:tabular-nums}
 .due-tag{
  font-size:9px;font-weight:950;padding:6px 9px;border-radius:999px;
  background:var(--surface-3);white-space:nowrap;
@@ -766,10 +849,10 @@ details.step-card > summary::-webkit-details-marker{display:none}
 .finance-list{display:grid;gap:11px}
 .finance-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}
 .finance-label{font-size:11px;font-weight:750}
-.finance-value{font-size:11px;font-weight:900;text-align:right}
+.finance-value{font-size:11px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
 .finance-track{grid-column:1/-1;height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden}
 .finance-fill{height:100%;background:var(--accent);border-radius:999px;min-width:0}
-.finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px}
+.finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .finance-caption{font-size:10px;color:var(--muted)}
 
 details.ref-box,
@@ -864,6 +947,9 @@ details[open] > summary{
  background:var(--accent-soft);
 }
 
+@media(max-width:440px){
+ .hw-footer-actions{padding-right:0}
+}
 @media(max-width:400px){
  .form-grid{grid-template-columns:1fr}
  .hero-name{font-size:21px}
@@ -879,7 +965,7 @@ details[open] > summary{
  <header class="topbar">
   <div>
    <div class="brand">M-<span>GARAGE</span> PRO</div>
-   <div class="version">G20 · MGU · WAZE · 4.0</div>
+   <div class="version">G20 · MGU · WAZE · 4.1</div>
   </div>
   <div class="top-actions">
    <button class="pill-btn" id="topCloudBtn" type="button" title="CLOUD SYNC · M-GARAGE PRO 2.4">☁ Cloud</button>
@@ -905,7 +991,7 @@ details[open] > summary{
      </div>
      <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
     </div>
-    <div class="hero-meta" id="overviewDetails"></div>
+    <div class="spec-chips" id="overviewDetails"></div>
     <div class="hero-photo-frame hidden" id="heroPhotoFrame">
      <img id="heroPhotoImg" alt="Снимка на автомобила">
     </div>
@@ -915,6 +1001,7 @@ details[open] > summary{
      <div class="stat"><div class="stat-label">РАЗХОДИ</div><div class="stat-value" id="statExpenses">0 €</div></div>
      <div class="stat"><div class="stat-label">НАПОМНЯНИЯ</div><div class="stat-value" id="statReminders">0</div></div>
     </div>
+    <div id="lastServiceCardContainer"></div>
    </div>
 
    <div class="health-widget is-good" id="healthWidget">
@@ -1078,7 +1165,11 @@ details[open] > summary{
     </details>
 
     <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
-    <div class="muted" id="stepsProgressText"></div>
+    <div class="muted num-tabular" id="stepsProgressText"></div>
+    <div class="chip-filter-row" style="margin-top:10px">
+     <button class="filter-chip active" id="mguFilterAll" type="button">Всички стъпки</button>
+     <button class="filter-chip" id="mguFilterTodo" type="button">Само неизпълнени</button>
+    </div>
     <div class="btn-row">
      <button class="btn secondary small" id="expandAllStepsBtn" type="button">Разгъни всички</button>
      <button class="btn secondary small" id="collapseAllStepsBtn" type="button">Свий всички</button>
@@ -1214,8 +1305,10 @@ details[open] > summary{
   </section>
  </main>
 
- <div class="footer">M-GARAGE PRO 4.0 · YOUR VEHICLE. YOUR DATA.</div>
+ <div class="footer">M-GARAGE PRO 4.1 · YOUR VEHICLE. YOUR DATA.</div>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <button class="fab" id="fabAdd" type="button">＋ Добави</button>
 
@@ -1390,7 +1483,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -1407,10 +1500,23 @@ let currentScreen="garage";
 let currentSeg="service";
 let searchQuery="";
 let activeFilter="all";
+let mguOnlyTodo=false;
 let forcedCloudState="";
 let draftPhotoDataUrl="";
 let editingRecord=null;
+let toastTimer=null;
 const $=id=>document.getElementById(id);
+
+function showToast(text,tone=""){
+ const el=$("toast");
+ if(!el||!text)return;
+ el.textContent=text;
+ el.className="toast show"+(tone?" "+tone:"");
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>{
+  el.classList.remove("show");
+ },2400);
+}
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
 function safeNumber(value){const n=Number(value);return Number.isFinite(n)&&n>0?n:0}
@@ -1945,6 +2051,7 @@ function quickAddOilReminder(){
  },"reminder"));
  save();
  renderAll();
+ showToast("Добавено напомняне за масло (+10 000 km)","good");
 }
 
 function renderHealthWidget(car){
@@ -2120,6 +2227,13 @@ function renderHealthWidget(car){
 
  const spotActions=document.createElement("div");
  spotActions.className="hw-spot-actions";
+
+ const editBtn=document.createElement("button");
+ editBtn.type="button";
+ editBtn.className="btn secondary small";
+ editBtn.textContent="✎ Редакция";
+ editBtn.addEventListener("click",()=>openEditRecord("reminder",topItem));
+
  const doneBtn=document.createElement("button");
  doneBtn.type="button";
  doneBtn.className="btn good small";
@@ -2129,8 +2243,9 @@ function renderHealthWidget(car){
   topItem.completed=true;
   save();
   renderAll();
+  showToast("Напомнянето е отбелязано като изпълнено","good");
  });
- spotActions.append(doneBtn);
+ spotActions.append(editBtn,doneBtn);
  spot.append(spotActions);
  spotContainer.append(spot);
 }
@@ -2150,6 +2265,45 @@ function renderHeroPhoto(car){
  }
 }
 
+function renderLastServiceCard(car){
+ const wrap=$("lastServiceCardContainer");
+ if(!wrap)return;
+ wrap.replaceChildren();
+ if(!car.serviceRecords.length)return;
+
+ const latest=[...car.serviceRecords].sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))[0];
+ if(!latest)return;
+
+ const card=document.createElement("div");
+ card.className="last-service-card";
+
+ const left=document.createElement("div");
+ left.style.minWidth="0";
+
+ const t=document.createElement("div");
+ t.className="ls-title";
+ t.textContent="Последен сервиз: "+(latest.title||"Обслужване");
+
+ const m=document.createElement("div");
+ m.className="ls-meta";
+ const metaParts=[formatDate(latest.date)];
+ if(latest.mileage)metaParts.push(latest.mileage.toLocaleString("bg-BG")+" km");
+ if(latest.provider)metaParts.push(latest.provider);
+ m.textContent=metaParts.join(" · ");
+
+ left.append(t,m);
+ card.append(left);
+
+ if(latest.cost){
+  const c=document.createElement("div");
+  c.className="ls-cost";
+  c.textContent=formatMoney(latest.cost);
+  card.append(c);
+ }
+
+ wrap.append(card);
+}
+
 function renderOverview(car){
  $("vehicleName").textContent=car.nick||"BMW";
  $("vehicleVin").textContent="VIN: "+car.vin;
@@ -2160,15 +2314,35 @@ function renderOverview(car){
 
  const mguDone=STEPS.filter(s=>car.done[s.id]).length;
  const d=car.details;
- $("overviewDetails").textContent=[
-  [d.make,d.model].filter(Boolean).join(" "),d.year||"",
-  d.engine?"Двигател: "+d.engine:"",d.transmission?"Кутия: "+d.transmission:"",
-  d.fuel?"Гориво: "+d.fuel:"",d.color?"Цвят: "+d.color:"",
+ const chips=[
+  [d.make,d.model].filter(Boolean).join(" "),
+  d.year?String(d.year):"",
+  d.engine?"Двигател: "+d.engine:"",
+  d.transmission?"Кутия: "+d.transmission:"",
+  d.fuel||"",
+  d.color||"",
   d.registration?"Рег.: "+d.registration:"",
-  "MGU: "+mguDone+"/"+STEPS.length
- ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
+  "MGU "+mguDone+"/"+STEPS.length
+ ].filter(Boolean);
+
+ const specBox=$("overviewDetails");
+ specBox.replaceChildren();
+ if(!chips.length){
+  const sp=document.createElement("span");
+  sp.className="spec-chip";
+  sp.textContent="Попълни детайлите на автомобила в раздел „Още“.";
+  specBox.append(sp);
+ }else{
+  chips.forEach(text=>{
+   const sp=document.createElement("span");
+   sp.className="spec-chip";
+   sp.textContent=text;
+   specBox.append(sp);
+  });
+ }
 
  renderHeroPhoto(car);
+ renderLastServiceCard(car);
  renderHealthWidget(car);
 
  const active=car.reminders.filter(r=>!r.completed);
@@ -2283,6 +2457,7 @@ async function copyCommand(command,button){
    if(!ok)throw new Error("Copy failed");
   }
   button.textContent="✓ Копирано";
+  showToast("Командата е копирана","good");
  }catch(error){button.textContent="Неуспешно копиране"}
  setTimeout(()=>button.textContent=original,1800);
 }
@@ -2298,9 +2473,17 @@ function renderSteps(car){
  $("stepsProgressText").textContent=done+" от "+STEPS.length+" изпълнени · "+percent+"%";
  const container=$("stepsList");container.replaceChildren();
 
- STEPS.forEach(step=>{
+ const visibleSteps=mguOnlyTodo?STEPS.filter(s=>!car.done[s.id]):STEPS;
+ if(!visibleSteps.length){
+  container.innerHTML='<div class="empty">Всички MGU стъпки са отбелязани като изпълнени.</div>';
+  return;
+ }
+
+ visibleSteps.forEach(step=>{
+  const isDone=car.done[step.id]===true;
+  const isRisk=step.id==="flash"||step.id==="keys";
   const card=document.createElement("details");
-  card.className="step-card";
+  card.className="step-card"+(isDone?" is-done":isRisk?" is-risk":"");
   card.dataset.stepId=step.id;
   if(openIds.has(step.id))card.open=true;
 
@@ -2309,7 +2492,7 @@ function renderSteps(car){
   const checkbox=document.createElement("input");
   checkbox.type="checkbox";
   checkbox.className="step-check";
-  checkbox.checked=car.done[step.id]===true;
+  checkbox.checked=isDone;
   checkbox.setAttribute("aria-label","Отбележи "+step.title);
   checkbox.addEventListener("click",e=>e.stopPropagation());
   checkbox.addEventListener("change",()=>{
@@ -2320,17 +2503,27 @@ function renderSteps(car){
   const titleWrap=document.createElement("div");titleWrap.className="step-title-wrap";
   const titleRow=document.createElement("div");titleRow.className="step-title-row";
   const title=document.createElement("div");title.className="step-title";title.textContent=step.title;
+
+  const badges=document.createElement("div");badges.className="step-badges";
+  if(isRisk){
+   const riskBadge=document.createElement("span");
+   riskBadge.className="step-badge risk";
+   riskBadge.textContent="ВНИМАНИЕ";
+   badges.append(riskBadge);
+  }
   const badge=document.createElement("span");
   badge.className="step-badge"+(step.command?" cmd":"");
   badge.textContent=step.command?"CMD":"ИНФО";
-  titleRow.append(title,badge);
+  badges.append(badge);
+
+  titleRow.append(title,badges);
 
   const description=document.createElement("div");description.className="step-description";description.textContent=step.description;
 
   const metaRow=document.createElement("div");metaRow.className="step-meta-row";
   const status=document.createElement("div");status.className="step-status";
-  status.style.color=car.done[step.id]?"var(--good)":"var(--muted)";
-  status.textContent=car.done[step.id]?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
+  status.style.color=isDone?"var(--good)":"var(--muted)";
+  status.textContent=isDone?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
   const chev=document.createElement("span");chev.className="chev";chev.textContent="▾";
   metaRow.append(status,chev);
 
@@ -2402,10 +2595,24 @@ function renderRecords(containerId,records,type,car){
  filtered.forEach(record=>{
   const card=document.createElement("article");card.className="record";
   const heading=document.createElement("div");heading.className="record-top";
+
+  const titleWrap=document.createElement("div");titleWrap.className="record-title-wrap";
   const prefixIcon=(type==="reminder"||type==="expense"||type==="service")?getCategoryIcon(record.category||record.documentType,record.title)+" ":"";
   const title=document.createElement("div");title.className="record-title";title.textContent=prefixIcon+(record.title||"Запис");
-  const cost=document.createElement("strong");cost.textContent=record.cost?formatMoney(record.cost):"";
-  heading.append(title,cost);
+  titleWrap.append(title);
+
+  if(type==="reminder"&&record.sourceServiceId){
+   const autoBadge=document.createElement("span");
+   autoBadge.className="auto-tag";
+   autoBadge.textContent="Авто от сервиз";
+   titleWrap.append(autoBadge);
+  }
+
+  const cost=document.createElement("strong");
+  cost.className="record-cost";
+  cost.textContent=record.cost?formatMoney(record.cost):"";
+  heading.append(titleWrap,cost);
+
   const date=document.createElement("div");date.className="record-date";date.textContent=formatDate(record.date);
   const meta=document.createElement("div");meta.className="record-meta";
   const lines=[];
@@ -2428,7 +2635,10 @@ function renderRecords(containerId,records,type,car){
     const complete=document.createElement("button");complete.className="btn good small";
     complete.style.marginTop="10px";complete.style.width="100%";
     complete.textContent="Отбележи като изпълнено";
-    complete.addEventListener("click",()=>{record.completed=true;save();renderAll()});card.append(complete);
+    complete.addEventListener("click",()=>{
+     record.completed=true;save();renderAll();
+     showToast("Напомнянето е изпълнено","good");
+    });card.append(complete);
    }
   }else if(type==="document"&&record.fileUrl){
    const safeUrl=safeHttpUrl(record.fileUrl);
@@ -2453,6 +2663,7 @@ function renderRecords(containerId,records,type,car){
    if(!confirm("Да изтрия ли този запис?"))return;
    const index=records.findIndex(r=>r.id===record.id);if(index>=0)records.splice(index,1);
    save();renderAll();
+   showToast("Записът е изтрит");
   });
   actions.append(edit,del);card.append(actions);container.append(card);
  });
@@ -2474,6 +2685,7 @@ function addCar(){
  cars.push(car);activeVin=vin;save();closeSheet();
  ["newVin","newNick","newMake","newModel","newYear"].forEach(id=>$(id).value="");
  message("addCarMessage","");renderAll();
+ showToast("Автомобилът е добавен","good");
 }
 
 function saveProfile(){
@@ -2488,6 +2700,7 @@ function saveProfile(){
   notes:safeText($("pNotes").value,4000)
  };
  save();renderAll();message("profileMessage","Профилът е запазен.");
+ showToast("Профилът е запазен","good");
 }
 
 $("pPhotoFile")?.addEventListener("change",async e=>{
@@ -2497,8 +2710,10 @@ $("pPhotoFile")?.addEventListener("change",async e=>{
   draftPhotoDataUrl=await compressImageToDataUrl(file);
   updatePhotoPreview(draftPhotoDataUrl);
   message("profileMessage","Снимката е готова. Натисни „Запази профила“, за да я приложиш.");
+  showToast("Снимката е подготвена");
  }catch(error){
   message("profileMessage","Грешка при снимката: "+error.message);
+  showToast("Грешка при снимката","danger");
  }
 });
 
@@ -2592,6 +2807,7 @@ function addService(){
    car.serviceRecords[idx]=updatedService;
    save();renderAll();closeSheet();
    message("localMessage","Сервизният запис и свързаното напомняне са обновени.");
+   showToast("Сервизът и напомнянето са обновени","good");
    return;
   }
  }
@@ -2611,6 +2827,7 @@ function addService(){
  car.serviceRecords.push(newService);
  save();renderAll();closeSheet();
  message("localMessage",intervalKm||intervalMonths?"Сервизният запис и следващото напомняне са запазени.":"Сервизният запис е запазен.");
+ showToast(intervalKm||intervalMonths?"Сервизът и напомнянето са записани":"Сервизният запис е запазен","good");
 }
 
 function addReminder(){
@@ -2630,11 +2847,13 @@ function addReminder(){
     notes:getVal("rNotes")
    },"reminder");
    save();renderAll();closeSheet();
+   showToast("Напомнянето е обновено","good");
    return;
   }
  }
  addRecord("reminder",{title:getVal("rTitle"),date:today(),dueDate:getVal("rDate"),dueMileage:getVal("rMileage"),category:getVal("rCategory"),notes:getVal("rNotes"),completed:false});
  closeSheet();
+ showToast("Напомнянето е запазено","good");
 }
 
 function addModification(){
@@ -2655,11 +2874,13 @@ function addModification(){
     description:getVal("mDescription")
    },"modification");
    save();renderAll();closeSheet();
+   showToast("Модификацията е обновена","good");
    return;
   }
  }
  addRecord("modification",{title:getVal("mTitle"),date:getVal("mDate")||today(),category:getVal("mCategory"),partNumber:getVal("mPartNumber"),cost:getVal("mCost"),description:getVal("mDescription")});
  closeSheet();
+ showToast("Модификацията е запазена","good");
 }
 
 function addExpense(){
@@ -2679,11 +2900,13 @@ function addExpense(){
     notes:getVal("eNotes")
    },"expense");
    save();renderAll();closeSheet();
+   showToast("Разходът е обновен","good");
    return;
   }
  }
  addRecord("expense",{title:getVal("eTitle"),date:getVal("eDate")||today(),cost:getVal("eCost"),category:getVal("eCategory"),notes:getVal("eNotes")});
  closeSheet();
+ showToast("Разходът е запазен","good");
 }
 
 function addDocument(){
@@ -2706,11 +2929,13 @@ function addDocument(){
     notes:getVal("dNotes")
    },"document");
    save();renderAll();closeSheet();
+   showToast("Документът е обновен","good");
    return;
   }
  }
  addRecord("document",{title:getVal("dTitle"),date:getVal("dDate")||today(),documentType:getVal("dType"),fileName:getVal("dTitle"),fileUrl:safeUrl,notes:getVal("dNotes")});
  closeSheet();
+ showToast("Документът е запазен","good");
 }
 
 function exportBackup(){
@@ -2720,6 +2945,7 @@ function exportBackup(){
  a.href=url;a.download="M-GARAGE-PRO-backup-"+today()+".json";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  message("localMessage","Архивът е експортиран.");
+ showToast("Архивът е експортиран","good");
 }
 
 async function importBackup(file){
@@ -2733,7 +2959,11 @@ async function importBackup(file){
   cars=imported;activeVin=cars.some(c=>c.vin===parsed.activeVin)?parsed.activeVin:(cars[0]?.vin||"");
   save();if(parsed.theme==="light"||parsed.theme==="dark")setTheme(parsed.theme);
   renderAll();message("localMessage","Архивът е импортиран. Cloud синхронизацията ще обработи промените.");
- }catch(error){message("localMessage","Грешка: "+error.message)}
+  showToast("Архивът е импортиран","good");
+ }catch(error){
+  message("localMessage","Грешка: "+error.message);
+  showToast("Грешка при импорт","danger");
+ }
 }
 
 $("recordSearch")?.addEventListener("input",e=>{
@@ -2830,6 +3060,21 @@ $("gcwSyncBtn").addEventListener("click",()=>{
 
 $("gcwOpenPanelBtn").addEventListener("click",openCloudPanel);
 
+$("mguFilterAll")?.addEventListener("click",()=>{
+ mguOnlyTodo=false;
+ $("mguFilterAll").classList.add("active");
+ $("mguFilterTodo").classList.remove("active");
+ const car=activeCar();
+ if(car)renderSteps(car);
+});
+$("mguFilterTodo")?.addEventListener("click",()=>{
+ mguOnlyTodo=true;
+ $("mguFilterTodo").classList.add("active");
+ $("mguFilterAll").classList.remove("active");
+ const car=activeCar();
+ if(car)renderSteps(car);
+});
+
 $("expandAllStepsBtn").addEventListener("click",()=>{
  document.querySelectorAll("#stepsList details.step-card").forEach(d=>d.open=true);
 });
@@ -2861,23 +3106,27 @@ $("backupButton").addEventListener("click",exportBackup);
 $("exportLocalButton").addEventListener("click",exportBackup);
 $("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
 $("localImportFile").addEventListener("change",e=>importBackup(e.target.files[0]));
-$("themeToggle").addEventListener("click",()=>setTheme((localStorage.getItem(THEME_KEY)||"dark")==="dark"?"light":"dark"));
+$("themeToggle").addEventListener("click",()=>{
+ const next=(localStorage.getItem(THEME_KEY)||"dark")==="dark"?"light":"dark";
+ setTheme(next);
+ showToast(next==="light"?"Светла тема":"Тъмна тема");
+});
 
 $("renameCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
  const name=prompt("Ново име на автомобила:",car.nick);
- if(name&&name.trim()){car.nick=safeText(name,30);save();renderAll()}
+ if(name&&name.trim()){car.nick=safeText(name,30);save();renderAll();showToast("Името е обновено","good")}
 });
 $("resetStepsButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
  if(!confirm("Да нулирам ли MGU стъпките за този автомобил?"))return;
- car.done={};save();renderAll();
+ car.done={};save();renderAll();showToast("MGU стъпките са нулирани");
 });
 $("deleteCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
  if(!confirm("Сигурен ли си, че искаш да изтриеш автомобила и неговите записи?"))return;
  cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";
- save();renderAll();
+ save();renderAll();showToast("Автомобилът е изтрит");
 });
 
 window.renderAll=renderAll;
