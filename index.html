@@ -282,6 +282,176 @@ a{color:var(--accent)}
  flex:1;
 }
 
+/* Уиджити за Състояние и Напомняния */
+.health-widget{
+ position:relative;
+ overflow:hidden;
+ background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 78%);
+ border:1px solid var(--border);
+ border-radius:var(--radius);
+ padding:15px 16px;
+ margin:12px 0;
+ box-shadow:var(--shadow);
+ transition:border-color .2s ease;
+}
+.health-widget.is-good{border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
+.health-widget.is-warn{border-color:color-mix(in srgb,var(--warn) 55%,var(--border))}
+.health-widget.is-danger{border-color:color-mix(in srgb,var(--danger) 65%,var(--border))}
+
+.hw-head{
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ gap:10px;
+}
+.hw-kicker{
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:1.1px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+.hw-status{
+ font-size:13.5px;
+ font-weight:950;
+ margin-top:4px;
+ letter-spacing:.2px;
+}
+.hw-pills{
+ display:flex;
+ align-items:center;
+ gap:6px;
+ flex-wrap:wrap;
+ justify-content:flex-end;
+}
+.hw-chip{
+ font-size:9.5px;
+ font-weight:900;
+ padding:4px 9px;
+ border-radius:999px;
+ background:var(--surface-3);
+ color:var(--muted);
+ white-space:nowrap;
+}
+.hw-chip.good{background:var(--good-soft);color:var(--good)}
+.hw-chip.warn{background:var(--warn-soft);color:var(--warn)}
+.hw-chip.danger{background:var(--danger-soft);color:var(--danger)}
+
+.hw-metrics{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin-top:12px;
+}
+.hw-metric{
+ background:color-mix(in srgb,var(--bg) 48%,var(--surface-2));
+ border:1px solid var(--border);
+ border-radius:14px;
+ padding:10px 12px;
+ min-width:0;
+}
+.hw-metric-label{
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:.6px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+.hw-metric-val{
+ font-size:15px;
+ font-weight:950;
+ margin-top:3px;
+ overflow-wrap:anywhere;
+}
+.hw-metric-sub{
+ font-size:10px;
+ color:var(--muted);
+ margin-top:2px;
+}
+
+.hw-meter-wrap{
+ margin-top:12px;
+}
+.hw-meter-row{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ font-size:10px;
+ color:var(--muted);
+ font-weight:800;
+ margin-bottom:5px;
+}
+.hw-meter-track{
+ height:7px;
+ border-radius:999px;
+ background:var(--surface-3);
+ overflow:hidden;
+}
+.hw-meter-fill{
+ height:100%;
+ border-radius:999px;
+ width:0;
+ transition:width .25s ease,background .25s ease;
+}
+
+.hw-spotlight{
+ margin-top:12px;
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:15px;
+ padding:11px 12px;
+}
+.hw-spot-top{
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ gap:8px;
+}
+.hw-spot-title{
+ font-size:12.5px;
+ font-weight:900;
+ overflow-wrap:anywhere;
+}
+.hw-spot-meta{
+ font-size:10.5px;
+ color:var(--muted);
+ margin-top:4px;
+ line-height:1.45;
+}
+.hw-spot-actions{
+ display:flex;
+ gap:8px;
+ margin-top:10px;
+}
+
+.hw-quick-row{
+ display:flex;
+ gap:8px;
+ margin-top:12px;
+}
+.hw-quick-oil{
+ flex:1;
+ border:1px dashed color-mix(in srgb,var(--accent) 65%,var(--border));
+ background:var(--accent-soft);
+ color:var(--accent);
+ border-radius:12px;
+ padding:8px 11px;
+ font-size:11px;
+ font-weight:900;
+ min-height:36px;
+ transition:transform .14s ease,background .14s ease;
+}
+.hw-quick-oil:active{transform:scale(.97)}
+
+.hw-footer-actions{
+ display:flex;
+ gap:8px;
+ margin-top:10px;
+}
+.hw-footer-actions .btn{
+ flex:1;
+}
+
 .seg-bar{
  display:flex;
  gap:6px;
@@ -717,6 +887,50 @@ details[open] > summary{
     </div>
    </div>
 
+   <div class="health-widget is-good" id="healthWidget">
+    <div class="hw-head">
+     <div>
+      <div class="hw-kicker">СЪСТОЯНИЕ И НАПОМНЯНИЯ</div>
+      <div class="hw-status" id="hwStatusText" style="color:var(--good)">● ВСИЧКО Е В НОРМА</div>
+     </div>
+     <div class="hw-pills" id="hwBadges"></div>
+    </div>
+
+    <div class="hw-metrics">
+     <div class="hw-metric">
+      <div class="hw-metric-label">ОСТАВАЩ ПРОБЕГ</div>
+      <div class="hw-metric-val" id="hwKmLeft">—</div>
+      <div class="hw-metric-sub" id="hwKmSub">Няма зададен пробег</div>
+     </div>
+     <div class="hw-metric">
+      <div class="hw-metric-label">СЛЕДВАЩ СРОК</div>
+      <div class="hw-metric-val" id="hwDateLeft">—</div>
+      <div class="hw-metric-sub" id="hwDateSub">Няма зададена дата</div>
+     </div>
+    </div>
+
+    <div class="hw-meter-wrap" id="hwMeterWrap">
+     <div class="hw-meter-row">
+      <span id="hwMeterLabel">Интервал до обслужване</span>
+      <span id="hwMeterPct">100%</span>
+     </div>
+     <div class="hw-meter-track">
+      <div class="hw-meter-fill" id="hwMeterFill"></div>
+     </div>
+    </div>
+
+    <div id="hwSpotlightContainer"></div>
+
+    <div class="hw-quick-row">
+     <button class="hw-quick-oil" id="hwQuickOilBtn" type="button">🛢️ +10 000 km масло</button>
+    </div>
+
+    <div class="hw-footer-actions">
+     <button class="btn small" id="hwAddReminderBtn" type="button">＋ Напомняне</button>
+     <button class="btn secondary small" id="hwOpenAllBtn" type="button">Всички напомняния</button>
+    </div>
+   </div>
+
    <div class="garage-cloud-widget" id="garageCloudWidget">
     <div class="gcw-top">
      <div>
@@ -732,11 +946,11 @@ details[open] > summary{
     </div>
    </div>
 
-   <details class="drop-panel" open>
+   <details class="drop-panel">
     <summary>
      <div>
-      <div>СЪСТОЯНИЕ И НАПОМНЯНИЯ</div>
-      <div class="drop-sub">Просрочени, предстоящи и планирани обслужвания</div>
+      <div>ПЛАНИРАНИ ОБСЛУЖВАНИЯ</div>
+      <div class="drop-sub">Пълен списък с предстоящи и просрочени задачи</div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -988,10 +1202,10 @@ details[open] > summary{
 
   <div class="sheet-form hidden" id="form-service">
    <div class="preset-row" id="servicePresets">
-    <button class="preset-chip" type="button" data-title="Масло и филтри" data-km="10000" data-months="12" data-next="Следваща смяна на масло и филтри">Масло + филтри (10k / 12м)</button>
-    <button class="preset-chip" type="button" data-title="Спирачни накладки и дискове" data-km="25000" data-months="24" data-next="Проверка на спирачки">Спирачки</button>
-    <button class="preset-chip" type="button" data-title="Смяна гуми и баланс" data-km="0" data-months="6" data-next="Сезонна смяна на гуми">Гуми / баланс</button>
-    <button class="preset-chip" type="button" data-title="Технически преглед / обслужване" data-km="0" data-months="12" data-next="Следващ преглед">Преглед / обслужване</button>
+    <button class="preset-chip" type="button" data-title="Масло и филтри" data-km="10000" data-months="12" data-next="Следваща смяна на масло и филтри">🛢️ Масло + филтри (10k / 12м)</button>
+    <button class="preset-chip" type="button" data-title="Спирачни накладки и дискове" data-km="25000" data-months="24" data-next="Проверка на спирачки">🛑 Спирачки</button>
+    <button class="preset-chip" type="button" data-title="Смяна гуми и баланс" data-km="0" data-months="6" data-next="Сезонна смяна на гуми">🛞 Гуми / баланс</button>
+    <button class="preset-chip" type="button" data-title="Технически преглед / обслужване" data-km="0" data-months="12" data-next="Следващ преглед">📋 Преглед / обслужване</button>
    </div>
    <div class="form-grid">
     <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
@@ -1015,11 +1229,11 @@ details[open] > summary{
 
   <div class="sheet-form hidden" id="form-reminders">
    <div class="preset-row" id="reminderPresets">
-    <button class="preset-chip" type="button" data-title="Смяна на масло и филтри" data-cat="Масло" data-km="10000" data-months="12">Масло (10k / 12м)</button>
-    <button class="preset-chip" type="button" data-title="Спирачна система" data-cat="Спирачки" data-km="20000" data-months="12">Спирачки</button>
-    <button class="preset-chip" type="button" data-title="Сезонни гуми" data-cat="Гуми" data-km="0" data-months="6">Гуми (6м)</button>
-    <button class="preset-chip" type="button" data-title="Технически преглед" data-cat="Технически преглед" data-km="0" data-months="12">Преглед (12м)</button>
-    <button class="preset-chip" type="button" data-title="Застраховка / Гражданска" data-cat="Застраховка" data-km="0" data-months="12">Застраховка (12м)</button>
+    <button class="preset-chip" type="button" data-title="Смяна на масло и филтри" data-cat="Масло" data-km="10000" data-months="12">🛢️ Масло (10k / 12м)</button>
+    <button class="preset-chip" type="button" data-title="Спирачна система" data-cat="Спирачки" data-km="20000" data-months="12">🛑 Спирачки</button>
+    <button class="preset-chip" type="button" data-title="Сезонни гуми" data-cat="Гуми" data-km="0" data-months="6">🛞 Гуми (6м)</button>
+    <button class="preset-chip" type="button" data-title="Технически преглед" data-cat="Технически преглед" data-km="0" data-months="12">📋 Преглед (12м)</button>
+    <button class="preset-chip" type="button" data-title="Застраховка / Гражданска" data-cat="Застраховка" data-km="0" data-months="12">🛡️ Застраховка (12м)</button>
    </div>
    <div class="form-grid">
     <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
@@ -1045,11 +1259,11 @@ details[open] > summary{
 
   <div class="sheet-form hidden" id="form-expenses">
    <div class="preset-row" id="expensePresets">
-    <button class="preset-chip" type="button" data-title="Зареждане на гориво" data-cat="Гориво">Гориво</button>
-    <button class="preset-chip" type="button" data-title="Гражданска отговорност / Каско" data-cat="Застраховка">Застраховка</button>
-    <button class="preset-chip" type="button" data-title="Годишен данък МПС" data-cat="Данък">Данък</button>
-    <button class="preset-chip" type="button" data-title="Гуми / джанти" data-cat="Гуми">Гуми</button>
-    <button class="preset-chip" type="button" data-title="Автомивка / детайлинг" data-cat="Други">Автомивка</button>
+    <button class="preset-chip" type="button" data-title="Зареждане на гориво" data-cat="Гориво">⛽ Гориво</button>
+    <button class="preset-chip" type="button" data-title="Гражданска отговорност / Каско" data-cat="Застраховка">🛡️ Застраховка</button>
+    <button class="preset-chip" type="button" data-title="Годишен данък МПС" data-cat="Данък">🧾 Данък</button>
+    <button class="preset-chip" type="button" data-title="Гуми / джанти" data-cat="Гуми">🛞 Гуми</button>
+    <button class="preset-chip" type="button" data-title="Автомивка / детайлинг" data-cat="Други">✨ Автомивка</button>
    </div>
    <div class="form-grid">
     <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
@@ -1104,6 +1318,33 @@ const THEME_KEY="mgu_theme";
 const PENDING_KEY="mgu_cloud_pending";
 const LAST_SYNC_KEY="mgu_cloud_last_sync";
 const DATA_VERSION=4;
+
+const CATEGORY_ICONS={
+ "Масло":"🛢️",
+ "Филтри":"🔧",
+ "Спирачки":"🛑",
+ "Гуми":"🛞",
+ "Технически преглед":"📋",
+ "Застраховка":"🛡️",
+ "Сервиз":"🛠️",
+ "Гориво":"⛽",
+ "Данък":"🧾",
+ "Друго":"📌",
+ "Други":"📌"
+};
+
+function getCategoryIcon(category,fallbackTitle=""){
+ if(category&&CATEGORY_ICONS[category])return CATEGORY_ICONS[category];
+ const hay=(category||"")+" "+(fallbackTitle||"");
+ const low=hay.toLowerCase();
+ if(low.includes("масло")||low.includes("oil"))return"🛢️";
+ if(low.includes("спирач")||low.includes("наклад")||low.includes("диск"))return"🛑";
+ if(low.includes("гум"))return"🛞";
+ if(low.includes("застрах")||low.includes("каско")||low.includes("гражданск"))return"🛡️";
+ if(low.includes("преглед"))return"📋";
+ if(low.includes("филт"))return"🔧";
+ return"📌";
+}
 
 const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
@@ -1500,6 +1741,211 @@ function renderFinance(car){
  container.append(list);
 }
 
+function quickAddOilReminder(){
+ const car=activeCar();
+ if(!car)return;
+ const currentKm=safeNumber(car.details.mileage);
+ const dueMileage=currentKm>0?currentKm+10000:10000;
+ const dueDate=addMonths(today(),12);
+ car.reminders.push(cleanRecord({
+  id:makeId(),
+  date:today(),
+  title:"Смяна на масло и филтри",
+  category:"Масло",
+  dueMileage,
+  dueDate,
+  notes:"Бързо добавено напомняне (+10 000 km / 12 мес.)",
+  completed:false
+ },"reminder"));
+ save();
+ renderAll();
+}
+
+function renderHealthWidget(car){
+ const widget=$("healthWidget");
+ const statusEl=$("hwStatusText");
+ const badgesEl=$("hwBadges");
+ const kmLeftEl=$("hwKmLeft");
+ const kmSubEl=$("hwKmSub");
+ const dateLeftEl=$("hwDateLeft");
+ const dateSubEl=$("hwDateSub");
+ const meterLabelEl=$("hwMeterLabel");
+ const meterPctEl=$("hwMeterPct");
+ const meterFillEl=$("hwMeterFill");
+ const spotContainer=$("hwSpotlightContainer");
+ if(!widget||!statusEl||!badgesEl||!kmLeftEl||!dateLeftEl||!spotContainer)return;
+
+ const active=car.reminders.filter(r=>!r.completed);
+ const sorted=[...active].sort((a,b)=>{
+  const sa=reminderState(a,car),sb=reminderState(b,car);
+  return Number(sb.overdue)-Number(sa.overdue)||Number(sb.soon)-Number(sa.soon)||String(a.dueDate||"9999").localeCompare(String(b.dueDate||"9999"));
+ });
+
+ const overdueCount=active.filter(r=>reminderState(r,car).overdue).length;
+ const soonCount=active.filter(r=>reminderState(r,car).soon).length;
+
+ widget.classList.remove("is-good","is-warn","is-danger");
+ if(overdueCount>0){
+  widget.classList.add("is-danger");
+  statusEl.textContent="● ИЗИСКВА ВНИМАНИЕ";
+  statusEl.style.color="var(--danger)";
+ }else if(soonCount>0){
+  widget.classList.add("is-warn");
+  statusEl.textContent="● НАБЛИЖАВА ОБСЛУЖВАНЕ";
+  statusEl.style.color="var(--warn)";
+ }else{
+  widget.classList.add("is-good");
+  statusEl.textContent="● ВСИЧКО Е В НОРМА";
+  statusEl.style.color="var(--good)";
+ }
+
+ badgesEl.replaceChildren();
+ const addChip=(text,cls)=>{
+  const sp=document.createElement("span");
+  sp.className="hw-chip "+(cls||"");
+  sp.textContent=text;
+  badgesEl.append(sp);
+ };
+ if(overdueCount>0)addChip(overdueCount+" просрочени","danger");
+ if(soonCount>0)addChip(soonCount+" скоро","warn");
+ addChip(active.length+" активни",active.length?"good":"");
+
+ const currentKm=safeNumber(car.details.mileage);
+ const kmCandidates=active.filter(r=>r.dueMileage>0).map(r=>({
+  diff:r.dueMileage-currentKm,
+  target:r.dueMileage,
+  title:r.title,
+  category:r.category
+ })).sort((a,b)=>a.diff-b.diff);
+
+ if(kmCandidates.length>0){
+  const nearestKm=kmCandidates[0];
+  if(nearestKm.diff<0){
+   kmLeftEl.textContent=Math.abs(nearestKm.diff).toLocaleString("bg-BG")+" km";
+   kmLeftEl.style.color="var(--danger)";
+   kmSubEl.textContent="Просрочено спрямо "+nearestKm.target.toLocaleString("bg-BG")+" km";
+  }else{
+   kmLeftEl.textContent=nearestKm.diff.toLocaleString("bg-BG")+" km";
+   kmLeftEl.style.color=nearestKm.diff<=1000?"var(--warn)":"var(--good)";
+   kmSubEl.textContent="Цел: "+nearestKm.target.toLocaleString("bg-BG")+" km";
+  }
+ }else{
+  kmLeftEl.textContent="—";
+  kmLeftEl.style.color="var(--text)";
+  kmSubEl.textContent="Няма зададен пробег";
+ }
+
+ const dateCandidates=active.filter(r=>r.dueDate).map(r=>{
+  const st=reminderState(r,car);
+  return{days:st.daysLeft,date:r.dueDate,title:r.title,category:r.category};
+ }).sort((a,b)=>(a.days??99999)-(b.days??99999));
+
+ if(dateCandidates.length>0){
+  const nearestDate=dateCandidates[0];
+  if(nearestDate.days!==null&&nearestDate.days<0){
+   dateLeftEl.textContent=Math.abs(nearestDate.days)+" дни";
+   dateLeftEl.style.color="var(--danger)";
+   dateSubEl.textContent="Просрочено от "+formatDate(nearestDate.date);
+  }else if(nearestDate.days!==null){
+   dateLeftEl.textContent=nearestDate.days+" дни";
+   dateLeftEl.style.color=nearestDate.days<=30?"var(--warn)":"var(--good)";
+   dateSubEl.textContent="Срок: "+formatDate(nearestDate.date);
+  }else{
+   dateLeftEl.textContent=formatDate(nearestDate.date);
+   dateLeftEl.style.color="var(--text)";
+   dateSubEl.textContent="Планирана дата";
+  }
+ }else{
+  dateLeftEl.textContent="—";
+  dateLeftEl.style.color="var(--text)";
+  dateSubEl.textContent="Няма зададена дата";
+ }
+
+ let pct=100;
+ let meterColor="var(--good)";
+ if(kmCandidates.length>0){
+  const diff=kmCandidates[0].diff;
+  const span=15000;
+  pct=diff<=0?0:Math.max(2,Math.min(100,Math.round((diff/span)*100)));
+  const icon=getCategoryIcon(kmCandidates[0].category,kmCandidates[0].title);
+  meterLabelEl.textContent=icon+" Ресурс до „"+(kmCandidates[0].title||"обслужване")+"“";
+ }else if(dateCandidates.length>0&&dateCandidates[0].days!==null){
+  const days=dateCandidates[0].days;
+  const span=365;
+  pct=days<=0?0:Math.max(2,Math.min(100,Math.round((days/span)*100)));
+  const icon=getCategoryIcon(dateCandidates[0].category,dateCandidates[0].title);
+  meterLabelEl.textContent=icon+" Оставащо време до „"+(dateCandidates[0].title||"срок")+"“";
+ }else{
+  pct=100;
+  meterLabelEl.textContent="Няма активни интервали";
+ }
+
+ if(overdueCount>0||pct<=10){
+  meterColor="var(--danger)";
+ }else if(soonCount>0||pct<=25){
+  meterColor="var(--warn)";
+ }
+ meterPctEl.textContent=pct+"%";
+ meterFillEl.style.width=pct+"%";
+ meterFillEl.style.background=meterColor;
+
+ spotContainer.replaceChildren();
+ if(!sorted.length){
+  const emptyBox=document.createElement("div");
+  emptyBox.className="alert good";
+  emptyBox.style.margin="12px 0 0";
+  emptyBox.textContent="Няма установени просрочени или наближаващи напомняния. Използвай бързия бутон за масло или добави ново.";
+  spotContainer.append(emptyBox);
+  return;
+ }
+
+ const topItem=sorted[0];
+ const topState=reminderState(topItem,car);
+ const icon=getCategoryIcon(topItem.category,topItem.title);
+ const spot=document.createElement("div");
+ spot.className="hw-spotlight";
+
+ const spotTop=document.createElement("div");
+ spotTop.className="hw-spot-top";
+
+ const left=document.createElement("div");
+ const stTitle=document.createElement("div");
+ stTitle.className="hw-spot-title";
+ stTitle.textContent=icon+" "+(topItem.title||"Напомняне");
+
+ const stMeta=document.createElement("div");
+ stMeta.className="hw-spot-meta";
+ const parts=[];
+ if(topItem.dueDate)parts.push("Срок: "+formatDate(topItem.dueDate));
+ if(topItem.dueMileage)parts.push("Пробег: "+topItem.dueMileage.toLocaleString("bg-BG")+" km");
+ if(topItem.category)parts.push(topItem.category);
+ stMeta.textContent=parts.join(" · ")||"Без зададен срок";
+ left.append(stTitle,stMeta);
+
+ const badge=document.createElement("span");
+ badge.className="due-tag "+(topState.overdue?"danger":topState.soon?"warn":"good");
+ badge.textContent=topState.overdue?"ПРОСРОЧЕНО":topState.soon?"НАБЛИЖАВА":"ПЛАНИРАНО";
+
+ spotTop.append(left,badge);
+ spot.append(spotTop);
+
+ const spotActions=document.createElement("div");
+ spotActions.className="hw-spot-actions";
+ const doneBtn=document.createElement("button");
+ doneBtn.type="button";
+ doneBtn.className="btn good small";
+ doneBtn.style.flex="1";
+ doneBtn.textContent="✓ Отбележи изпълнено";
+ doneBtn.addEventListener("click",()=>{
+  topItem.completed=true;
+  save();
+  renderAll();
+ });
+ spotActions.append(doneBtn);
+ spot.append(spotActions);
+ spotContainer.append(spot);
+}
+
 function renderOverview(car){
  $("vehicleName").textContent=car.nick||"BMW";
  $("vehicleVin").textContent="VIN: "+car.vin;
@@ -1517,6 +1963,8 @@ function renderOverview(car){
   d.registration?"Рег.: "+d.registration:"",
   "MGU: "+mguDone+"/"+STEPS.length
  ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
+
+ renderHealthWidget(car);
 
  const active=car.reminders.filter(r=>!r.completed);
  const overdue=active.filter(r=>reminderState(r,car).overdue);
@@ -1538,7 +1986,8 @@ function renderOverview(car){
  sorted.forEach(r=>{
   const state=reminderState(r,car),item=document.createElement("div");item.className="due-item";
   const left=document.createElement("div");
-  const name=document.createElement("div");name.className="due-name";name.textContent=r.title||"Напомняне";
+  const icon=getCategoryIcon(r.category,r.title);
+  const name=document.createElement("div");name.className="due-name";name.textContent=icon+" "+(r.title||"Напомняне");
   const meta=document.createElement("div");meta.className="due-meta";
   const details=[];if(r.dueDate)details.push("Срок: "+formatDate(r.dueDate));
   if(r.dueMileage)details.push("Пробег: "+r.dueMileage.toLocaleString("bg-BG")+" km");
@@ -1688,7 +2137,8 @@ function renderRecords(containerId,records,type,car){
  filtered.forEach(record=>{
   const card=document.createElement("article");card.className="record";
   const heading=document.createElement("div");heading.className="record-top";
-  const title=document.createElement("div");title.className="record-title";title.textContent=record.title||"Запис";
+  const prefixIcon=(type==="reminder"||type==="expense"||type==="service")?getCategoryIcon(record.category||record.documentType,record.title)+" ":"";
+  const title=document.createElement("div");title.className="record-title";title.textContent=prefixIcon+(record.title||"Запис");
   const cost=document.createElement("strong");cost.textContent=record.cost?formatMoney(record.cost):"";
   heading.append(title,cost);
   const date=document.createElement("div");date.className="record-date";date.textContent=formatDate(record.date);
@@ -1905,6 +2355,13 @@ $("expensePresets")?.addEventListener("click",e=>{
  $("eTitle").value=chip.dataset.title||"";
  if(chip.dataset.cat)$("eCategory").value=chip.dataset.cat;
  if(!$("eDate").value)$("eDate").value=today();
+});
+
+$("hwQuickOilBtn")?.addEventListener("click",quickAddOilReminder);
+$("hwAddReminderBtn")?.addEventListener("click",()=>openSheet("reminders","Ново напомняне"));
+$("hwOpenAllBtn")?.addEventListener("click",()=>{
+ showScreen("service");
+ showSeg("reminders");
 });
 
 $("topCloudBtn")?.addEventListener("click",openCloudPanel);
