@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
-<title>M-GARAGE PRO 4.1</title>
+<title>M-GARAGE PRO 4.2</title>
 
 <style>
 :root{
@@ -519,6 +519,38 @@ a{color:var(--accent)}
 .ls-meta{font-size:10.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 .ls-cost{font-size:12px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
+.qr-box{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ background:#ffffff;
+ color:#132030;
+ border:1px solid var(--border);
+ border-radius:18px;
+ padding:16px;
+ margin:12px auto;
+ width:fit-content;
+ max-width:100%;
+ box-shadow:0 10px 26px rgba(0,0,0,.22);
+}
+.qr-box canvas{
+ display:block;
+ width:188px;
+ height:188px;
+ max-width:100%;
+ image-rendering:pixelated;
+}
+.qr-caption{
+ margin-top:10px;
+ font-size:11px;
+ font-weight:800;
+ color:#334155;
+ text-align:center;
+ overflow-wrap:anywhere;
+ max-width:240px;
+}
+
 .seg-bar{
  display:flex;
  gap:6px;
@@ -965,7 +997,7 @@ details[open] > summary{
  <header class="topbar">
   <div>
    <div class="brand">M-<span>GARAGE</span> PRO</div>
-   <div class="version">G20 · MGU · WAZE · 4.1</div>
+   <div class="version">G20 · MGU · WAZE · 4.2</div>
   </div>
   <div class="top-actions">
    <button class="pill-btn" id="topCloudBtn" type="button" title="CLOUD SYNC · M-GARAGE PRO 2.4">☁ Cloud</button>
@@ -1182,6 +1214,30 @@ details[open] > summary{
    <details class="drop-panel" open>
     <summary>
      <div>
+      <div>СПОДЕЛЯНЕ И QR КОД</div>
+      <div class="drop-sub">Бързо отваряне на приложението на телефон чрез QR или линк</div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="muted">Сканирай QR кода с камерата на телефона, за да отвориш приложението. Ако отваряш от локален файл, можеш да въведеш публичния URL адрес.</div>
+    <div class="field" style="margin-top:10px">
+     <label>АДРЕС ЗА СПОДЕЛЯНЕ (URL)</label>
+     <input id="shareUrlInput" type="url" placeholder="https://...">
+    </div>
+    <div class="qr-box">
+     <canvas id="qrCanvas" width="188" height="188" aria-label="QR код за споделяне на приложението"></canvas>
+     <div class="qr-caption" id="qrCaption"></div>
+    </div>
+    <div class="btn-row">
+     <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
+     <button class="btn secondary small" id="downloadQrBtn" type="button">Свали QR (PNG)</button>
+     <button class="btn secondary small" id="resetShareUrlBtn" type="button">Текущ адрес</button>
+    </div>
+   </details>
+
+   <details class="drop-panel" open>
+    <summary>
+     <div>
       <div>АВТОМОБИЛЕН ПРОФИЛ</div>
       <div class="drop-sub">Марка, модел, година, двигател, кутия, пробег, снимка и бележки</div>
      </div>
@@ -1305,7 +1361,7 @@ details[open] > summary{
   </section>
  </main>
 
- <div class="footer">M-GARAGE PRO 4.1 · YOUR VEHICLE. YOUR DATA.</div>
+ <div class="footer">M-GARAGE PRO 4.2 · YOUR VEHICLE. YOUR DATA.</div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1450,6 +1506,7 @@ const ACTIVE_KEY="mgu_active";
 const THEME_KEY="mgu_theme";
 const PENDING_KEY="mgu_cloud_pending";
 const LAST_SYNC_KEY="mgu_cloud_last_sync";
+const SHARE_URL_KEY="mgu_share_url";
 const DATA_VERSION=4;
 
 const CATEGORY_ICONS={
@@ -1483,7 +1540,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -1573,6 +1630,264 @@ function safeHttpUrl(value){
  try{const url=new URL(raw);if(url.protocol!=="http:"&&url.protocol!=="https:")return"";return url.href}
  catch(error){return""}
 }
+
+/* Компактен локален QR матричен генератор (байтов режим, ниво L, версии 1–6) без външни зависимости */
+const QR_GF_EXP=new Uint8Array(512);
+const QR_GF_LOG=new Uint8Array(256);
+(()=>{
+ let x=1;
+ for(let i=0;i<255;i++){
+  QR_GF_EXP[i]=x;
+  QR_GF_LOG[x]=i;
+  x<<=1;
+  if(x&256)x^=285;
+ }
+ for(let i=255;i<512;i++)QR_GF_EXP[i]=QR_GF_EXP[i-255];
+})();
+
+function qrGfMul(a,b){return(a===0||b===0)?0:QR_GF_EXP[(QR_GF_LOG[a]+QR_GF_LOG[b])%255]}
+function qrRsPoly(nsym){
+ let poly=[1];
+ for(let i=0;i<nsym;i++){
+  const next=new Array(poly.length+1).fill(0);
+  const factor=QR_GF_EXP[i];
+  for(let j=0;j<poly.length;j++){
+   next[j]^=poly[j];
+   next[j+1]^=qrGfMul(poly[j],factor);
+  }
+  poly=next;
+ }
+ return poly.slice(1);
+}
+function qrRsEncode(data,nsym){
+ const gen=qrRsPoly(nsym);
+ const msg=new Array(data.length+nsym).fill(0);
+ for(let i=0;i<data.length;i++)msg[i]=data[i];
+ for(let i=0;i<data.length;i++){
+  const coef=msg[i];
+  if(coef!==0){
+   for(let j=0;j<gen.length;j++){
+    msg[i+j+1]^=qrGfMul(gen[j],coef);
+   }
+  }
+ }
+ return msg.slice(data.length);
+}
+
+const QR_VERSIONS=[
+ null,
+ {ver:1,size:21,totalBytes:26,ecBytes:7,align:[]},
+ {ver:2,size:25,totalBytes:44,ecBytes:10,align:[6,18]},
+ {ver:3,size:29,totalBytes:70,ecBytes:15,align:[6,22]},
+ {ver:4,size:33,totalBytes:100,ecBytes:20,align:[6,26]},
+ {ver:5,size:37,totalBytes:134,ecBytes:26,align:[6,30]},
+ {ver:6,size:41,totalBytes:172,ecBytes:18,blocks:2,align:[6,34]}
+];
+
+const QR_FORMAT_MASKS=[
+ 0x77c4,0x72f3,0x7daa,0x789d,0x662f,0x6318,0x6c41,0x6976,
+ 0x5412,0x5125,0x5e7c,0x5b4b,0x45f9,0x40ce,0x4f97,0x4aa0,
+ 0x355f,0x3068,0x3f31,0x3a06,0x24b4,0x2183,0x2eda,0x2bed,
+ 0x1689,0x13be,0x1ce7,0x19d0,0x0762,0x0255,0x0d0c,0x083b
+];
+
+function buildQrMatrix(text){
+ const bytes=Array.from(new TextEncoder().encode(String(text||"")));
+ let spec=null;
+ for(let v=1;v<=6;v++){
+  const s=QR_VERSIONS[v];
+  const blocks=s.blocks||1;
+  const dataBytes=s.totalBytes-(s.ecBytes*blocks);
+  const cap=dataBytes-2;
+  if(bytes.length<=cap){spec=s;break}
+ }
+ if(!spec)return null;
+
+ const blocks=spec.blocks||1;
+ const totalDataBytes=spec.totalBytes-(spec.ecBytes*blocks);
+ const bits=[];
+ const pushBits=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>i)&1)};
+ pushBits(4,4);
+ pushBits(bytes.length,8);
+ bytes.forEach(b=>pushBits(b,8));
+ const maxBits=totalDataBytes*8;
+ const termLen=Math.min(4,maxBits-bits.length);
+ if(termLen>0)pushBits(0,termLen);
+ while(bits.length%8!==0)bits.push(0);
+ const padBytes=[0xec,0x11];
+ let padIdx=0;
+ while(bits.length<maxBits){
+  pushBits(padBytes[padIdx%2],8);
+  padIdx++;
+ }
+
+ const codewords=[];
+ for(let i=0;i<bits.length;i+=8){
+  let cw=0;
+  for(let j=0;j<8;j++)cw=(cw<<1)|bits[i+j];
+  codewords.push(cw);
+ }
+
+ const chunkLen=Math.floor(totalDataBytes/blocks);
+ const dataBlocks=[];
+ const ecBlocks=[];
+ let offset=0;
+ for(let b=0;b<blocks;b++){
+  const len=chunkLen+(b<(totalDataBytes%blocks)?1:0);
+  const part=codewords.slice(offset,offset+len);
+  offset+=len;
+  dataBlocks.push(part);
+  ecBlocks.push(qrRsEncode(part,spec.ecBytes));
+ }
+
+ const stream=[];
+ for(let i=0;i<chunkLen+1;i++){
+  for(let b=0;b<blocks;b++)if(i<dataBlocks[b].length)stream.push(dataBlocks[b][i]);
+ }
+ for(let i=0;i<spec.ecBytes;i++){
+  for(let b=0;b<blocks;b++)stream.push(ecBlocks[b][i]);
+ }
+
+ const size=spec.size;
+ const grid=Array.from({length:size},()=>new Array(size).fill(null));
+ const reserved=Array.from({length:size},()=>new Array(size).fill(false));
+
+ const placeFinder=(r0,c0)=>{
+  for(let r=-1;r<=7;r++){
+   for(let c=-1;c<=7;c++){
+    const rr=r0+r,cc=c0+c;
+    if(rr<0||cc<0||rr>=size||cc>=size)continue;
+    const isBorder=(r===-1||r===7||c===-1||c===7);
+    const isOuter=(r===0||r===6||c===0||c===6);
+    const isInner=(r>=2&&r<=4&&c>=2&&c<=4);
+    grid[rr][cc]=(!isBorder&&(isOuter||isInner))?1:0;
+    reserved[rr][cc]=true;
+   }
+  }
+ };
+ placeFinder(0,0);
+ placeFinder(0,size-7);
+ placeFinder(size-7,0);
+
+ const placeAlign=(r0,c0)=>{
+  for(let r=-2;r<=2;r++){
+   for(let c=-2;c<=2;c++){
+    const rr=r0+r,cc=c0+c;
+    if(rr<0||cc<0||rr>=size||cc>=size||reserved[rr][cc])continue;
+    const dark=(Math.abs(r)===2||Math.abs(c)===2||(r===0&&c===0));
+    grid[rr][cc]=dark?1:0;
+    reserved[rr][cc]=true;
+   }
+  }
+ };
+ if(spec.align.length){
+  for(const r of spec.align){
+   for(const c of spec.align){
+    if((r===6&&c===6)||(r===6&&c===spec.align[spec.align.length-1])||(c===6&&r===spec.align[spec.align.length-1]))continue;
+    placeAlign(r,c);
+   }
+  }
+ }
+
+ for(let i=8;i<size-8;i++){
+  if!reserved[6][i][i]=(i%2===0)?1:0;reserved[6][i]=true}
+  if!reserved[i][6][6]=(i%2===0)?1:0;reserved[i][6]=true}
+ }
+ ifsize>=21[8]=1;reserved[size-8][8]=true}
+
+ for(let r=0;r<9;r++){
+  for(let c=0;c<9;c++){
+   if(r<size&&c<size&&(r===8||c===8))reserved[r][c]=true;
+  }
+ }
+ for(let i=0;i<8;i++){
+  reserved[i][size-1-i]=false;
+ }
+ for(let r=size-7;r<size;r++)reserved[r][8]=true;
+ for(let c=size-8;c<size;c++)reserved[8][c]=true;
+
+ const dataBits=[];
+ stream.forEach(cw=>{for(let i=7;i>=0;i--)dataBits.push((cw>>i)&1)});
+
+ let bitIdx=0;
+ let up=true;
+ for(let col=size-1;col>0;col-=2){
+  if(col===6)col=5;
+  for(let step=0;step<size;step++){
+   const row=up?(size-1-step):step;
+   for(let sub=0;sub<2;sub++){
+    const c=col-sub;
+    if(!reserved[row][c]){
+     const rawBit=bitIdx<dataBits.length?dataBits[bitIdx++]:0;
+     const maskBit=((row+c)%2===0)?1:0;
+     grid[row][c]=rawBit^maskBit;
+    }
+   }
+  }
+  up=!up;
+ }
+
+ const formatInfo=QR_FORMAT_MASKS[0];
+ const putFormatBit=(idx,val)=>{
+  const bit=(formatInfo>>(14-idx))&1;
+  if(idx<=5)grid[8][idx]=bit;
+  else if(idx===6)grid[8][7]=bit;
+  else if(idx===7)grid[8][8]=bit;
+  else if(idx===8)grid[7][8]=bit;
+  else grid[14-idx][8]=bit;
+
+  if(idx<=7)grid[size-1-idx][8]=bit;
+  else grid[8][size-15+idx]=bit;
+ };
+ for(let i=0;i<15;i++)putFormatBit(i,1);
+
+ return grid;
+}
+
+function renderShareQr(){
+ const input=$("shareUrlInput");
+ const canvas=$("qrCanvas");
+ const caption=$("qrCaption");
+ if(!canvas)return;
+
+ const rawVal=input?input.value.trim():"";
+ const activeUrl=safeHttpUrl(rawVal)||safeHttpUrl(window.location.href)||"https://example.com";
+ if(input&&!input.value.trim())input.value=activeUrl;
+
+ const ctx=canvas.getContext("2d");
+ if(!ctx)return;
+ const w=canvas.width,h=canvas.height;
+ ctx.fillStyle="#ffffff";
+ ctx.fillRect(0,0,w,h);
+
+ const matrix=buildQrMatrix(activeUrl);
+ if(!matrix){
+  ctx.fillStyle="#132030";
+  ctx.font="bold 11px sans-serif";
+  ctx.textAlign="center";
+  ctx.fillText("Адресът е твърде дълъг за QR",w/2,h/2);
+  if(caption)caption.textContent=activeUrl;
+  return;
+ }
+
+ const quiet=3;
+ const totalCells=matrix.length+quiet*2;
+ const cell=Math.floor(Math.min(w,h)/totalCells);
+ const offsetX=Math.floor((w-cell*totalCells)/2);
+ const offsetY=Math.floor((h-cell*totalCells)/2);
+
+ ctx.fillStyle="#080c12";
+ for(let r=0;r<matrix.length;r++){
+  for(let c=0;c<matrix.length;c++){
+   if(matrix[r][c]){
+    ctx.fillRect(offsetX+(c+quiet)*cell,offsetY+(r+quiet)*cell,cell,cell);
+   }
+  }
+ }
+
+ if(caption)caption.textContent=activeUrl;
+}
+
 function cleanRecord(record,type){
  const r=record&&typeof record==="object"?record:{};
  const result={
@@ -1789,6 +2104,7 @@ function showScreen(name){
  document.querySelectorAll(".nav-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.screen===name));
  document.querySelectorAll(".screen").forEach(sec=>sec.classList.toggle("active",sec.id==="screen-"+name));
  updateFab();
+ if(name==="more")renderShareQr();
  window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -2675,6 +2991,7 @@ function renderAll(){
  renderOverview(car);renderProfile(car);renderSteps(car);
  renderFilterChips(car);
  renderRecordsForActiveSeg(car);
+ renderShareQr();
 }
 
 function addCar(){
@@ -2966,6 +3283,45 @@ async function importBackup(file){
  }
 }
 
+$("shareUrlInput")?.addEventListener("input",e=>{
+ const val=e.target.value.trim();
+ const valid=safeHttpUrl(val);
+ if(valid)localStorage.setItem(SHARE_URL_KEY,valid);
+ renderShareQr();
+});
+
+$("copyShareLinkBtn")?.addEventListener("click",async()=>{
+ const url=safeHttpUrl($("shareUrlInput")?.value)||safeHttpUrl(window.location.href)||"";
+ if(!url){showToast("Няма валиден URL адрес","warn");return}
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(url);
+  else{
+   const temp=document.createElement("textarea");temp.value=url;
+   temp.style.position="fixed";temp.style.opacity="0";document.body.append(temp);
+   temp.focus();temp.select();document.execCommand("copy");temp.remove();
+  }
+  showToast("Линкът е копиран","good");
+ }catch{showToast("Неуспешно копиране","danger")}
+});
+
+$("downloadQrBtn")?.addEventListener("click",()=>{
+ const canvas=$("qrCanvas");
+ if(!canvas)return;
+ const a=document.createElement("a");
+ a.href=canvas.toDataURL("image/png");
+ a.download="M-GARAGE-PRO-QR.png";
+ document.body.append(a);a.click();a.remove();
+ showToast("QR кодът е свален като PNG","good");
+});
+
+$("resetShareUrlBtn")?.addEventListener("click",()=>{
+ const current=safeHttpUrl(window.location.href)||"https://example.com";
+ localStorage.removeItem(SHARE_URL_KEY);
+ if($("shareUrlInput"))$("shareUrlInput").value=current;
+ renderShareQr();
+ showToast("Зададен е текущият адрес");
+});
+
 $("recordSearch")?.addEventListener("input",e=>{
  searchQuery=e.target.value||"";
  const car=activeCar();
@@ -3148,6 +3504,9 @@ window.addEventListener("DOMContentLoaded",()=>{
 window.addEventListener("storage",e=>{
  if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshGarageCloudWidget();
 });
+
+const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||safeHttpUrl(window.location.href)||"";
+if($("shareUrlInput")&&savedShareUrl)$("shareUrlInput").value=savedShareUrl;
 
 loadCars();
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
