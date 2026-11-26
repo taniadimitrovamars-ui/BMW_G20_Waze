@@ -102,7 +102,9 @@ a{color:var(--accent)}
  border-radius:12px;
  font-size:16px;
  display:inline-flex;align-items:center;justify-content:center;
+ transition:transform .14s ease,border-color .14s ease,background .14s ease;
 }
+.icon-btn:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}
 .pill-btn{
  height:38px;
  padding:0 12px;
@@ -113,7 +115,7 @@ a{color:var(--accent)}
  font-size:11px;font-weight:850;
  display:inline-flex;align-items:center;gap:6px;
  white-space:nowrap;
- transition:border-color .15s ease,background .15s ease,color .15s ease;
+ transition:border-color .15s ease,background .15s ease,color .15s ease,transform .14s ease;
 }
 .pill-btn.synced{
  border-color:color-mix(in srgb,var(--good) 65%,var(--border));
@@ -129,9 +131,9 @@ a{color:var(--accent)}
 }
 
 .screen{display:none}
-.screen.active{display:block;animation:screenIn .18s ease}
+.screen.active{display:block;animation:screenIn .2s cubic-bezier(.22,1,.36,1)}
 @keyframes screenIn{
- from{opacity:0;transform:translateY(6px)}
+ from{opacity:0;transform:translateY(7px)}
  to{opacity:1;transform:translateY(0)}
 }
 
@@ -169,11 +171,13 @@ a{color:var(--accent)}
  border-radius:999px;
  padding:8px 14px;
  font-size:12px;font-weight:850;
+ transition:background .15s ease,border-color .15s ease,transform .14s ease;
 }
 .garage-chip.active{
  border-color:var(--accent);
  background:var(--accent);
  color:#fff;
+ box-shadow:0 6px 16px rgba(37,139,255,.26);
 }
 .add-car-chip{
  flex:0 0 auto;
@@ -188,8 +192,8 @@ a{color:var(--accent)}
 .hero-card{
  position:relative;
  overflow:hidden;
- background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 12%,var(--surface-2)) 0%,var(--surface) 72%);
- border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));
+ background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 14%,var(--surface-2)) 0%,var(--surface) 74%);
+ border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));
  border-radius:24px;
  padding:18px;
  margin:8px 0 12px;
@@ -199,9 +203,9 @@ a{color:var(--accent)}
  content:"";
  position:absolute;
  right:-55px;top:-65px;
- width:190px;height:190px;
+ width:200px;height:200px;
  border-radius:50%;
- background:var(--accent-soft);
+ background:radial-gradient(circle,var(--accent-soft) 0%,transparent 72%);
  pointer-events:none;
 }
 .hero-top{
@@ -212,6 +216,24 @@ a{color:var(--accent)}
 .hero-vin{
  font-size:11px;color:var(--muted);
  margin-top:5px;font-weight:700;letter-spacing:.4px;overflow-wrap:anywhere;
+}
+.hero-actions-row{
+ position:relative;z-index:1;
+ display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;
+}
+.glance-pill-btn{
+ border:1px solid color-mix(in srgb,var(--accent) 42%,var(--border));
+ background:color-mix(in srgb,var(--accent) 14%,var(--surface-2));
+ color:var(--text);
+ border-radius:999px;
+ padding:7px 13px;
+ font-size:11px;font-weight:900;
+ display:inline-flex;align-items:center;gap:6px;
+ transition:transform .14s ease,background .14s ease,border-color .14s ease;
+}
+.glance-pill-btn:hover{
+ background:color-mix(in srgb,var(--accent) 22%,var(--surface-2));
+ border-color:var(--accent);
 }
 .spec-chips{
  position:relative;z-index:1;
@@ -519,6 +541,63 @@ a{color:var(--accent)}
 .ls-meta{font-size:10.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 .ls-cost{font-size:12px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
+.glance-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;
+ margin-bottom:12px;
+}
+.glance-box{
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:15px;
+ padding:12px;
+}
+.glance-kicker{
+ font-size:9px;
+ font-weight:900;
+ letter-spacing:.7px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+.glance-val{
+ font-size:17px;
+ font-weight:950;
+ margin-top:4px;
+ font-variant-numeric:tabular-nums;
+ overflow-wrap:anywhere;
+}
+.glance-sub{
+ font-size:10.5px;
+ color:var(--muted);
+ margin-top:3px;
+ line-height:1.4;
+}
+.glance-note-box{
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:15px;
+ padding:12px;
+ margin-top:10px;
+ font-size:11.5px;
+ line-height:1.55;
+ white-space:pre-line;
+ overflow-wrap:anywhere;
+}
+.glance-km-row{
+ display:flex;
+ gap:8px;
+ align-items:center;
+ margin-top:12px;
+}
+.glance-km-row input{
+ flex:1;
+ padding:10px 12px;
+ font-size:13px;
+ font-weight:800;
+ font-variant-numeric:tabular-nums;
+}
+
 .qr-box{
  display:flex;
  flex-direction:column;
@@ -571,6 +650,7 @@ a{color:var(--accent)}
  padding:9px 11px;
  font-size:11px;font-weight:850;
  white-space:nowrap;
+ transition:background .15s ease,color .15s ease;
 }
 .seg-btn.active{
  background:var(--accent);
@@ -628,6 +708,7 @@ input,select,textarea{
  background:var(--surface-2);color:var(--text);
  border:1px solid var(--border);
  border-radius:13px;padding:12px;outline:none;
+ transition:border-color .15s ease,box-shadow .15s ease;
 }
 input:focus,select:focus,textarea:focus{
  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);
@@ -659,10 +740,11 @@ textarea{min-height:82px;resize:vertical}
 .btn{
  border:0;border-radius:13px;padding:12px 15px;
  background:var(--accent);color:#fff;font-weight:850;
- min-height:42px;transition:transform .14s,filter .14s;
+ min-height:42px;transition:transform .14s,filter .14s,background .14s;
  display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
-.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.04)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active,.filter-chip:active,.glance-pill-btn:active{transform:scale(.97)}
 .btn.secondary{
  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
@@ -678,13 +760,18 @@ textarea{min-height:82px;resize:vertical}
  backdrop-filter:blur(6px);
  display:flex;align-items:flex-end;justify-content:center;
  padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+ animation:fadeBackdrop .16s ease;
+}
+@keyframes fadeBackdrop{
+ from{opacity:0}
+ to{opacity:1}
 }
 .sheet-backdrop.hidden{display:none}
 .sheet{
  width:100%;max-width:640px;max-height:86vh;overflow-y:auto;
  background:var(--surface);border:1px solid var(--border);
  border-radius:24px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.5);
- animation:sheetUp .2s ease;
+ animation:sheetUp .22s cubic-bezier(.22,1,.36,1);
 }
 @keyframes sheetUp{
  from{transform:translateY(24px);opacity:.6}
@@ -712,6 +799,7 @@ textarea{min-height:82px;resize:vertical}
  font-size:12px;font-weight:900;letter-spacing:.3px;
  box-shadow:0 10px 26px rgba(37,139,255,.38);
  display:inline-flex;align-items:center;gap:6px;
+ transition:transform .16s ease,box-shadow .16s ease;
 }
 
 .toast{
@@ -745,7 +833,9 @@ textarea{min-height:82px;resize:vertical}
 .record{
  border:1px solid var(--border);background:var(--surface-2);
  border-radius:16px;padding:13px 14px;margin:9px 0;
+ transition:border-color .15s ease;
 }
+.record:hover{border-color:color-mix(in srgb,var(--accent) 40%,var(--border))}
 .record-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .record-title-wrap{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
 .record-title{font-weight:850;font-size:13px;overflow-wrap:anywhere}
@@ -774,7 +864,7 @@ textarea{min-height:82px;resize:vertical}
  height:8px;border-radius:999px;background:var(--surface-2);
  overflow:hidden;margin:12px 0 6px;
 }
-.progress-fill{height:100%;background:var(--good);width:0;transition:width .2s}
+.progress-fill{height:100%;background:var(--good);width:0;transition:width .25s ease}
 
 .alert{
  border-radius:14px;padding:12px 13px;margin:8px 0;
@@ -882,7 +972,7 @@ details.step-card > summary::-webkit-details-marker{display:none}
 .finance-label{font-size:11px;font-weight:750}
 .finance-value{font-size:11px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
 .finance-track{grid-column:1/-1;height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden}
-.finance-fill{height:100%;background:var(--accent);border-radius:999px;min-width:0}
+.finance-fill{height:100%;background:var(--accent);border-radius:999px;min-width:0;transition:width .25s ease}
 .finance-total{font-size:25px;font-weight:950;margin:2px 0 4px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .finance-caption{font-size:10px;color:var(--muted)}
 
@@ -971,6 +1061,7 @@ details[open] > summary{
  border-radius:14px;padding:6px 4px;
  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
  font-size:10px;font-weight:850;
+ transition:background .15s ease,color .15s ease,transform .14s ease;
 }
 .nav-icon{font-size:17px;line-height:1}
 .nav-btn.active{
@@ -980,6 +1071,7 @@ details[open] > summary{
 
 @media(max-width:440px){
  .hw-footer-actions{padding-right:0}
+ .glance-grid{grid-template-columns:1fr}
 }
 @media(max-width:400px){
  .form-grid{grid-template-columns:1fr}
@@ -1021,6 +1113,9 @@ details[open] > summary{
       <div class="hero-vin" id="vehicleVin"></div>
      </div>
      <div class="status-pill" id="vehicleStatus">АКТИВЕН</div>
+    </div>
+    <div class="hero-actions-row">
+     <button class="glance-pill-btn" id="quickGlanceBtn" type="button">⚡ Бърз поглед</button>
     </div>
     <div class="spec-chips" id="overviewDetails"></div>
     <div class="hero-photo-frame hidden" id="heroPhotoFrame">
@@ -1371,6 +1466,34 @@ details[open] > summary{
   <div class="sheet-head">
    <div class="sheet-title" id="sheetTitle">Нов запис</div>
    <button class="sheet-close" id="sheetClose" type="button" aria-label="Затвори">✕</button>
+  </div>
+
+  <div class="sheet-form hidden" id="form-glance">
+   <div class="glance-grid">
+    <div class="glance-box">
+     <div class="glance-kicker">ТЕКУЩ ПРОБЕГ</div>
+     <div class="glance-val" id="glMileage">0 km</div>
+     <div class="glance-sub" id="glReg">Рег.: —</div>
+    </div>
+    <div class="glance-box">
+     <div class="glance-kicker">ОБЩИ РАЗХОДИ</div>
+     <div class="glance-val" id="glExpenses">0 €</div>
+     <div class="glance-sub" id="glServicesCount">0 сервиза</div>
+    </div>
+   </div>
+
+   <div id="glReminderBox"></div>
+   <div id="glLastServiceBox"></div>
+
+   <div class="glance-note-box">
+    <div class="glance-kicker" style="margin-bottom:4px">БЕЛЕЖКИ ЗА АВТОМОБИЛА</div>
+    <div id="glNotesText">Няма записани бележки.</div>
+   </div>
+
+   <div class="glance-km-row">
+    <input id="glQuickKmInput" type="number" min="0" placeholder="Нов пробег (km)">
+    <button class="btn small" id="glSaveKmBtn" type="button">Обнови km</button>
+   </div>
   </div>
 
   <div class="sheet-form hidden" id="form-car">
@@ -1955,12 +2078,111 @@ function resetFormFields(formKey){
  }
 }
 
+function renderQuickGlance(car){
+ if(!car)return;
+ const totals=getFinancialTotals(car);
+ $("glMileage").textContent=(safeNumber(car.details.mileage)).toLocaleString("bg-BG")+" km";
+ $("glReg").textContent=car.details.registration?("Рег.: "+car.details.registration):"Рег.: не е въведена";
+ $("glExpenses").textContent=formatMoney(totals.total);
+ $("glServicesCount").textContent=car.serviceRecords.length+" сервиза · "+car.modifications.length+" модиф.";
+ $("glNotesText").textContent=car.details.notes||"Няма записани бележки за автомобила.";
+ $("glQuickKmInput").value=safeNumber(car.details.mileage)||"";
+
+ const remBox=$("glReminderBox");
+ remBox.replaceChildren();
+ const active=car.reminders.filter(r=>!r.completed).sort((a,b)=>{
+  const sa=reminderState(a,car),sb=reminderState(b,car);
+  const da=sa.daysLeft!==null&&Number.isFinite(sa.daysLeft)?sa.daysLeft:99999;
+  const db=sb.daysLeft!==null&&Number.isFinite(sb.daysLeft)?sb.daysLeft:99999;
+  return Number(sb.overdue)-Number(sa.overdue)||Number(sb.soon)-Number(sa.soon)||da-db;
+ });
+
+ if(active.length){
+  const top=active[0];
+  const st=reminderState(top,car);
+  const card=document.createElement("div");
+  card.className="hw-spotlight";
+  card.style.marginTop="0";
+  const topRow=document.createElement("div");
+  topRow.className="hw-spot-top";
+  const info=document.createElement("div");
+  const title=document.createElement("div");
+  title.className="hw-spot-title";
+  title.textContent=getCategoryIcon(top.category,top.title)+" Следващо: "+(top.title||"Напомняне");
+  const meta=document.createElement("div");
+  meta.className="hw-spot-meta";
+  const parts=[];
+  if(top.dueDate)parts.push("Срок: "+formatDate(top.dueDate));
+  if(top.dueMileage)parts.push("Пробег: "+top.dueMileage.toLocaleString("bg-BG")+" km");
+  meta.textContent=parts.join(" · ")||"Без зададен срок";
+  info.append(title,meta);
+
+  const tag=document.createElement("span");
+  tag.className="due-tag "+(st.overdue?"danger":st.soon?"warn":"good");
+  tag.textContent=st.overdue?"ПРОСРОЧЕНО":st.soon?"НАБЛИЖАВА":"ПЛАНИРАНО";
+  topRow.append(info,tag);
+  card.append(topRow);
+
+  const doneBtn=document.createElement("button");
+  doneBtn.type="button";
+  doneBtn.className="btn good small";
+  doneBtn.style.marginTop="10px";
+  doneBtn.style.width="100%";
+  doneBtn.textContent="✓ Отбележи напомнянето като изпълнено";
+  doneBtn.addEventListener("click",()=>{
+   top.completed=true;
+   save();
+   renderAll();
+   renderQuickGlance(activeCar());
+   showToast("Напомнянето е отбелязано като изпълнено","good");
+  });
+  card.append(doneBtn);
+  remBox.append(card);
+ }else{
+  remBox.innerHTML='<div class="alert good" style="margin:0 0 10px">Няма активни напомняния за обслужване.</div>';
+ }
+
+ const lastBox=$("glLastServiceBox");
+ lastBox.replaceChildren();
+ if(car.serviceRecords.length){
+  const latest=[...car.serviceRecords].sort((a,b)=>(toIsoDate(b.date)||b.date||"").localeCompare(toIsoDate(a.date)||a.date||""))[0];
+  if(latest){
+   const card=document.createElement("div");
+   card.className="last-service-card";
+   card.style.marginTop="10px";
+   const left=document.createElement("div");
+   const t=document.createElement("div");
+   t.className="ls-title";
+   t.textContent="Последен сервиз: "+(latest.title||"Обслужване");
+   const m=document.createElement("div");
+   m.className="ls-meta";
+   m.textContent=[formatDate(latest.date),latest.mileage?(latest.mileage.toLocaleString("bg-BG")+" km"):"",latest.provider||""].filter(Boolean).join(" · ");
+   left.append(t,m);
+   card.append(left);
+   if(latest.cost){
+    const c=document.createElement("div");
+    c.className="ls-cost";
+    c.textContent=formatMoney(latest.cost);
+    card.append(c);
+   }
+   lastBox.append(card);
+  }
+ }
+}
+
 function openSheet(formKey,title,record=null){
  const backdrop=$("sheetBackdrop");
  document.querySelectorAll(".sheet-form").forEach(f=>f.classList.add("hidden"));
  const target=$("form-"+formKey);
  if(target)target.classList.remove("hidden");
  $("sheetTitle").textContent=title;
+
+ if(formKey==="glance"){
+  const car=activeCar();
+  if(car)renderQuickGlance(car);
+  backdrop.classList.remove("hidden");
+  return;
+ }
 
  resetFormFields(formKey);
 
@@ -2779,6 +3001,16 @@ function saveProfile(){
  showToast("Профилът е запазен","good");
 }
 
+$("glSaveKmBtn")?.addEventListener("click",()=>{
+ const car=activeCar();if(!car)return;
+ const nextKm=safeNumber($("glQuickKmInput").value);
+ car.details.mileage=nextKm;
+ save();
+ renderAll();
+ renderQuickGlance(car);
+ showToast("Пробегът е обновен на "+nextKm.toLocaleString("bg-BG")+" km","good");
+});
+
 $("pPhotoFile")?.addEventListener("change",async e=>{
  const file=e.target.files?.[0];
  if(!file)return;
@@ -3120,6 +3352,11 @@ $("expensePresets")?.addEventListener("click",e=>{
  if(!$("eDate").value)$("eDate").value=today();
 });
 
+$("quickGlanceBtn")?.addEventListener("click",()=>{
+ const car=activeCar();
+ if(car)openSheet("glance","⚡ Бърз поглед · "+(car.nick||car.details.model||"BMW"));
+});
+
 $("hwQuickOilBtn")?.addEventListener("click",quickAddOilReminder);
 $("hwAddReminderBtn")?.addEventListener("click",()=>openSheet("reminders","Ново напомняне"));
 $("hwOpenAllBtn")?.addEventListener("click",()=>{
@@ -3189,6 +3426,9 @@ $("collapseAllStepsBtn").addEventListener("click",()=>{
 
 $("sheetClose").addEventListener("click",closeSheet);
 $("sheetBackdrop").addEventListener("click",e=>{if(e.target===$("sheetBackdrop"))closeSheet()});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"&&!$("sheetBackdrop")?.classList.contains("hidden"))closeSheet();
+});
 
 $("bottomNav").addEventListener("click",e=>{
  const btn=e.target.closest("[data-screen]");
