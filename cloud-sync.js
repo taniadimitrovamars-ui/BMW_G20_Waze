@@ -22,10 +22,43 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_XJA2QPDo1GOZ34a_ZA3Xtg_a9vk_7Sn";
 
+/* ==========================================
+   NETWORK DIAGNOSTICS FETCH
+========================================== */
+
+const diagnosticFetch = async (input, init) => {
+  const requestUrl =
+    typeof input === "string"
+      ? input
+      : input?.url || input?.href || "";
+
+  try {
+    return await fetch(input, init);
+  } catch (error) {
+    let path = "неизвестен адрес";
+
+    try {
+      path = new URL(requestUrl).pathname;
+    } catch {}
+
+    const diagnosticError = new Error(
+      `NETWORK_FETCH_FAILED [${path}]: ${error?.message || error}`
+    );
+
+    diagnosticError.name = error?.name || "TypeError";
+    diagnosticError.cause = error;
+
+    throw diagnosticError;
+  }
+};
+
 const supabase = createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY,
   {
+    global: {
+      fetch: diagnosticFetch
+    },
     auth: {
       persistSession: true,
       autoRefreshToken: true,
