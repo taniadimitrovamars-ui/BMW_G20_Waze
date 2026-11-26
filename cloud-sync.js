@@ -3,7 +3,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4.2 (Accordion UI + Widget Sync)
+   Version: 2.4.3 (Accordion UI + Widget Sync + Diagnostics)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -51,11 +51,6 @@ const STEP_IDS = [
   "ssh_fix", "store_key", "store", "waze", "recode", "after"
 ];
 
-/*
-  Supabase user_changes_entity_type_check
-  accepts ONLY these entity types.
-*/
-
 const ALLOWED_ENTITY_TYPES = new Set([
   "car",
   "step",
@@ -71,6 +66,42 @@ let syncTimer = null;
 let currentUser = null;
 let lastSyncError = false;
 let authInitialized = false;
+
+/* ==========================================
+   DIAGNOSTICS HELPER
+========================================== */
+
+async function diagnoseCloudError(error, contextLabel = "операция") {
+  const raw = String(error?.message || error || "Неизвестна грешка");
+  const isNetworkFail = /load failed|failed to fetch|networkerror|fetch/i.test(raw);
+
+  if (!isNetworkFail) {
+    return `${contextLabel}: ${raw}`;
+  }
+
+  if (!navigator.onLine) {
+    return `${contextLabel}: Устройството е офлайн (няма интернет връзка).`;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+      method: "GET",
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (res.ok) {
+      return `${contextLabel}: Сървърът отговаря (HTTP ${res.status}), но заявката беше прекъсната (${raw}). Провери дали Safari/AdBlocker или нестабилна връзка не блокира заявката.`;
+    }
+    return `${contextLabel}: Supabase сървърът върна HTTP ${res.status} (${raw}). Провери статуса на проекта в Supabase Dashboard.`;
+  } catch (probeErr) {
+    const probeMsg = String(probeErr?.message || probeErr);
+    return `${contextLabel}: Няма връзка със сървъра (${SUPABASE_URL}) — ${raw} [${probeMsg}]. Най-чести причини: паузиран проект в Supabase, блокиране от DNS/AdBlocker/VPN или прекъсната мобилна връзка.`;
+  }
+}
 
 /* ==========================================
    DEVICE
@@ -588,11 +619,6 @@ function formatDate(value) {
     });
 }
 
-/*
-  Old unsupported events are ignored.
-  No unsupported entity_type can reach Supabase.
-*/
-
 function readPending() {
   try {
     const data = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
@@ -990,12 +1016,6 @@ Storage.prototype.setItem = function(key, value) {
     return result;
   }
 
-  /*
-    THEME IS LOCAL PREFERENCE ONLY.
-    It remains included in full Backup/Restore snapshots.
-    It is NOT uploaded as a separate user_changes event.
-  */
-
   return originalSetItem.call(this, key, value);
 };
 
@@ -1292,17 +1312,11 @@ function createInitialEvents(events, local, legacy) {
     );
   }
 
-  /*
-    No initial theme event.
-    Theme is handled through restore snapshots only.
-  */
-
   return initial;
 }
 
 /* ==========================================
    APPLY EVENTS
-   Supports old v2.0 events and snapshots.
 ========================================== */
 
 function applyEvents(events) {
@@ -1519,7 +1533,7 @@ async function loadHistory() {
     renderHistory(data || []);
   } catch (error) {
     byId("cloudHistoryStatus").textContent =
-      "Грешка при зареждане: " + error.message;
+      await diagnoseCloudError(error, "Грешка при зареждане на историята");
   }
 }
 
@@ -1659,7 +1673,7 @@ async function loadDevices() {
     renderDevices(data || []);
   } catch (error) {
     byId("cloudDevicesStatus").textContent =
-      "Грешка при зареждане: " + error.message;
+      await diagnoseCloudError(error, "Грешка при зареждане на устройствата");
   }
 }
 
@@ -1809,11 +1823,12 @@ async function restoreBackup() {
     lastSyncError = true;
     window.setCloudSyncStatus?.("error");
 
+    const diag = await diagnoseCloudError(error, "Грешка при възстановяване");
+
     restoreStatus(
       uploaded
         ? "Архивът е качен в Cloud, но локалното прилагане не завърши. Натисни синхронизация."
-        : "Грешка при възстановяване: " + error.message +
-          ". Чакащите промени са запазени."
+        : diag + ". Чакащите промени са запазени."
     );
 
     status("Възстановяването не беше завършено.");
@@ -1835,8 +1850,8 @@ function showAuthenticated(user) {
 
   currentUser = user;
 
-  byId("cloudAuthForm").hidden = true;
-  byId("cloudActions").hidden = false;
+  if (byId("cloudAuthForm")) byId("cloudAuthForm").hidden = true;
+  if (byId("cloudActions")) byId("cloudActions").hidden = false;
 
   userStatus("Влязъл потребител: " + user.email, "ok");
 
@@ -1852,20 +1867,24 @@ function showAuthenticated(user) {
 function showLoggedOut() {
   currentUser = null;
 
-  byId("cloudAuthForm").hidden = false;
-  byId("cloudActions").hidden = true;
+  if (byId("cloudAuthForm")) byId("cloudAuthForm").hidden = false;
+  if (byId("cloudActions")) byId("cloudActions").hidden = true;
 
   userStatus("Не си влязъл в Cloud Sync.");
 
-  byId("cloudHistoryStatus").textContent =
-    "Влез в профила си, за да видиш историята.";
+  if (byId("cloudHistoryStatus")) {
+    byId("cloudHistoryStatus").textContent =
+      "Влез в профила си, за да видиш историята.";
+  }
 
-  byId("cloudDevicesStatus").textContent =
-    "Влез в профила си, за да видиш устройствата.";
+  if (byId("cloudDevicesStatus")) {
+    byId("cloudDevicesStatus").textContent =
+      "Влез в профила си, за да видиш устройствата.";
+  }
 
-  byId("cloudHistoryList").replaceChildren();
-  byId("cloudDevicesList").replaceChildren();
-  byId("deviceSummary").replaceChildren();
+  byId("cloudHistoryList")?.replaceChildren();
+  byId("cloudDevicesList")?.replaceChildren();
+  byId("deviceSummary")?.replaceChildren();
 
   refreshPendingOwnership();
 
@@ -1873,8 +1892,8 @@ function showLoggedOut() {
 }
 
 async function register() {
-  const email = byId("cloudEmail").value.trim();
-  const password = byId("cloudPassword").value;
+  const email = (byId("cloudEmail")?.value || "").trim();
+  const password = byId("cloudPassword")?.value || "";
 
   if (!email || password.length < 6) {
     status("Въведи валиден имейл и парола от минимум 6 символа.");
@@ -1882,6 +1901,7 @@ async function register() {
   }
 
   setBusy(true);
+  status("Изпращане на регистрация...");
 
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -1899,15 +1919,16 @@ async function register() {
       status("Регистрацията е приета. Провери имейла си.");
     }
   } catch (error) {
-    status("Грешка при регистрация: " + error.message);
+    lastSyncError = true;
+    status(await diagnoseCloudError(error, "Грешка при регистрация"));
   } finally {
     setBusy(false);
   }
 }
 
 async function login() {
-  const email = byId("cloudEmail").value.trim();
-  const password = byId("cloudPassword").value;
+  const email = (byId("cloudEmail")?.value || "").trim();
+  const password = byId("cloudPassword")?.value || "";
 
   if (!email || !password) {
     status("Въведи имейл и парола.");
@@ -1915,6 +1936,7 @@ async function login() {
   }
 
   setBusy(true);
+  status("Свързване със сървъра и проверка на профила...");
 
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -1924,12 +1946,14 @@ async function login() {
 
     if (error) throw error;
 
+    lastSyncError = false;
     showAuthenticated(data.user);
     status("Входът е успешен.", "ok");
 
     scheduleAutomaticSync(1000);
   } catch (error) {
-    status("Грешка при вход: " + error.message);
+    lastSyncError = true;
+    status(await diagnoseCloudError(error, "Грешка при вход"));
   } finally {
     setBusy(false);
   }
@@ -1954,7 +1978,7 @@ async function logout() {
     showLoggedOut();
     status("Излезе от Cloud Sync.", "ok");
   } catch (error) {
-    status("Грешка при изход: " + error.message);
+    status(await diagnoseCloudError(error, "Грешка при изход"));
   } finally {
     setBusy(false);
   }
@@ -2148,6 +2172,8 @@ async function syncNow() {
     lastSyncError = true;
     window.setCloudSyncStatus?.("error");
 
+    const diag = await diagnoseCloudError(error, "Грешка при синхронизация");
+
     if (historyUserId) {
       try {
         await writeHistory(
@@ -2155,7 +2181,7 @@ async function syncNow() {
           "error",
           mergedCarsCount,
           processedChanges,
-          error.message
+          diag
         );
 
         await loadHistory();
@@ -2165,7 +2191,7 @@ async function syncNow() {
       }
     }
 
-    status("Грешка при синхронизация: " + error.message);
+    status(diag);
 
   } finally {
     syncRunning = false;
@@ -2240,16 +2266,16 @@ document.addEventListener("visibilitychange", () => {
    EVENTS
 ========================================== */
 
-byId("cloudLogin").addEventListener("click", login);
-byId("cloudRegister").addEventListener("click", register);
-byId("cloudLogout").addEventListener("click", logout);
-byId("cloudSync").addEventListener("click", syncNow);
-byId("cloudRetry").addEventListener("click", syncNow);
-byId("cloudHistoryRefresh").addEventListener("click", loadHistory);
-byId("cloudDevicesRefresh").addEventListener("click", loadDevices);
-byId("cloudExport").addEventListener("click", downloadBackup);
-byId("cloudRestore").addEventListener("click", restoreBackup);
-byId("cloudAssignPending").addEventListener(
+byId("cloudLogin")?.addEventListener("click", login);
+byId("cloudRegister")?.addEventListener("click", register);
+byId("cloudLogout")?.addEventListener("click", logout);
+byId("cloudSync")?.addEventListener("click", syncNow);
+byId("cloudRetry")?.addEventListener("click", syncNow);
+byId("cloudHistoryRefresh")?.addEventListener("click", loadHistory);
+byId("cloudDevicesRefresh")?.addEventListener("click", loadDevices);
+byId("cloudExport")?.addEventListener("click", downloadBackup);
+byId("cloudRestore")?.addEventListener("click", restoreBackup);
+byId("cloudAssignPending")?.addEventListener(
   "click",
   assignPendingToCurrentUser
 );
@@ -2310,7 +2336,7 @@ async function initializeCloud() {
     lastSyncError = true;
     window.setCloudSyncStatus?.("error");
     userStatus("Cloud Sync не е достъпен.");
-    status(error.message);
+    status(await diagnoseCloudError(error, "Грешка при инициализация"));
   }
 
   refreshDashboard();
