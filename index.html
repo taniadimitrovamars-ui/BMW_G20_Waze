@@ -1085,36 +1085,13 @@ details[open] > summary{
  margin-top:2px;
 }
 
-.cloud-auth-box{
- margin-top:12px;
- padding-top:12px;
- border-top:1px solid var(--border);
-}
-.cloud-auth-title{
- font-size:11px;
- font-weight:900;
- letter-spacing:.6px;
- color:var(--muted);
- text-transform:uppercase;
- margin-bottom:8px;
-}
-.cloud-auth-actions{
- display:flex;
- gap:8px;
- flex-wrap:wrap;
- margin-top:10px;
-}
-.cloud-auth-actions .btn{
- flex:1;
-}
-
 .rules{margin-top:12px}
-.rules ~ details.drop-panel:not(#cloudSyncPanel) button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
-.rules ~ details.drop-panel:not(#cloudSyncPanel) button:disabled{opacity:.55!important}
-.rules ~ details.drop-panel:not(#cloudSyncPanel) input,.rules ~ details.drop-panel:not(#cloudSyncPanel) select{background:var(--surface-2)!important;color:var(--text)!important;border:1px solid var(--border)!important}
-.rules ~ details.drop-panel:not(#cloudSyncPanel){color:var(--text)}
-.rules ~ details.drop-panel:not(#cloudSyncPanel) .muted,.rules ~ details.drop-panel:not(#cloudSyncPanel) small{color:var(--muted)}
-.rules ~ details.drop-panel:not(#cloudSyncPanel) .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) input,
+.rules ~ details.drop-panel:not(#cloudSyncPanel) select{
+ background:var(--surface-2)!important;
+ color:var(--text)!important;
+ border:1px solid var(--border)!important;
+}
 
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
@@ -1487,44 +1464,7 @@ details[open] > summary{
     <div id="localMessage" class="form-msg"></div>
    </details>
 
-   <details class="drop-panel" id="cloudSyncPanel" open>
-    <summary>
-     <div class="panel-lead">
-      <span class="panel-icon">☁️</span>
-      <div>
-       <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
-       <div class="drop-sub">Вход и регистрация, синхронизация, облачен архив и история</div>
-      </div>
-     </div>
-     <span class="chev">▾</span>
-    </summary>
-    <div class="muted" id="dashboardCloud">Локален режим · Готов за синхронизация</div>
-    <div class="muted" id="cloudUser" style="margin-top:4px">Профил: не е влязло устройство</div>
-
-    <div class="cloud-auth-box" id="cloudAuthBox">
-     <div class="cloud-auth-title">ВХОД И РЕГИСТРАЦИЯ В АКАУНТ</div>
-     <div class="form-grid">
-      <div class="field full">
-       <label for="cloudEmail">ИМЕЙЛ</label>
-       <input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com">
-      </div>
-      <div class="field full">
-       <label for="cloudPassword">ПАРОЛА</label>
-       <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••">
-      </div>
-     </div>
-     <div class="cloud-auth-actions">
-      <button class="btn small" id="cloudLoginBtn" type="button">Вход</button>
-      <button class="btn secondary small" id="cloudRegisterBtn" type="button">Регистрация</button>
-      <button class="btn secondary small hidden" id="cloudLogoutBtn" type="button">Изход</button>
-     </div>
-     <div id="cloudAuthStatus" class="form-msg"></div>
-    </div>
-
-    <div class="btn-row">
-     <button class="btn small" id="cloudSync" type="button">↻ Синхронизирай сега</button>
-    </div>
-   </details>
+   <div id="cloudSyncSlot"></div>
 
    <details class="drop-panel">
     <summary>
@@ -2328,7 +2268,6 @@ function refreshGarageCloudWidget(){
 
  const cloudStateEl=$("dashboardCloud");
  const cloudUserEl=$("cloudUser");
- const logoutBtn=$("cloudLogoutBtn");
  const lastSyncRaw=localStorage.getItem(LAST_SYNC_KEY);
  let pendingCount=0;
  try{
@@ -2339,8 +2278,6 @@ function refreshGarageCloudWidget(){
  const rawCloudText=(cloudStateEl?.textContent||"").trim();
  const lowerText=rawCloudText.toLowerCase();
  const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
- const isLoggedIn=!/не е вляз|не е проверен|изляз/i.test(userLine);
- if(logoutBtn)logoutBtn.classList.toggle("hidden",!isLoggedIn);
 
  let mode=forcedCloudState;
  if(!mode){
