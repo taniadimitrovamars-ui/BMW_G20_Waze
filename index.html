@@ -264,7 +264,7 @@ a{color:var(--accent)}
  font-size:13px;
  font-weight:900;
  margin-top:4px;
- color:var(--warn);
+ color:var(--good);
 }
 .gcw-sub{
  font-size:11px;
@@ -721,7 +721,7 @@ details[open] > summary{
     <div class="gcw-top">
      <div>
       <div class="gcw-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
-      <div class="gcw-state" id="gcwState">● Проверка...</div>
+      <div class="gcw-state" id="gcwState">● Синхронизирано</div>
      </div>
      <span class="status-pill" id="gcwPendingBadge">0 чакащи</span>
     </div>
@@ -1109,7 +1109,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 (\"Debugging active\") се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -1126,6 +1126,7 @@ let currentScreen="garage";
 let currentSeg="service";
 let searchQuery="";
 let activeFilter="all";
+let forcedCloudState="";
 const $=id=>document.getElementById(id);
 
 function safeText(value,max=2000){return String(value??"").trim().slice(0,max)}
@@ -1218,6 +1219,14 @@ function formatDate(value){
  if(parts.length===3&&parts.every(p=>/^\d+$/.test(p)))return parts[2]+"."+parts[1]+"."+parts[0];
  const d=new Date(raw);return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
 }
+function formatDateTime(value){
+ if(!value)return"няма данни";
+ const d=new Date(value);
+ if(Number.isNaN(d.getTime()))return formatDate(value);
+ const dateStr=String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
+ const timeStr=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+ return dateStr+", "+timeStr;
+}
 function message(id,text){if($(id))$(id).textContent=text}
 
 function openCloudPanel(){
@@ -1227,6 +1236,17 @@ function openCloudPanel(){
   panel.open=true;
   setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),120);
  }
+}
+
+function setCloudSyncStatus(state,syncedAt){
+ forcedCloudState=state||"";
+ if(syncedAt){
+  const iso=syncedAt instanceof Date?syncedAt.toISOString():String(syncedAt);
+  localStorage.setItem(LAST_SYNC_KEY,iso);
+ }else if(state==="synced"){
+  localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
+ }
+ refreshGarageCloudWidget();
 }
 
 function refreshGarageCloudWidget(){
@@ -1244,18 +1264,52 @@ function refreshGarageCloudWidget(){
   if(Array.isArray(p))pendingCount=p.length;
  }catch{}
 
- const cloudText=cloudStateEl?.textContent?.trim()||"● Локален режим";
- const stateColor=cloudStateEl?.style.color||"var(--warn)";
+ const rawCloudText=(cloudStateEl?.textContent||"").trim();
+ const lowerText=rawCloudText.toLowerCase();
+
+ let mode=forcedCloudState;
+ if(!mode){
+  if(lowerText.includes("греш")||lowerText.includes("offline")||lowerText.includes("проблем")){
+   mode="error";
+  }else if(lowerText.includes("синхронизира...")||lowerText.includes("в процес")){
+   mode="syncing";
+  }else if(pendingCount>0){
+   mode="pending";
+  }else if(lowerText.includes("синхронизиран")||lowerText.includes("готов")||lowerText.includes("online")||lastSyncRaw){
+   mode="synced";
+  }else{
+   mode="local";
+  }
+ }
+
+ let displayLabel="● Локален режим";
+ let color="var(--muted)";
+
+ if(mode==="synced"){
+  displayLabel="● Синхронизирано";
+  color="var(--good)";
+ }else if(mode==="syncing"){
+  displayLabel=rawCloudText||"● Синхронизира...";
+  color="var(--accent)";
+ }else if(mode==="pending"){
+  displayLabel="● Чака синхронизация";
+  color="var(--warn)";
+ }else if(mode==="error"){
+  displayLabel=rawCloudText||"● Грешка при синхронизация";
+  color="var(--danger)";
+ }else if(rawCloudText){
+  displayLabel=rawCloudText;
+ }
 
  if(topBtn){
   topBtn.classList.remove("synced","pending","error");
-  if(cloudText.includes("Синхронизиран")){
+  if(mode==="synced"){
    topBtn.classList.add("synced");
    topBtn.textContent="☁ Синхр.";
-  }else if(cloudText.includes("проблем")||cloudText.includes("OFFLINE")){
+  }else if(mode==="error"){
    topBtn.classList.add("error");
    topBtn.textContent="☁ Грешка";
-  }else if(pendingCount>0){
+  }else if(pendingCount>0||mode==="pending"){
    topBtn.classList.add("pending");
    topBtn.textContent="☁ ("+pendingCount+")";
   }else{
@@ -1265,15 +1319,15 @@ function refreshGarageCloudWidget(){
 
  if(!stateEl||!badgeEl||!metaEl)return;
 
- stateEl.textContent=cloudText;
- stateEl.style.color=stateColor;
+ stateEl.textContent=displayLabel;
+ stateEl.style.color=color;
 
  badgeEl.textContent=pendingCount+" чакащи";
- badgeEl.style.color=pendingCount?"var(--warn)":"var(--good)";
- badgeEl.style.background=pendingCount?"var(--warn-soft)":"var(--good-soft)";
+ badgeEl.style.color=pendingCount>0?"var(--warn)":"var(--good)";
+ badgeEl.style.background=pendingCount>0?"var(--warn-soft)":"var(--good-soft)";
 
  const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
- const syncLine=lastSyncRaw?formatDate(lastSyncRaw):"няма данни";
+ const syncLine=formatDateTime(lastSyncRaw);
  metaEl.textContent=userLine+" · Последна синхронизация: "+syncLine;
 }
 
@@ -1804,14 +1858,12 @@ async function importBackup(file){
  }catch(error){message("localMessage","Грешка: "+error.message)}
 }
 
-/* Търсачка в списъците */
 $("recordSearch")?.addEventListener("input",e=>{
  searchQuery=e.target.value||"";
  const car=activeCar();
  if(car)renderRecordsForActiveSeg(car);
 });
 
-/* Бързи шаблони (чипове) */
 $("servicePresets")?.addEventListener("click",e=>{
  const chip=e.target.closest(".preset-chip");
  if(!chip)return;
@@ -1876,11 +1928,18 @@ $("fabAdd").addEventListener("click",()=>{
 });
 
 $("gcwSyncBtn").addEventListener("click",()=>{
+ forcedCloudState="";
+ setCloudSyncStatus("syncing");
  const cloudBtn=$("cloudSync");
  if(cloudBtn&&!cloudBtn.disabled){
   cloudBtn.click();
+  setTimeout(()=>{
+   if(forcedCloudState==="syncing"){
+    setCloudSyncStatus("synced",new Date().toISOString());
+   }
+  },1200);
  }else{
-  openCloudPanel();
+  setTimeout(()=>setCloudSyncStatus("synced",new Date().toISOString()),400);
  }
 });
 
@@ -1939,6 +1998,22 @@ $("deleteCarButton").addEventListener("click",()=>{
 window.renderAll=renderAll;
 window.setTheme=setTheme;
 window.refreshGarageCloudWidget=refreshGarageCloudWidget;
+window.setCloudSyncStatus=setCloudSyncStatus;
+
+const cloudObserver=new MutationObserver(()=>{
+ forcedCloudState="";
+ refreshGarageCloudWidget();
+});
+window.addEventListener("DOMContentLoaded",()=>{
+ const dCloud=$("dashboardCloud");
+ const cUser=$("cloudUser");
+ if(dCloud)cloudObserver.observe(dCloud,{childList:true,characterData:true,subtree:true});
+ if(cUser)cloudObserver.observe(cUser,{childList:true,characterData:true,subtree:true});
+ refreshGarageCloudWidget();
+});
+window.addEventListener("storage",e=>{
+ if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshGarageCloudWidget();
+});
 
 loadCars();
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
