@@ -352,49 +352,6 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 
-.garage-cloud-widget{
- background:var(--surface-2);
- border:1px solid var(--border);
- border-radius:var(--radius);
- padding:14px 16px;
- margin:12px 0;
- box-shadow:var(--shadow);
-}
-.gcw-top{
- display:flex;
- align-items:flex-start;
- justify-content:space-between;
- gap:10px;
-}
-.gcw-title{
- font-size:10px;
- font-weight:900;
- letter-spacing:1.1px;
- color:var(--muted);
- text-transform:uppercase;
-}
-.gcw-state{
- font-size:13px;
- font-weight:900;
- margin-top:4px;
- color:var(--good);
-}
-.gcw-sub{
- font-size:11px;
- color:var(--muted);
- margin-top:5px;
- line-height:1.45;
- overflow-wrap:anywhere;
-}
-.gcw-actions{
- display:flex;
- gap:8px;
- margin-top:12px;
-}
-.gcw-actions .btn{
- flex:1;
-}
-
 .docs-widget{
  background:var(--surface);
  border:1px solid var(--border);
@@ -1327,7 +1284,7 @@ details[open] > summary{
    <div class="version">G20 · MGU · WAZE · 4.2</div>
   </div>
   <div class="top-actions">
-   <button class="pill-btn" id="topCloudBtn" type="button" title="CLOUD SYNC · M-GARAGE PRO 2.4">☁ Cloud</button>
+   <button class="pill-btn" id="topCloudBtn" type="button" title="Облачна синхронизация">☁ Cloud</button>
    <button class="icon-btn" id="themeToggle" type="button" aria-label="Смени тема">◐</button>
    <button class="icon-btn" id="backupButton" type="button" aria-label="Експорт на архив">↓</button>
   </div>
@@ -1422,21 +1379,6 @@ details[open] > summary{
     <div class="dw-foot">
      <button class="btn small" id="dwAddDocBtn" type="button">＋ Документ</button>
      <button class="btn secondary small" id="dwOpenAllBtn" type="button">Всички документи</button>
-    </div>
-   </div>
-
-   <div class="garage-cloud-widget" id="garageCloudWidget">
-    <div class="gcw-top">
-     <div>
-      <div class="gcw-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
-      <div class="gcw-state" id="gcwState">● Синхронизирано</div>
-     </div>
-     <span class="status-pill" id="gcwPendingBadge">0 чакащи</span>
-    </div>
-    <div class="gcw-sub" id="gcwMeta">Профил: проверка... · Последна синхронизация: няма данни</div>
-    <div class="gcw-actions">
-     <button class="btn small" id="gcwSyncBtn" type="button">↻ Синхронизирай</button>
-     <button class="btn secondary small" id="gcwOpenPanelBtn" type="button">Вход / Cloud</button>
     </div>
    </div>
 
@@ -2155,7 +2097,6 @@ let mguSearchQuery="";
 let activeFilter="all";
 let timelineFilter="all";
 let mguOnlyTodo=false;
-let forcedCloudState="";
 let draftPhotoDataUrl="";
 let editingRecord=null;
 let deferredPwaPrompt=null;
@@ -2460,14 +2401,6 @@ function formatDate(value){
  const d=new Date(raw);
  return Number.isNaN(d.getTime())?raw:d.toLocaleDateString("bg-BG");
 }
-function formatDateTime(value){
- if(!value)return"няма данни";
- const d=new Date(value);
- if(Number.isNaN(d.getTime()))return formatDate(value);
- const dateStr=String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
- const timeStr=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
- return dateStr+", "+timeStr;
-}
 function message(id,text){if($(id))$(id).textContent=text}
 
 function openCloudPanel(){
@@ -2479,25 +2412,10 @@ function openCloudPanel(){
  }
 }
 
-function setCloudSyncStatus(state,syncedAt){
- forcedCloudState=state||"";
- if(syncedAt){
-  const iso=syncedAt instanceof Date?syncedAt.toISOString():String(syncedAt);
-  localStorage.setItem(LAST_SYNC_KEY,iso);
- }else if(state==="synced"){
-  localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
- }
- refreshGarageCloudWidget();
-}
-
-function refreshGarageCloudWidget(){
- const stateEl=$("gcwState");
- const badgeEl=$("gcwPendingBadge");
- const metaEl=$("gcwMeta");
+function refreshTopCloudButton(){
  const topBtn=$("topCloudBtn");
-
+ if(!topBtn)return;
  const cloudStateEl=$("dashboardCloud");
- const cloudUserEl=$("cloudUser");
  const lastSyncRaw=localStorage.getItem(LAST_SYNC_KEY);
  let pendingCount=0;
  try{
@@ -2505,71 +2423,20 @@ function refreshGarageCloudWidget(){
   if(Array.isArray(p))pendingCount=p.length;
  }catch{}
 
- const rawCloudText=(cloudStateEl?.textContent||"").trim();
- const lowerText=rawCloudText.toLowerCase();
- const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
-
- let mode=forcedCloudState;
- if(!mode){
-  if(lowerText.includes("греш")||lowerText.includes("offline")||lowerText.includes("проблем")){
-   mode="error";
-  }else if(lowerText.includes("синхронизира...")||lowerText.includes("в процес")){
-   mode="syncing";
-  }else if(pendingCount>0){
-   mode="pending";
-  }else if(lowerText.includes("синхронизиран")||lowerText.includes("готов")||lowerText.includes("online")||lastSyncRaw){
-   mode="synced";
-  }else{
-   mode="local";
-  }
+ const rawCloudText=(cloudStateEl?.textContent||"").trim().toLowerCase();
+ topBtn.classList.remove("synced","pending","error");
+ if(rawCloudText.includes("греш")||rawCloudText.includes("offline")||rawCloudText.includes("проблем")){
+  topBtn.classList.add("error");
+  topBtn.textContent="☁ Грешка";
+ }else if(pendingCount>0){
+  topBtn.classList.add("pending");
+  topBtn.textContent="☁ ("+pendingCount+")";
+ }else if(rawCloudText.includes("синхронизиран")||rawCloudText.includes("готов")||rawCloudText.includes("online")||lastSyncRaw){
+  topBtn.classList.add("synced");
+  topBtn.textContent="☁ Синхр.";
+ }else{
+  topBtn.textContent="☁ Cloud";
  }
-
- let displayLabel="● Локален режим";
- let color="var(--muted)";
-
- if(mode==="synced"){
-  displayLabel="● Синхронизирано";
-  color="var(--good)";
- }else if(mode==="syncing"){
-  displayLabel=rawCloudText||"● Синхронизира...";
-  color="var(--accent)";
- }else if(mode==="pending"){
-  displayLabel="● Чака синхронизация";
-  color="var(--warn)";
- }else if(mode==="error"){
-  displayLabel=rawCloudText||"● Грешка при синхронизация";
-  color="var(--danger)";
- }else if(rawCloudText){
-  displayLabel=rawCloudText;
- }
-
- if(topBtn){
-  topBtn.classList.remove("synced","pending","error");
-  if(mode==="synced"){
-   topBtn.classList.add("synced");
-   topBtn.textContent="☁ Синхр.";
-  }else if(mode==="error"){
-   topBtn.classList.add("error");
-   topBtn.textContent="☁ Грешка";
-  }else if(pendingCount>0||mode==="pending"){
-   topBtn.classList.add("pending");
-   topBtn.textContent="☁ ("+pendingCount+")";
-  }else{
-   topBtn.textContent="☁ Cloud";
-  }
- }
-
- if(!stateEl||!badgeEl||!metaEl)return;
-
- stateEl.textContent=displayLabel;
- stateEl.style.color=color;
-
- badgeEl.textContent=pendingCount+" чакащи";
- badgeEl.style.color=pendingCount>0?"var(--warn)":"var(--good)";
- badgeEl.style.background=pendingCount>0?"var(--warn-soft)":"var(--good-soft)";
-
- const syncLine=formatDateTime(lastSyncRaw);
- metaEl.textContent=userLine+" · Последна синхронизация: "+syncLine;
 }
 
 function updateFab(){
@@ -3085,7 +2952,7 @@ function renderGarage(){
  addBtn.addEventListener("click",()=>openSheet("car","Нов автомобил"));
  bar.append(addBtn);
  updateFab();
- refreshGarageCloudWidget();
+ refreshTopCloudButton();
 }
 
 function reminderState(r,car){
@@ -4500,24 +4367,6 @@ $("fabAdd").addEventListener("click",()=>{
  openSheet(currentSeg,titles[currentSeg]||"Нов запис");
 });
 
-$("gcwSyncBtn").addEventListener("click",()=>{
- forcedCloudState="";
- setCloudSyncStatus("syncing");
- const cloudBtn=$("cloudSync");
- if(cloudBtn&&!cloudBtn.disabled){
-  cloudBtn.click();
-  setTimeout(()=>{
-   if(forcedCloudState==="syncing"){
-    setCloudSyncStatus("synced",new Date().toISOString());
-   }
-  },1200);
- }else{
-  setTimeout(()=>setCloudSyncStatus("synced",new Date().toISOString()),400);
- }
-});
-
-$("gcwOpenPanelBtn").addEventListener("click",openCloudPanel);
-
 $("mguFilterAll")?.addEventListener("click",()=>{
  mguOnlyTodo=false;
  $("mguFilterAll").classList.add("active");
@@ -4592,26 +4441,21 @@ $("deleteCarButton").addEventListener("click",()=>{
 
 window.renderAll=renderAll;
 window.setTheme=setTheme;
-window.refreshGarageCloudWidget=refreshGarageCloudWidget;
-window.setCloudSyncStatus=setCloudSyncStatus;
 
 const cloudObserver=new MutationObserver(()=>{
- forcedCloudState="";
  ensureDropPanelIcons();
- refreshGarageCloudWidget();
+ refreshTopCloudButton();
 });
 window.addEventListener("DOMContentLoaded",()=>{
  ensureDropPanelIcons();
  const dCloud=$("dashboardCloud");
- const cUser=$("cloudUser");
  const moreSec=$("screen-more");
  if(dCloud)cloudObserver.observe(dCloud,{childList:true,characterData:true,subtree:true});
- if(cUser)cloudObserver.observe(cUser,{childList:true,characterData:true,subtree:true});
  if(moreSec)cloudObserver.observe(moreSec,{childList:true,characterData:true,subtree:true});
- refreshGarageCloudWidget();
+ refreshTopCloudButton();
 });
 window.addEventListener("storage",e=>{
- if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshGarageCloudWidget();
+ if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY)refreshTopCloudButton();
 });
 
 const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getQrShareUrl();
