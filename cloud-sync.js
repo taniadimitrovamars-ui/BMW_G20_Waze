@@ -1,10 +1,9 @@
-
 "use strict";
 
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4
+   Version: 2.4.1 (Accordion UI)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -317,13 +316,19 @@ function stableJSON(value) {
 function createInterface() {
   if (document.getElementById("cloudSyncPanel")) return;
 
-  const panel = document.createElement("section");
+  const panel = document.createElement("details");
 
   panel.id = "cloudSyncPanel";
-  panel.className = "panel open";
+  panel.className = "drop-panel";
 
   panel.innerHTML = `
-    <div class="section-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
+    <summary>
+     <div>
+      <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
+      <div class="drop-sub">Акаунт, синхронизация, облачен архив, устройства и история</div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
 
     <div class="backup-info">
       Централизирана синхронизация на автомобилите,
@@ -351,103 +356,119 @@ function createInterface() {
 
     <div id="cloudUser" class="form-msg">Проверка на профила...</div>
 
-    <div class="alert warn" style="margin:10px 0">
+    <details class="ref-box">
+     <summary>Бележка за поверителност при синхронизация <span><span class="chev">▾</span></span></summary>
+     <div class="alert warn" style="margin:0">
       Внимание: след вход профилът на автомобила (вкл. VIN, ако го въведеш в
       РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака. Не споделяй този
       акаунт и не публикувай снимки от приложението с VIN номера.
+     </div>
+    </details>
+
+    <div id="cloudAuthForm" style="margin-top:12px">
+      <div class="form-grid">
+        <div class="field">
+          <input id="cloudEmail" type="email"
+            placeholder="Имейл адрес" autocomplete="email">
+        </div>
+        <div class="field">
+          <input id="cloudPassword" type="password"
+            placeholder="Парола – минимум 6 символа"
+            autocomplete="current-password">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="cloudLogin" type="button">Вход</button>
+        <button class="btn secondary" id="cloudRegister" type="button">Регистрация</button>
+      </div>
     </div>
 
-    <div id="cloudAuthForm">
-      <div class="panel-row">
-        <input id="cloudEmail" type="email"
-          placeholder="Имейл адрес" autocomplete="email">
-        <input id="cloudPassword" type="password"
-          placeholder="Парола – минимум 6 символа"
-          autocomplete="current-password">
-      </div>
-      <div class="panel-row">
-        <button class="btn-primary" id="cloudLogin" type="button">Вход</button>
-        <button class="btn-secondary" id="cloudRegister" type="button">Регистрация</button>
-      </div>
-    </div>
-
-    <div id="cloudActions" hidden>
-      <div class="panel-row">
-        <button class="btn-primary" id="cloudSync" type="button">
+    <div id="cloudActions" hidden style="margin-top:12px">
+      <div class="btn-row">
+        <button class="btn" id="cloudSync" type="button">
           ↻ Синхронизирай сега
         </button>
-        <button class="btn-secondary" id="cloudLogout" type="button">Изход</button>
+        <button class="btn secondary" id="cloudLogout" type="button">Изход</button>
       </div>
-      <button class="btn-secondary" id="cloudRetry" type="button" style="width:100%">
-        ⟳ Повтори синхронизацията
-      </button>
+      <div class="btn-row">
+        <button class="btn secondary" id="cloudRetry" type="button">
+          ⟳ Повтори синхронизацията
+        </button>
+      </div>
     </div>
 
     <div id="pendingOwnership" class="form-msg" hidden>
       Има стари чакащи промени, чийто Cloud профил не може да бъде установен.
       Те няма да бъдат изпратени автоматично.
-      <button class="btn-secondary" id="cloudAssignPending"
-        type="button" style="width:100%;margin-top:10px">
-        Свържи чакащите промени с този профил
-      </button>
+      <div class="btn-row">
+        <button class="btn secondary" id="cloudAssignPending" type="button">
+          Свържи чакащите промени с този профил
+        </button>
+      </div>
     </div>
 
     <div id="cloudStatus" class="form-msg">
       Данните се съхраняват локално.
     </div>
 
-    <div class="cloud-section">
-      <div class="section-title">BACKUP & RESTORE</div>
-      <div class="backup-info">
-        Пълният архив включва всички автомобилни профили,
-        сервизни записи, модификации, разходи, напомняния,
-        документи и избраната тема.
-      </div>
-      <button class="btn-primary" id="cloudExport"
-        type="button" style="width:100%;margin:10px 0">
-        ↓ Създай пълен Cloud архив
+    <details class="ref-box">
+     <summary>Backup & Restore (Cloud архив) <span><span class="chev">▾</span></span></summary>
+     <div class="backup-info">
+      Пълният архив включва всички автомобилни профили,
+      сервизни записи, модификации, разходи, напомняния,
+      документи и избраната тема.
+     </div>
+     <div class="btn-row">
+      <button class="btn" id="cloudExport" type="button">
+       ↓ Създай пълен Cloud архив
       </button>
+     </div>
+     <div class="field" style="margin-top:10px">
       <input id="cloudRestoreFile" type="file"
-        accept=".json,application/json" style="width:100%;margin:10px 0">
-      <button class="btn-secondary" id="cloudRestore"
-        type="button" style="width:100%">
-        ↥ Възстанови архива във всички устройства
+       accept=".json,application/json">
+     </div>
+     <div class="btn-row">
+      <button class="btn secondary" id="cloudRestore" type="button">
+       ↥ Възстанови архива във всички устройства
       </button>
-      <div id="cloudRestoreStatus" class="form-msg">
-        Избери архивен JSON файл.
-      </div>
-    </div>
+     </div>
+     <div id="cloudRestoreStatus" class="form-msg">
+      Избери архивен JSON файл.
+     </div>
+    </details>
 
-    <div class="cloud-section">
-      <div class="section-title">УСТРОЙСТВА</div>
-      <div class="backup-info">
-        Информационен списък на устройствата, използвали профила.
-        Това не е функция за отдалечено изключване на устройство.
-      </div>
-      <div class="device-summary" id="deviceSummary"></div>
-      <button class="btn-secondary" id="cloudDevicesRefresh"
-        type="button" style="width:100%;margin:10px 0">
-        ↻ Обнови устройствата
+    <details class="ref-box">
+     <summary>Устройства <span><span class="chev">▾</span></span></summary>
+     <div class="backup-info">
+      Информационен списък на устройствата, използвали профила.
+      Това не е функция за отдалечено изключване на устройство.
+     </div>
+     <div class="device-summary" id="deviceSummary"></div>
+     <div class="btn-row">
+      <button class="btn secondary" id="cloudDevicesRefresh" type="button">
+       ↻ Обнови устройствата
       </button>
-      <div id="cloudDevicesStatus" class="form-msg">
-        Списъкът ще се зареди след вход.
-      </div>
-      <div id="cloudDevicesList"></div>
-    </div>
+     </div>
+     <div id="cloudDevicesStatus" class="form-msg">
+      Списъкът ще се зареди след вход.
+     </div>
+     <div id="cloudDevicesList"></div>
+    </details>
 
-    <div class="cloud-section">
-      <div class="section-title">ИСТОРИЯ НА СИНХРОНИЗАЦИИТЕ</div>
-      <button class="btn-secondary" id="cloudHistoryRefresh"
-        type="button" style="width:100%;margin:10px 0">
-        ↻ Обнови историята
+    <details class="ref-box">
+     <summary>История на синхронизациите <span><span class="chev">▾</span></span></summary>
+     <div class="btn-row" style="margin-top:0">
+      <button class="btn secondary" id="cloudHistoryRefresh" type="button">
+       ↻ Обнови историята
       </button>
-      <div id="cloudHistoryStatus" class="form-msg">
-        Историята ще се зареди след вход.
-      </div>
-      <div id="cloudHistoryList"></div>
-    </div>
+     </div>
+     <div id="cloudHistoryStatus" class="form-msg">
+      Историята ще се зареди след вход.
+     </div>
+     <div id="cloudHistoryList"></div>
+    </details>
 
-    <div class="backup-info">
+    <div class="backup-info" style="margin-top:14px">
       M-GARAGE PRO 2.4 · DATA SAFETY & ACCOUNT PROTECTION
     </div>
   `;
@@ -457,7 +478,7 @@ function createInterface() {
   if (rules) {
     rules.after(panel);
   } else {
-    document.querySelector(".layout")?.prepend(panel);
+    document.querySelector(".app")?.append(panel);
   }
 
   const style = document.createElement("style");
@@ -472,37 +493,34 @@ function createInterface() {
     .cloud-card,.device-stat {
       background:var(--surface-2);
       border:1px solid var(--border);
-      border-radius:12px;
+      border-radius:14px;
       padding:12px;
       min-width:0;
     }
     .cloud-label,.device-stat-label {
-      font-size:11px;
-      opacity:.7;
-      margin-bottom:7px;
+      font-size:10px;
+      font-weight:850;
+      letter-spacing:.5px;
+      color:var(--muted);
+      margin-bottom:6px;
     }
     .cloud-value {
-      font-weight:700;
+      font-weight:900;
       font-size:14px;
       overflow-wrap:anywhere;
     }
     .cloud-value.small {font-size:12px;line-height:1.5}
-    .cloud-section {
-      border-top:1px solid var(--border);
-      margin-top:18px;
-      padding-top:16px;
-    }
     .device-summary {
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:8px;
       margin:12px 0;
     }
-    .device-stat-value {font-size:18px;font-weight:700}
+    .device-stat-value {font-size:18px;font-weight:900}
     .device-item,.history-item {
       border:1px solid var(--border);
-      background:var(--surface-2);
-      border-radius:12px;
+      background:var(--surface);
+      border-radius:14px;
       padding:12px;
       margin:9px 0;
     }
@@ -510,22 +528,23 @@ function createInterface() {
       display:flex;
       justify-content:space-between;
       gap:8px;
-      font-weight:700;
+      font-weight:850;
       font-size:13px;
     }
     .device-meta,.history-meta {
-      opacity:.75;
-      font-size:12px;
-      line-height:1.7;
+      color:var(--muted);
+      font-size:11.5px;
+      line-height:1.65;
       margin-top:8px;
       overflow-wrap:anywhere;
       white-space:pre-line;
     }
-    .device-current,.history-success {color:#16a34a;font-weight:700}
-    .history-error {color:#dc2626}
+    .device-current,.history-success {color:var(--good);font-weight:900}
+    .history-error {color:var(--danger)}
     #pendingOwnership {
-      border:1px solid #d97706;
-      border-radius:10px;
+      border:1px solid var(--warn);
+      background:color-mix(in srgb,var(--warn-soft) 50%,var(--surface-2));
+      border-radius:14px;
       padding:12px;
       margin:12px 0;
     }
@@ -541,7 +560,7 @@ function createInterface() {
 
 createInterface();
 
-const $ = id => document.getElementById(id);
+const byId = id => document.getElementById(id);
 
 /* ==========================================
    STATUS & DASHBOARD
@@ -636,7 +655,7 @@ function foreignPending(userId) {
 }
 
 function refreshPendingOwnership() {
-  const box = $("pendingOwnership");
+  const box = byId("pendingOwnership");
 
   if (!box) return;
 
@@ -645,7 +664,7 @@ function refreshPendingOwnership() {
   box.hidden = !currentUser || unassigned.length === 0;
 
   if (unassigned.length) {
-    const button = $("cloudAssignPending");
+    const button = byId("cloudAssignPending");
 
     if (button) {
       button.textContent =
@@ -656,7 +675,7 @@ function refreshPendingOwnership() {
 }
 
 function setIndicator(id, value, color) {
-  const element = $(id);
+  const element = byId(id);
   if (!element) return;
 
   element.textContent = value;
@@ -670,13 +689,13 @@ function refreshDashboard() {
   setIndicator(
     "dashboardNetwork",
     online ? "● ONLINE" : "● OFFLINE",
-    online ? "#16a34a" : "#dc2626"
+    online ? "var(--good)" : "var(--danger)"
   );
 
   setIndicator(
     "dashboardPending",
     String(pending),
-    pending ? "#d97706" : "#16a34a"
+    pending ? "var(--warn)" : "var(--good)"
   );
 
   const last = localStorage.getItem(LAST_SYNC_KEY);
@@ -687,24 +706,24 @@ function refreshDashboard() {
   );
 
   let message = "Не е влязъл";
-  let color = "#d97706";
+  let color = "var(--warn)";
 
   if (syncRunning) {
     message = "Синхронизира...";
-    color = "#2563eb";
+    color = "var(--accent)";
   } else if (lastSyncError) {
     message = "Има проблем";
-    color = "#dc2626";
+    color = "var(--danger)";
   } else if (currentUser && !online) {
     message = "Изчаква интернет";
   } else if (currentUser && pending) {
     message = "Чакащи промени";
   } else if (currentUser && last) {
     message = "Синхронизиран";
-    color = "#16a34a";
+    color = "var(--good)";
   } else if (currentUser) {
     message = "Очаква синхронизация";
-    color = "#2563eb";
+    color = "var(--accent)";
   }
 
   setIndicator("dashboardCloud", "● " + message, color);
@@ -713,7 +732,7 @@ function refreshDashboard() {
 }
 
 function status(message, type = "") {
-  const element = $("cloudStatus");
+  const element = byId("cloudStatus");
 
   if (element) {
     element.textContent = message;
@@ -724,7 +743,7 @@ function status(message, type = "") {
 }
 
 function userStatus(message, type = "") {
-  const element = $("cloudUser");
+  const element = byId("cloudUser");
 
   if (element) {
     element.textContent = message;
@@ -733,7 +752,7 @@ function userStatus(message, type = "") {
 }
 
 function restoreStatus(message, type = "") {
-  const element = $("cloudRestoreStatus");
+  const element = byId("cloudRestoreStatus");
 
   if (element) {
     element.textContent = message;
@@ -747,7 +766,7 @@ function setBusy(busy) {
     "cloudRetry", "cloudHistoryRefresh", "cloudDevicesRefresh",
     "cloudExport", "cloudRestore", "cloudAssignPending"
   ].forEach(id => {
-    if ($(id)) $(id).disabled = busy;
+    if (byId(id)) byId(id).disabled = busy;
   });
 
   refreshDashboard();
@@ -1411,13 +1430,13 @@ async function writeHistory(
 }
 
 function renderHistory(items) {
-  const container = $("cloudHistoryList");
+  const container = byId("cloudHistoryList");
   if (!container) return;
 
   container.replaceChildren();
 
   if (!items.length) {
-    $("cloudHistoryStatus").textContent =
+    byId("cloudHistoryStatus").textContent =
       "Все още няма записи в историята.";
     return;
   }
@@ -1462,14 +1481,14 @@ function renderHistory(items) {
     container.append(card);
   });
 
-  $("cloudHistoryStatus").textContent =
+  byId("cloudHistoryStatus").textContent =
     "Показани са последните " + items.length + " записа.";
 }
 
 async function loadHistory() {
   if (!currentUser) return;
 
-  $("cloudHistoryStatus").textContent = "Зареждане...";
+  byId("cloudHistoryStatus").textContent = "Зареждане...";
 
   try {
     const { data, error } = await supabase
@@ -1486,7 +1505,7 @@ async function loadHistory() {
 
     renderHistory(data || []);
   } catch (error) {
-    $("cloudHistoryStatus").textContent =
+    byId("cloudHistoryStatus").textContent =
       "Грешка при зареждане: " + error.message;
   }
 }
@@ -1496,8 +1515,8 @@ async function loadHistory() {
 ========================================== */
 
 function renderDevices(items) {
-  const container = $("cloudDevicesList");
-  const summary = $("deviceSummary");
+  const container = byId("cloudDevicesList");
+  const summary = byId("deviceSummary");
 
   if (!container || !summary) return;
 
@@ -1566,7 +1585,7 @@ function renderDevices(items) {
 
   if (!devices.length) {
     container.textContent = "Все още няма регистрирани устройства.";
-    $("cloudDevicesStatus").textContent = "Няма намерени записи.";
+    byId("cloudDevicesStatus").textContent = "Няма намерени записи.";
     return;
   }
 
@@ -1603,7 +1622,7 @@ function renderDevices(items) {
     container.append(card);
   });
 
-  $("cloudDevicesStatus").textContent =
+  byId("cloudDevicesStatus").textContent =
     "Намерени устройства: " + devices.length +
     ". Данните са обобщени от последните записи.";
 }
@@ -1611,7 +1630,7 @@ function renderDevices(items) {
 async function loadDevices() {
   if (!currentUser) return;
 
-  $("cloudDevicesStatus").textContent = "Зареждане...";
+  byId("cloudDevicesStatus").textContent = "Зареждане...";
 
   try {
     const { data, error } = await supabase
@@ -1626,7 +1645,7 @@ async function loadDevices() {
 
     renderDevices(data || []);
   } catch (error) {
-    $("cloudDevicesStatus").textContent =
+    byId("cloudDevicesStatus").textContent =
       "Грешка при зареждане: " + error.message;
   }
 }
@@ -1641,7 +1660,7 @@ async function restoreBackup() {
     return;
   }
 
-  const file = $("cloudRestoreFile")?.files?.[0];
+  const file = byId("cloudRestoreFile")?.files?.[0];
 
   if (!file) {
     restoreStatus("Първо избери архивен JSON файл.");
@@ -1798,8 +1817,8 @@ function showAuthenticated(user) {
 
   currentUser = user;
 
-  $("cloudAuthForm").hidden = true;
-  $("cloudActions").hidden = false;
+  byId("cloudAuthForm").hidden = true;
+  byId("cloudActions").hidden = false;
 
   userStatus("Влязъл потребител: " + user.email, "ok");
 
@@ -1815,20 +1834,20 @@ function showAuthenticated(user) {
 function showLoggedOut() {
   currentUser = null;
 
-  $("cloudAuthForm").hidden = false;
-  $("cloudActions").hidden = true;
+  byId("cloudAuthForm").hidden = false;
+  byId("cloudActions").hidden = true;
 
   userStatus("Не си влязъл в Cloud Sync.");
 
-  $("cloudHistoryStatus").textContent =
+  byId("cloudHistoryStatus").textContent =
     "Влез в профила си, за да видиш историята.";
 
-  $("cloudDevicesStatus").textContent =
+  byId("cloudDevicesStatus").textContent =
     "Влез в профила си, за да видиш устройствата.";
 
-  $("cloudHistoryList").replaceChildren();
-  $("cloudDevicesList").replaceChildren();
-  $("deviceSummary").replaceChildren();
+  byId("cloudHistoryList").replaceChildren();
+  byId("cloudDevicesList").replaceChildren();
+  byId("deviceSummary").replaceChildren();
 
   refreshPendingOwnership();
 
@@ -1836,8 +1855,8 @@ function showLoggedOut() {
 }
 
 async function register() {
-  const email = $("cloudEmail").value.trim();
-  const password = $("cloudPassword").value;
+  const email = byId("cloudEmail").value.trim();
+  const password = byId("cloudPassword").value;
 
   if (!email || password.length < 6) {
     status("Въведи валиден имейл и парола от минимум 6 символа.");
@@ -1869,8 +1888,8 @@ async function register() {
 }
 
 async function login() {
-  const email = $("cloudEmail").value.trim();
-  const password = $("cloudPassword").value;
+  const email = byId("cloudEmail").value.trim();
+  const password = byId("cloudPassword").value;
 
   if (!email || !password) {
     status("Въведи имейл и парола.");
@@ -2196,16 +2215,16 @@ document.addEventListener("visibilitychange", () => {
    EVENTS
 ========================================== */
 
-$("cloudLogin").addEventListener("click", login);
-$("cloudRegister").addEventListener("click", register);
-$("cloudLogout").addEventListener("click", logout);
-$("cloudSync").addEventListener("click", syncNow);
-$("cloudRetry").addEventListener("click", syncNow);
-$("cloudHistoryRefresh").addEventListener("click", loadHistory);
-$("cloudDevicesRefresh").addEventListener("click", loadDevices);
-$("cloudExport").addEventListener("click", downloadBackup);
-$("cloudRestore").addEventListener("click", restoreBackup);
-$("cloudAssignPending").addEventListener(
+byId("cloudLogin").addEventListener("click", login);
+byId("cloudRegister").addEventListener("click", register);
+byId("cloudLogout").addEventListener("click", logout);
+byId("cloudSync").addEventListener("click", syncNow);
+byId("cloudRetry").addEventListener("click", syncNow);
+byId("cloudHistoryRefresh").addEventListener("click", loadHistory);
+byId("cloudDevicesRefresh").addEventListener("click", loadDevices);
+byId("cloudExport").addEventListener("click", downloadBackup);
+byId("cloudRestore").addEventListener("click", restoreBackup);
+byId("cloudAssignPending").addEventListener(
   "click",
   assignPendingToCurrentUser
 );
