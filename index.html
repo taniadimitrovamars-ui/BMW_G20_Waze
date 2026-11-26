@@ -1045,6 +1045,25 @@ details.drop-panel summary{
 }
 details.ref-box summary::-webkit-details-marker,
 details.drop-panel summary::-webkit-details-marker{display:none}
+.panel-lead{
+ display:flex;
+ align-items:center;
+ gap:11px;
+ min-width:0;
+}
+.panel-icon{
+ width:32px;
+ height:32px;
+ flex:0 0 32px;
+ border-radius:10px;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ font-size:15px;
+ background:var(--accent-soft);
+ border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));
+ color:var(--text);
+}
 .chev{
  color:var(--muted);
  font-size:12px;
@@ -1223,9 +1242,12 @@ details[open] > summary{
 
    <details class="drop-panel" open>
     <summary>
-     <div>
-      <div>ХРОНОЛОГИЯ (TIMELINE)</div>
-      <div class="drop-sub">Сервизи, модификации, разходи и изпълнени задачи по дата</div>
+     <div class="panel-lead">
+      <span class="panel-icon">🕒</span>
+      <div>
+       <div>ХРОНОЛОГИЯ (TIMELINE)</div>
+       <div class="drop-sub">Сервизи, модификации, разходи и изпълнени задачи по дата</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1241,9 +1263,12 @@ details[open] > summary{
 
    <details class="drop-panel">
     <summary>
-     <div>
-      <div>ПЛАНИРАНИ ОБСЛУЖВАНИЯ</div>
-      <div class="drop-sub">Пълен списък с предстоящи и просрочени задачи</div>
+     <div class="panel-lead">
+      <span class="panel-icon">📅</span>
+      <div>
+       <div>ПЛАНИРАНИ ОБСЛУЖВАНИЯ</div>
+       <div class="drop-sub">Пълен списък с предстоящи и просрочени задачи</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1253,9 +1278,12 @@ details[open] > summary{
 
    <details class="drop-panel">
     <summary>
-     <div>
-      <div>ФИНАНСОВ ОБЗОР</div>
-      <div class="drop-sub">Разбивка по сервизи, модификации и други разходи</div>
+     <div class="panel-lead">
+      <span class="panel-icon">💶</span>
+      <div>
+       <div>ФИНАНСОВ ОБЗОР</div>
+       <div class="drop-sub">Разбивка по сервизи, модификации и други разходи</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1358,47 +1386,12 @@ details[open] > summary{
   <section class="screen" id="screen-more">
    <details class="drop-panel" open>
     <summary>
-     <div>
-      <div>PWA ПРИЛОЖЕНИЕ И ОФЛАЙН РЕЖИМ</div>
-      <div class="drop-sub">Инсталиране на началния екран и кеширане за работа без връзка</div>
-     </div>
-     <span class="chev">▾</span>
-    </summary>
-    <div class="muted" id="pwaStatusText">Проверка на PWA и Service Worker...</div>
-    <div class="btn-row">
-     <button class="btn small hidden" id="pwaInstallBtn" type="button">＋ Инсталирай приложението</button>
-     <button class="btn secondary small" id="pwaRefreshCacheBtn" type="button">Обнови офлайн кеша</button>
-    </div>
-   </details>
-
-   <details class="drop-panel" open>
-    <summary>
-     <div>
-      <div>СПОДЕЛЯНЕ И QR КОД (ЦЯЛО ПРИЛОЖЕНИЕ)</div>
-      <div class="drop-sub">Бързо отваряне на цялото приложение на телефон чрез QR или линк</div>
-     </div>
-     <span class="chev">▾</span>
-    </summary>
-    <div class="muted">QR кодът сочи към целия адрес на приложението (основния URL без специфичен таб/модал), за да може да се отвори чисто на друго устройство или да се добави на началния екран.</div>
-    <div class="field" style="margin-top:10px">
-     <label>АДРЕС НА ПРИЛОЖЕНИЕТО (URL)</label>
-     <input id="shareUrlInput" type="url" placeholder="https://...">
-    </div>
-    <div class="qr-box">
-     <img id="qrImg" alt="QR код за споделяне на цялото приложение" width="188" height="188">
-     <div class="qr-caption" id="qrCaption"></div>
-    </div>
-    <div class="btn-row">
-     <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
-     <button class="btn secondary small" id="resetShareUrlBtn" type="button">Цяло приложение</button>
-    </div>
-   </details>
-
-   <details class="drop-panel" open>
-    <summary>
-     <div>
-      <div>АВТОМОБИЛЕН ПРОФИЛ</div>
-      <div class="drop-sub">Марка, модел, година, двигател, кутия, пробег, снимка и бележки</div>
+     <div class="panel-lead">
+      <span class="panel-icon">🚗</span>
+      <div>
+       <div>АВТОМОБИЛЕН ПРОФИЛ</div>
+       <div class="drop-sub">Марка, модел, година, двигател, кутия, пробег, снимка и бележки</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1430,9 +1423,12 @@ details[open] > summary{
 
    <details class="drop-panel">
     <summary>
-     <div>
-      <div>УПРАВЛЕНИЕ НА АВТОМОБИЛА</div>
-      <div class="drop-sub">Преименуване, нулиране на MGU стъпки или изтриване</div>
+     <div class="panel-lead">
+      <span class="panel-icon">🎛️</span>
+      <div>
+       <div>УПРАВЛЕНИЕ НА АВТОМОБИЛА</div>
+       <div class="drop-sub">Преименуване, нулиране на MGU стъпки или изтриване</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1447,9 +1443,12 @@ details[open] > summary{
 
    <details class="drop-panel rules">
     <summary>
-     <div>
-      <div>ДАННИ И ЛОКАЛНИ РЕЗЕРВНИ КОПИЯ</div>
-      <div class="drop-sub">Експорт и импорт на JSON архив на устройството</div>
+     <div class="panel-lead">
+      <span class="panel-icon">💾</span>
+      <div>
+       <div>ДАННИ И ЛОКАЛНИ РЕЗЕРВНИ КОПИЯ</div>
+       <div class="drop-sub">Експорт и импорт на JSON архив на устройството</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1464,9 +1463,12 @@ details[open] > summary{
 
    <details class="drop-panel">
     <summary>
-     <div>
-      <div>СПРАВОЧНИК MGU & WAZE</div>
-      <div class="drop-sub">Линкове, проблеми при грешки, непотвърдени неща и поверителност</div>
+     <div class="panel-lead">
+      <span class="panel-icon">📘</span>
+      <div>
+       <div>СПРАВОЧНИК MGU & WAZE</div>
+       <div class="drop-sub">Линкове, проблеми при грешки, непотвърдени неща и поверителност</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
@@ -1516,6 +1518,50 @@ details[open] > summary{
       Профилът (вкл. VIN, ако го въведеш в полето РЕГИСТРАЦИЯ или БЕЛЕЖКИ) се синхронизира в облака (Supabase), ако влезеш с акаунт. Не споделяй акаунта си и не публикувай екранни снимки от приложението, съдържащи VIN номера — в съответствие със Златно правило №6 в таб „MGU“.
      </div>
     </details>
+   </details>
+
+   <details class="drop-panel">
+    <summary>
+     <div class="panel-lead">
+      <span class="panel-icon">📲</span>
+      <div>
+       <div>PWA ПРИЛОЖЕНИЕ И ОФЛАЙН РЕЖИМ</div>
+       <div class="drop-sub">Инсталиране на началния екран и кеширане за работа без връзка</div>
+      </div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="muted" id="pwaStatusText">Проверка на PWA и Service Worker...</div>
+    <div class="btn-row">
+     <button class="btn small hidden" id="pwaInstallBtn" type="button">＋ Инсталирай приложението</button>
+     <button class="btn secondary small" id="pwaRefreshCacheBtn" type="button">Обнови офлайн кеша</button>
+    </div>
+   </details>
+
+   <details class="drop-panel">
+    <summary>
+     <div class="panel-lead">
+      <span class="panel-icon">📱</span>
+      <div>
+       <div>СПОДЕЛЯНЕ И QR КОД (ЦЯЛО ПРИЛОЖЕНИЕ)</div>
+       <div class="drop-sub">Бързо отваряне на цялото приложение на телефон чрез QR или линк</div>
+      </div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="muted">QR кодът сочи към целия адрес на приложението (основния URL без специфичен таб/модал), за да може да се отвори чисто на друго устройство или да се добави на началния екран.</div>
+    <div class="field" style="margin-top:10px">
+     <label>АДРЕС НА ПРИЛОЖЕНИЕТО (URL)</label>
+     <input id="shareUrlInput" type="url" placeholder="https://...">
+    </div>
+    <div class="qr-box">
+     <img id="qrImg" alt="QR код за споделяне на цялото приложение" width="188" height="188">
+     <div class="qr-caption" id="qrCaption"></div>
+    </div>
+    <div class="btn-row">
+     <button class="btn small" id="copyShareLinkBtn" type="button">Копирай линка</button>
+     <button class="btn secondary small" id="resetShareUrlBtn" type="button">Цяло приложение</button>
+    </div>
    </details>
   </section>
  </main>
