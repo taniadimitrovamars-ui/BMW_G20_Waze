@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
 <link id="pwaManifestLink" rel="manifest">
-<title>M-GARAGE PRO 4.3</title>
+<title>M-GARAGE PRO 4.3 · BM3 LOGS</title>
 
 <style>
 :root{
@@ -155,7 +155,6 @@ a{color:var(--accent)}
 }
 .muted,.backup-info{color:var(--muted);font-size:12px;line-height:1.6}
 
-/* Стилизирано падащо меню за гаража */
 .garage-selector-wrap{
  position:relative;
  z-index:22;
@@ -384,7 +383,6 @@ a{color:var(--accent)}
  gap:6px;
 }
 
-/* Оптимизирана компактна Hero карта с по-голяма снимка */
 .hero-card{
  position:relative;
  overflow:hidden;
@@ -560,7 +558,6 @@ a{color:var(--accent)}
 .stat-label{font-size:8.5px;color:var(--muted);font-weight:900;letter-spacing:.65px}
 .stat-value{font-size:16px;font-weight:950;margin-top:2px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;line-height:1.15}
 
-/* Компактен уиджит Документи и критични срокове */
 .docs-widget{
  background:var(--surface);
  border:1px solid var(--border);
@@ -702,7 +699,6 @@ a{color:var(--accent)}
  gap:4px;
 }
 
-/* Оптимизиран компактен уиджит Състояние и напомняния */
 .health-widget{
  position:relative;
  overflow:hidden;
@@ -919,7 +915,6 @@ a{color:var(--accent)}
 .ls-meta{font-size:10px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
 .ls-cost{font-size:11.5px;font-weight:950;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
-/* Компактна хронология (до 3 записа + бутон лупичка за пълна хронология) */
 .tl-head-bar{
  display:flex;
  align-items:center;
@@ -1564,10 +1559,74 @@ details[open] > summary{
  border:1px solid var(--border)!important;
 }
 
+/* ---------- BM3 / B48 ЛОГ АНАЛИЗАТОР ---------- */
+.bm3-subnav{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:6px;
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:16px;
+ padding:5px;
+ margin:6px 0 12px;
+}
+.bm3-subnav button{
+ min-height:36px;
+ padding:0 10px;
+ border-radius:12px;
+ border:1px solid transparent;
+ background:transparent;
+ color:var(--muted);
+ font-size:11.5px;
+ font-weight:850;
+}
+.bm3-subnav button.on{
+ background:var(--accent);
+ color:#fff;
+ box-shadow:0 4px 12px rgba(37,139,255,.25);
+}
+.bm3-grid2{display:grid;grid-template-columns:1fr;gap:10px}
+.bm3-grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(min-width:560px){
+ .bm3-grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .bm3-grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+.bm3-k{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:850}
+.bm3-v{font:800 18px ui-monospace,Menlo,monospace;margin-top:3px;font-variant-numeric:tabular-nums}
+.bm3-mono{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.bm3-sc{overflow-x:auto}
+.bm3-table{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+.bm3-table th,.bm3-table td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.bm3-table th{color:var(--muted);font-weight:800;font-size:10px}
+.bm3-table tr.bm3-pk{cursor:pointer}
+.bm3-table tr.bm3-pk:hover{background:var(--surface-2)}
+.bm3-canvas{width:100%;height:190px;display:block;touch-action:pan-y;border-radius:10px}
+.bm3-ro{font:10.5px ui-monospace,Menlo,monospace;color:var(--muted);min-height:16px;margin-bottom:4px;overflow-wrap:anywhere}
+.bm3-ev{border:1px solid var(--border);border-radius:14px;padding:11px;margin-bottom:8px;background:var(--surface-2)}
+.bm3-ev.warn{background:color-mix(in srgb,var(--warn-soft) 65%,var(--surface-2));border-color:var(--warn)}
+.bm3-ev.crit{background:color-mix(in srgb,var(--danger-soft) 70%,var(--surface-2));border-color:var(--danger)}
+.bm3-ev.info{background:color-mix(in srgb,var(--accent-soft) 65%,var(--surface-2));border-color:var(--accent)}
+.bm3-tag{font:800 9.5px ui-monospace,Menlo,monospace;padding:2px 7px;border-radius:6px;text-transform:uppercase;color:#080c12;background:var(--warn)}
+.bm3-ev.crit .bm3-tag{background:var(--danger);color:#fff}
+.bm3-ev.info .bm3-tag{background:var(--accent);color:#fff}
+.bm3-ev ul{margin:6px 0 0;padding-left:16px;color:var(--text);font-size:11px;line-height:1.5}
+.bm3-cy{border:1px solid var(--border);border-radius:12px;padding:8px;background:var(--surface-2)}
+.bm3-bar{height:6px;border-radius:9px;background:var(--surface-3);margin-top:6px;overflow:hidden}
+.bm3-bar i{display:block;height:100%}
+.bm3-good{color:var(--good)}.bm3-bad{color:var(--danger)}.bm3-mid{color:var(--warn)}
+.bm3-A{color:#38bdf8}.bm3-B{color:#a78bfa}
+.bm3-drop{outline:2px dashed var(--accent);outline-offset:-2px}
+dialog.bm3-dlg{
+ background:var(--surface);color:var(--text);border:1px solid var(--border);
+ border-radius:20px;width:min(620px,95vw);max-width:95vw;padding:16px;
+ max-height:calc(100dvh - 28px);margin:auto;overflow-y:auto;box-shadow:var(--shadow);
+}
+dialog.bm3-dlg::backdrop{background:rgba(3,7,13,.72);backdrop-filter:blur(4px)}
+
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
  min-height:calc(var(--nav-h) + env(safe-area-inset-bottom));
- padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+ padding:6px 8px calc(6px + env(safe-area-inset-bottom));
  background:color-mix(in srgb,var(--surface) 90%,transparent);
  backdrop-filter:blur(18px);
  -webkit-backdrop-filter:blur(18px);
@@ -1576,16 +1635,16 @@ details[open] > summary{
 }
 .bottom-nav-inner{
  width:100%;max-width:640px;
- display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;
 }
 .nav-btn{
  border:0;background:transparent;color:var(--muted);
- border-radius:14px;padding:6px 4px;
+ border-radius:13px;padding:6px 2px;
  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
- font-size:10px;font-weight:850;
+ font-size:9.5px;font-weight:850;
  transition:background .15s ease,color .15s ease,transform .14s ease;
 }
-.nav-icon{font-size:17px;line-height:1}
+.nav-icon{font-size:16px;line-height:1}
 .nav-btn.active{
  color:var(--accent);
  background:var(--accent-soft);
@@ -1610,7 +1669,7 @@ details[open] > summary{
  <header class="topbar">
   <div>
    <div class="brand">M-<span>GARAGE</span> PRO</div>
-   <div class="version">G20 · MGU · WAZE · 4.3</div>
+   <div class="version">G20 · MGU · BM3 LOGS · 4.3</div>
   </div>
   <div class="top-actions">
    <button class="pill-btn" id="topCloudBtn" type="button" title="Облачна синхронизация">☁ Cloud</button>
@@ -1803,6 +1862,42 @@ details[open] > summary{
      <div id="documentList"></div>
     </div>
    </div>
+  </section>
+
+  <section class="screen" id="screen-logs">
+   <div class="panel" style="margin-top:6px">
+    <div class="row" style="justify-content:space-between;align-items:center">
+     <div>
+      <div class="section-title" style="margin-bottom:2px">PITSTOP · LOG · BM3 B48 ТЕЛЕМЕТРИЯ</div>
+      <div class="muted">Локален анализ на Bootmod3 CSV логове, пулове и сравнение А vs Б</div>
+     </div>
+     <span class="status-pill">B48 · MG1</span>
+    </div>
+
+    <div class="bm3-subnav" role="tablist">
+     <button type="button" id="bm3TabOne" class="on">📈 Анализ</button>
+     <button type="button" id="bm3TabCmp">⚖️ Сравнение А vs Б</button>
+    </div>
+
+    <div class="bm3-grid2" id="bm3Slots"></div>
+   </div>
+
+   <div class="panel" id="bm3Bar" style="display:none">
+    <div class="row" style="justify-content:space-between;gap:8px">
+     <div class="row" id="bm3Modes" style="gap:6px"></div>
+     <div class="row" style="gap:6px;flex-wrap:wrap">
+      <button type="button" class="btn secondary small" id="bm3CopyReport">Копирай отчет</button>
+      <select id="bm3AiTarget" class="small" style="width:auto;min-height:35px;padding:6px 10px" aria-label="Избери AI асистент">
+       <option value="https://claude.ai/new">Claude</option>
+       <option value="https://gemini.google.com/app">Gemini</option>
+       <option value="https://chatgpt.com/">ChatGPT</option>
+      </select>
+      <button type="button" class="btn small" id="bm3OpenAi">Анализ с AI</button>
+     </div>
+    </div>
+   </div>
+
+   <div id="bm3View"></div>
   </section>
 
   <section class="screen" id="screen-mgu">
@@ -2043,6 +2138,25 @@ details[open] > summary{
 
 <button class="fab hidden" id="fabAdd" type="button">＋ Добави</button>
 
+<dialog id="bm3PasteDialog" class="bm3-dlg">
+ <div class="sheet-head">
+  <div class="sheet-title" id="bm3DlgTitle">Постави CSV</div>
+  <button class="sheet-close" id="bm3DlgClose" type="button" aria-label="Затвори">✕</button>
+ </div>
+ <div class="field" style="margin-bottom:10px">
+  <label>ИМЕ НА ЛОГА</label>
+  <input type="text" id="bm3DlgName" aria-label="Име на лога">
+ </div>
+ <div class="field">
+  <label>CSV СЪДЪРЖАНИЕ</label>
+  <textarea id="bm3DlgCsv" rows="9" aria-label="CSV съдържание" placeholder="Постави съдържанието на Bootmod3 CSV файла..."></textarea>
+ </div>
+ <div class="btn-row">
+  <button type="button" class="btn secondary small" id="bm3DlgCancel">Отказ</button>
+  <button type="button" class="btn small" id="bm3DlgOk">Анализирай</button>
+ </div>
+</dialog>
+
 <div class="sheet-backdrop hidden" id="sheetBackdrop" role="dialog" aria-modal="true">
  <div class="sheet">
   <div class="sheet-head">
@@ -2215,6 +2329,10 @@ details[open] > summary{
   <button class="nav-btn" data-screen="service" type="button">
    <span class="nav-icon">🛠️</span>
    <span>Сервиз</span>
+  </button>
+  <button class="nav-btn" data-screen="logs" type="button">
+   <span class="nav-icon">📊</span>
+   <span>Логове</span>
   </button>
   <button class="nav-btn" data-screen="mgu" type="button">
    <span class="nav-icon">💻</span>
@@ -2452,7 +2570,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -2518,7 +2636,7 @@ function initPwaSupport(){
   const manifestObj={
    name:"M-GARAGE PRO 4.3",
    short_name:"M-GARAGE PRO",
-   description:"Управление на гараж, сервизи, модификации, разходи и BMW MGU процедура",
+   description:"Управление на гараж, сервизи, модификации, разходи, BM3 логове и BMW MGU процедура",
    start_url:startUrl,
    display:"standalone",
    background_color:"#080c12",
@@ -2768,6 +2886,7 @@ function setTheme(theme){
  localStorage.setItem(THEME_KEY,value);
  const meta=document.querySelector('meta[name="theme-color"]');
  if(meta)meta.content=value==="dark"?"#080c12":"#eef3f8";
+ if(typeof window.bm3Redraw==="function")setTimeout(window.bm3Redraw,30);
 }
 function formatMoney(value){return safeNumber(value).toLocaleString("bg-BG",{minimumFractionDigits:0,maximumFractionDigits:2})+" €"}
 function formatDate(value){
@@ -2822,7 +2941,7 @@ function updateFab(){
  const fab=$("fabAdd");
  if(!fab)return;
  const hasCar=cars.length>0;
- if(!hasCar||currentScreen==="mgu"||currentScreen==="more"){
+ if(!hasCar||currentScreen==="mgu"||currentScreen==="more"||currentScreen==="logs"){
   fab.classList.add("hidden");
   return;
  }
@@ -2843,6 +2962,9 @@ function showScreen(name){
  document.querySelectorAll(".nav-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.screen===name));
  document.querySelectorAll(".screen").forEach(sec=>sec.classList.toggle("active",sec.id==="screen-"+name));
  updateFab();
+ if(name==="logs"&&typeof window.bm3Redraw==="function"){
+  setTimeout(window.bm3Redraw,30);
+ }
  if(name==="more"){
   ensureDropPanelIcons();
   renderShareQr();
@@ -4993,7 +5115,7 @@ $("fabAdd").addEventListener("click",()=>{
  }
  const titles={
   service:"Нов сервизен запис",
-  reminders:"Нов напомняне",
+  reminders:"Ново напомняне",
   mods:"Нова модификация",
   expenses:"Нов разход",
   documents:"Нов документ"
@@ -5049,57 +5171,720 @@ $("addReminderButton").addEventListener("click",addReminder);
 $("addModificationButton").addEventListener("click",addModification);
 $("addExpenseButton").addEventListener("click",addExpense);
 $("addDocumentButton").addEventListener("click",addDocument);
+$("themeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
 $("backupButton").addEventListener("click",exportBackup);
 $("exportLocalButton").addEventListener("click",exportBackup);
 $("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
-$("localImportFile").addEventListener("change",e=>importBackup(e.target.files[0]));
-$("themeToggle").addEventListener("click",()=>{
- const next=(localStorage.getItem(THEME_KEY)||"dark")==="dark"?"light":"dark";
- setTheme(next);
- showToast(next==="light"?"Светла тема":"Тъмна тема");
-});
+$("localImportFile").addEventListener("change",e=>{importBackup(e.target.files[0]);e.target.value=""});
 
 $("renameCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- const name=prompt("Ново име в гаража:",car.nick);
- if(name&&name.trim()){car.nick=safeText(name,30);save();renderAll();showToast("Името е обновено","good")}
+ const next=prompt("Ново име за превозното средство:",car.nick);
+ if(next===null)return;
+ car.nick=safeText(next,30)||(car.details?.vehicleType==="atv"?"ATV":"BMW");
+ save();renderAll();
+ showToast("Името е обновено","good");
 });
 $("resetStepsButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да нулирам ли MGU стъпките за това превозно средство?"))return;
- car.done={};save();renderAll();showToast("MGU стъпките са нулирани");
+ if(!confirm("Да нулирам ли отметките на всички MGU стъпки?"))return;
+ car.done={};save();renderSteps(car);renderOverview(car);
+ showToast("MGU стъпките са нулирани");
 });
 $("deleteCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Сигурен ли си, че искаш да изтриеш това превозно средство и всички негови записи?"))return;
+ if(!confirm("Да изтрия ли "+car.nick+" ("+car.vin+") от гаража?"))return;
  cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";
- save();renderAll();showToast("Премахнато от гаража");
+ save();renderAll();
+ showToast("Превозното средство е изтрито");
 });
 
-window.renderAll=renderAll;
-window.setTheme=setTheme;
-
-window.addEventListener("DOMContentLoaded",()=>{
- ensureDropPanelIcons();
- refreshTopCloudButton();
-});
-window.addEventListener("storage",e=>{
- if(e.key===PENDING_KEY||e.key===LAST_SYNC_KEY||e.key===STORAGE_KEY)refreshTopCloudButton();
-});
-
-const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getQrShareUrl();
-if($("shareUrlInput")&&savedShareUrl)$("shareUrlInput").value=savedShareUrl;
-
-initPwaSupport();
-loadCars();
-if(shouldAutoLoadDemo()){
- loadDemoCar(true);
-}
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
+loadCars();
+if(shouldAutoLoadDemo())loadDemoCar(true);
+ensureDropPanelIcons();
+initPwaSupport();
 renderAll();
-save();
+setTimeout(refreshTopCloudButton,500);
+
+/* ---------- ВГРАДЕН BM3 / B48 ЛОГ АНАЛИЗАТОР (ИЗОЛИРАН SCOPE) ---------- */
+(()=>{
+ const q=s=>document.querySelector(s);
+ const S={tab:"one",mode:"all",act:"A",L:{A:null,B:null},pull:{A:-1,B:-1},xr:null,paste:"A"};
+ const PSI={PSI:1,Bar:14.5038,hPa:.0145038,kPa:.145038};
+ const MODES={all:"Всички",wot:"Пълна газ ≥85%",comfort:"Comfort 1500–3200"};
+ const E=v=>String(v??"").replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
+ const fx=(v,d=2,u="")=>v==null||!isFinite(v)?"—":v.toFixed(d)+u;
+ const fin=v=>typeof v==="number"&&isFinite(v);
+ const clean=h=>h.replace(/\[.*?\]|\(.*?\)/g,"").trim();
+ const cssVar=(name,fb)=>{
+  try{
+   const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+   return v||fb;
+  }catch{return fb}
+ };
+
+ function csv(txt){
+  const L=txt.replace(/^\uFEFF/,"").trim().split(/\r?\n/);if(L.length<3)return null;
+  const sc=(L[0].match(/;/g)||[]).length>(L[0].match(/,/g)||[]).length,d=sc?";":",";
+  const H=L[0].split(d).map(s=>s.trim().replace(/^"|"$/g,"")),D={};
+  H.forEach(h=>D[h]=new Float64Array(L.length-1).fill(NaN));
+  let m=0;
+  for(let i=1;i<L.length;i++){
+   if(!L[i].trim())continue;const p=L[i].split(d);
+   for(let j=0;j<H.length;j++){let s=(p[j]||"").trim().replace(/^"|"$/g,"");if(sc)s=s.replace(",",".");D[H[j]][m]=s===""?NaN:Number(s)}
+   m++;
+  }
+  if(m<2)return null;
+  for(const h of H)D[h]=D[h].slice(0,m);
+  return{H,D,n:m};
+ }
+ function find(H,cands,ex=[]){for(const ks of cands)for(const h of H){const l=h.toLowerCase();if(ex.some(e=>l.includes(e)))continue;if(ks.every(k=>l.includes(k)))return h}return null}
+ const TG=["target","tgt","desired","request"];
+ function detect(H){
+  const cyl=[1,2,3,4].map(n=>{const re=new RegExp("cyl(?:inder)?\\.?\\s*0?"+n+"\\b","i");return H.find(x=>/timing|knock|retard/i.test(x)&&re.test(x))||null}).filter(Boolean);
+  const gen=H.filter(x=>{const l=x.toLowerCase();return(l.includes("timing")&&/cor|retard/.test(l))||l.includes("knock")});
+  return{
+   time:H.find(x=>/^time\b/i.test(x))||find(H,[["time"]],["timing"]),
+   rpm:find(H,[["engine speed"],["rpm"]]),
+   accel:find(H,[["accel","pedal"],["pedal"]]),
+   thr:find(H,[["throttle","angle"],["throttle"]],["pre","boost"]),
+   knock:find(H,[["knock","detect"]]),
+   gear:H.find(x=>/^gear\b/i.test(x))||null,
+   ba:find(H,[["boost","actual"],["boost","mean"],["boost"]],TG),
+   bt:find(H,[["boost","target"],["target","boost"],["boost","desired"]]),
+   iat:H.find(x=>/(^|[^a-z])iat([^a-z]|$)/i.test(x))||find(H,[["intake air"]]),
+   hp:find(H,[["hpfp","actual"],["rail","actual"],["hpfp"]],TG),
+   ht:find(H,[["hpfp","target"],["rail","target"]]),
+   afr:find(H,[["lambda","act"],["lambda"],["afr"]]),
+   tim:cyl.length?cyl:gen
+  };
+ }
+ function build(name,P){
+  const{H,D,n}=P,c=detect(H),g=k=>k?D[k]:null;
+  const t=c.time?D[c.time]:Float64Array.from({length:n},(_,i)=>i*.05);
+  const L={name,n,c,t,dur:t[n-1]-t[0]};
+  const bk=c.ba||c.bt,bh=(bk||"").toLowerCase();
+  L.unit=/\bpsi\b/.test(bh)?"PSI":/\bhpa\b|mbar/.test(bh)?"hPa":/\bkpa\b/.test(bh)?"kPa":/\bbar\b/.test(bh)?"Bar":(()=>{let m=0;for(let i=0;i<Math.min(n,400);i++)if(D[bk][i]>m)m=D[bk][i];return m>500?"hPa":m>4.5?"PSI":"Bar"})();
+  if(!bk)L.unit="PSI";
+  L.k=PSI[L.unit];
+  const hh=(c.hp||"").toLowerCase();L.hu=(hh.match(/\b(bar|psi|kpa|mpa|hpa)\b/)||[])[1]||"";
+  L.load=g(c.accel)||g(c.thr);L.rpm=g(c.rpm);L.ba=g(c.ba);L.bt=g(c.bt);L.hp=g(c.hp);L.ht=g(c.ht);L.afr=g(c.afr);L.kn=g(c.knock);L.gear=g(c.gear);L.th=g(c.thr);
+  const F=!!c.iat&&/(\[|\()\s*°?\s*f\s*(\]|\))|fahrenheit/i.test(c.iat);
+  L.iat=c.iat?Float64Array.from(D[c.iat],v=>F?(v-32)*5/9:v):null;
+  L.tm=c.tim.map(k=>D[k]);L.tn=c.tim.map(clean);
+  L.wt=new Float64Array(n).fill(NaN);
+  if(L.tm.length)for(let i=0;i<n;i++){let w=NaN;for(const a of L.tm)if(fin(a[i]))w=fin(w)?Math.min(w,a[i]):a[i];if(fin(w))L.wt[i]=Math.min(0,w)}
+  L.pulls=pulls(L);return L;
+ }
+ function stats(L,s,e){
+  let pk=null,gs=0,gn=0,w=0,fl=0,tn=0,hd=0,as=0,an=0;
+  for(let i=s;i<=e;i++){
+   if(L.ba){const b=L.ba[i]*L.k;if(fin(b)&&(pk==null||b>pk))pk=b}
+   if(L.ba&&L.bt){const d=(L.bt[i]-L.ba[i])*L.k;if(fin(d)){gs+=Math.max(0,d);gn++}}
+   const q=L.wt[i];if(fin(q)){tn++;if(q<w)w=q;if(q<=-3)fl++}
+   if(L.hp&&L.ht&&L.ht[i]>0){const d=(L.ht[i]-L.hp[i])/L.ht[i]*100;if(fin(d)&&d>hd)hd=d}
+   if(L.afr&&fin(L.afr[i])){as+=L.afr[i];an++}
+  }
+  return{s,e,t0:L.t[s],t1:L.t[e],dur:L.t[e]-L.t[s],r0:L.rpm?L.rpm[s]:NaN,r1:L.rpm?L.rpm[e]:NaN,pk,gap:gn?gs/gn:null,
+   w:tn?w:null,pl:tn?fl/tn*100:null,hd:L.hp&&L.ht?hd:null,i0:L.iat?L.iat[s]:NaN,i1:L.iat?L.iat[e]:NaN,afr:an?as/an:null};
+ }
+ function pulls(L){
+  if(!L.load)return[];const P=[];let s=-1,last=-1,gp=0;
+  const cl=()=>{if(s>=0&&L.t[last]-L.t[s]>=1)P.push(stats(L,s,last));s=-1;gp=0};
+  for(let i=0;i<L.n;i++){if(L.load[i]>=85){if(s<0)s=i;last=i;gp=0}else if(s>=0&&++gp>3)cl()}
+  cl();return P;
+ }
+ const longest=L=>L.pulls.reduce((b,p,i)=>b<0||p.dur>L.pulls[b].dur?i:b,-1);
+ const sel=k=>{const L=S.L[k],p=S.pull[k];return p>=0&&L.pulls[p]?L.pulls[p]:stats(L,0,L.n-1)};
+ function mask(L){
+  const m=new Uint8Array(L.n);
+  for(let i=0;i<L.n;i++){
+   if(S.mode==="all")m[i]=1;
+   else if(S.mode==="wot")m[i]=L.load&&L.load[i]>=85?1:0;
+   else m[i]=(!L.rpm||(L.rpm[i]>=1500&&L.rpm[i]<=3200))&&(!L.load||(L.load[i]>=15&&L.load[i]<=65))?1:0;
+  }
+  return m;
+ }
+
+ function findings(L,m){
+  const I=[];for(let i=0;i<L.n;i++)if(m[i])I.push(i);const ev=[];if(!I.length)return ev;
+  const minLoad=S.mode==="comfort"?15:70,ld=i=>!L.load||L.load[i]>=minLoad;
+  const run=f=>{let b=null,c=0,s=0;I.forEach((i,j)=>{if(f(i)){if(!c)s=j;c++;if(!b||c>b.n)b={n:c,s,e:j}}else c=0});return b&&b.n>=3?{n:b.n,i:I[b.e]}:null};
+  const at=i=>fx(L.t[i],2,"s")+" · "+(L.rpm&&fin(L.rpm[i])?Math.round(L.rpm[i])+" RPM":"—");
+  let w=0,wi=-1,wk=0;
+  I.forEach(i=>L.tm.forEach((a,k)=>{if(a[i]<w){w=a[i];wi=i;wk=k}}));
+  if(wi>=0&&w<=-3){
+   const rp=run(i=>L.wt[i]<=-3),it=L.iat?L.iat[wi]:NaN,h=["Сигнал за наблюдение, не доказателство за детонация или дефект.","Сравни същия момент по цилиндър, обороти, товар, IAT, AFR и HPFP."];
+   if(fin(it))h.push("IAT в момента: "+it.toFixed(1)+"°C.");
+   ev.push({s:w<=-5&&rp?"crit":"warn",i:wi,cat:"Timing",ti:"Корекция "+w.toFixed(2)+"° ("+L.tn[wk]+")",at:at(wi),tx:rp?"Повтаря се в "+rp.n+" последователни семпъла.":"Единична корекция на аванса.",h});
+  }
+  if(L.ba&&L.bt){
+   const thr={hPa:180,kPa:18,Bar:.18,PSI:2.5}[L.unit],sp=new Uint8Array(L.n),sh=new Uint8Array(L.n);let ok=0,pkT=0;
+   I.forEach(i=>{if(L.bt[i]>pkT)pkT=L.bt[i]});
+   for(let i=0;i<L.n;i++){if(!ld(i))ok=0;else if(!ok&&L.bt[i]>=.5*pkT&&L.ba[i]>=.9*L.bt[i])ok=1;sp[i]=ok}
+   if(L.gear)for(let i=1;i<L.n;i++)if(fin(L.gear[i])&&fin(L.gear[i-1])&&L.gear[i]!==L.gear[i-1]){
+    for(let j=i;j>=0&&L.t[i]-L.t[j]<=.6;j--)sh[j]=1;for(let j=i;j<L.n&&L.t[j]-L.t[i]<=.8;j++)sh[j]=1}
+   const r=run(i=>sp[i]&&!sh[i]&&(!L.th||L.th[i]>=85)&&L.bt[i]-L.ba[i]>thr);
+   if(r)ev.push({s:"warn",i:r.i,cat:"Boost",ti:"Изоставане на буста ~"+(L.bt[r.i]-L.ba[r.i]).toFixed(2)+" "+L.unit,at:at(r.i),tx:r.n+" последователни семпъла над прага след набран буст, извън превключване и при отворен дросел (товар ≥"+minLoad+"%).",
+    h:S.mode==="comfort"?["Ниски обороти / частичен товар: провери преходните режими и wastegate управлението.","Сравни Target/Actual с педал, дросел и предавка."]:["Сравни Target/Actual с обороти, дросел и предавка.","Провери wastegate и херметичност (charge pipe, интеркулер)."]});
+  }
+  if(L.kn){let k=-1;I.forEach(i=>{if(L.kn[i]>0&&k<0)k=i});if(k>=0)ev.push({s:"warn",i:k,cat:"Knock",ti:"Knock Detected = "+L.kn[k],at:at(k),tx:"Флагът за детонация е вдигнат.",h:["Сравни с корекциите на аванса, IAT и AFR в същия момент."]})}
+  if(L.hp&&L.ht){
+   const r=run(i=>ld(i)&&L.ht[i]>0&&(L.ht[i]-L.hp[i])/L.ht[i]>=.1);
+   if(r)ev.push({s:"warn",i:r.i,cat:"HPFP",ti:"HPFP изостава "+((L.ht[r.i]-L.hp[r.i])/L.ht[r.i]*100).toFixed(1)+"% от целта",at:at(r.i),tx:"Actual "+Math.round(L.hp[r.i])+" при Target "+Math.round(L.ht[r.i])+" "+L.hu+".",h:["Сравни с AFR и корекциите на аванса в същия момент."]});
+  }else if(L.hp)ev.push({s:"info",i:-1,cat:"HPFP",ti:"HPFP проверката е пропусната",at:"—",tx:"Няма колона HPFP Target.",h:["Добави HPFP Target в логваните канали на BM3."]});
+  if(L.iat){
+   let p=-1;I.forEach(i=>{if(fin(L.iat[i])&&(p<0||L.iat[i]>L.iat[p]))p=i});
+   if(p>=0&&L.iat[p]>=55)ev.push({s:L.iat[p]>=60?"crit":"warn",i:p,cat:"IAT",ti:"Повишен IAT "+L.iat[p].toFixed(1)+"°C",at:at(p),tx:"Температурата на входящия въздух е повишена.",h:["Сравни IAT в началото и края на ускорението и как бързо пада след газта."]});
+  }
+  return ev;
+ }
+
+ function chart(cv,cfg){
+  cv._c=cfg;const r=cv.getBoundingClientRect(),dp=devicePixelRatio||1,w=Math.max(220,r.width),h=Math.max(140,r.height);
+  cv.width=w*dp;cv.height=h*dp;const g=cv.getContext("2d");g.setTransform(dp,0,0,dp,0,0);
+  const gridCol=cssVar("--border","#253447");
+  const mutedCol=cssVar("--muted","#8c9cb0");
+  const textCol=cssVar("--text","#f0f5fc");
+  const two=cfg.S.some(s=>s.ax===1),pl=42,pr=two?42:8,pt=6,pb=18,W=w-pl-pr,H=h-pt-pb;
+  let x0=Infinity,x1=-Infinity;
+  if(cfg.xr)[x0,x1]=cfg.xr;else cfg.S.forEach(s=>{for(let i=0;i<s.x.length;i++){const v=s.x[i];if(v<x0)x0=v;if(v>x1)x1=v}});
+  if(!(x1>x0)){x1=x0+1}
+  const ax=[[Infinity,-Infinity],[Infinity,-Infinity]];
+  cfg.S.forEach(s=>{const a=ax[s.ax||0],st=Math.max(1,s.x.length/3000|0);for(let i=0;i<s.x.length;i+=st)if(s.x[i]>=x0&&s.x[i]<=x1&&fin(s.y[i])){if(s.y[i]<a[0])a[0]=s.y[i];if(s.y[i]>a[1])a[1]=s.y[i]}});
+  ax.forEach(a=>{if(!isFinite(a[0])){a[0]=0;a[1]=1}if(a[1]-a[0]<1e-6){a[1]=a[0]+1}const p=(a[1]-a[0])*.06;a[0]-=p;a[1]+=p});
+  cfg._l={pl,W,x0,x1};
+  const X=v=>pl+(v-x0)/(x1-x0)*W,Y=(v,k)=>pt+H-(v-ax[k][0])/(ax[k][1]-ax[k][0])*H;
+  g.font="10px ui-monospace,monospace";g.lineWidth=1;
+  for(let i=0;i<=4;i++){
+   const y=pt+H*i/4;g.strokeStyle=gridCol;g.beginPath();g.moveTo(pl,y);g.lineTo(pl+W,y);g.stroke();
+   g.fillStyle=mutedCol;g.textAlign="right";g.fillText((ax[0][1]-(ax[0][1]-ax[0][0])*i/4).toFixed(Math.abs(ax[0][1])<20?1:0),pl-4,y+3);
+   if(two){g.textAlign="left";g.fillStyle=cfg.S.find(s=>s.ax===1).c;g.fillText((ax[1][1]-(ax[1][1]-ax[1][0])*i/4).toFixed(Math.abs(ax[1][1])<20?1:0),pl+W+4,y+3)}
+  }
+  g.fillStyle=mutedCol;g.textAlign="center";
+  for(let i=0;i<=4;i++){const v=x0+(x1-x0)*i/4;g.fillText(v.toFixed(cfg.xd??1),X(v),h-4)}
+  g.save();g.beginPath();g.rect(pl,pt,W,H);g.clip();
+  cfg.S.forEach(s=>{
+   g.strokeStyle=s.c;g.lineWidth=s.lw||1.6;g.setLineDash(s.dash?[5,4]:[]);g.beginPath();
+   const st=Math.max(1,s.x.length/(W*1.5)|0);let on=false;
+   for(let i=0;i<s.x.length;i+=st){
+    const y=s.y[i];if(!fin(y)||s.x[i]<x0-(x1-x0)*.02||s.x[i]>x1+(x1-x0)*.02){on=false;continue}
+    const px=X(s.x[i]),py=Y(y,s.ax||0);on?g.lineTo(px,py):g.moveTo(px,py);on=true;
+   }
+   g.stroke();
+  });
+  g.setLineDash([]);
+  if(cfg.cur!=null){const px=X(cfg.cur);g.strokeStyle=textCol;g.beginPath();g.moveTo(px,pt);g.lineTo(px,pt+H);g.stroke()}
+  g.restore();
+  const ro=cfg.ro&&document.getElementById(cfg.ro);
+  if(ro){
+   const part=cfg.S.map(s=>{
+    let v="—";
+    if(cfg.cur!=null){let b=-1,bd=Infinity;for(let i=0;i<s.x.length;i++){const d=Math.abs(s.x[i]-cfg.cur);if(d<bd){bd=d;b=i}}if(b>=0&&fin(s.y[b]))v=s.y[b].toFixed(Math.abs(s.y[b])<100?2:0)}
+    return`<span style="color:${s.c}">${E(s.n)} ${cfg.cur!=null?v:""}</span>`;
+   });
+   ro.innerHTML=(cfg.cur!=null?cfg.xl+" "+cfg.cur.toFixed(cfg.xd??1)+" · ":"")+part.join(" · ");
+  }
+ }
+ function hover(cv){
+  const mv=e=>{const c=cv._c,l=c&&c._l;if(!l)return;const r=cv.getBoundingClientRect();c.cur=l.x0+(e.clientX-r.left-l.pl)/l.W*(l.x1-l.x0);if(c.cur<l.x0||c.cur>l.x1)c.cur=null;chart(cv,c)};
+  cv.onpointermove=mv;cv.onpointerdown=mv;cv.onpointerleave=()=>{const c=cv._c;if(c){c.cur=null;chart(cv,c)}};
+ }
+ function mk(id,cfg){const cv=document.getElementById(id);if(!cv)return;Object.assign(cfg,{ro:id+"R"});chart(cv,cfg);hover(cv)}
+ const ser=(x,y,c,n,o={})=>y?Object.assign({x,y,c,n},o):null;
+
+ const PC=["#38bdf8","#28c58a","#f0b547","#f06464"];
+ function pullOpts(k){
+  const L=S.L[k];
+  return`<select data-bm3-pull="${k}" aria-label="Пул" style="width:auto;padding:8px 10px;font-size:11.5px">${'<option value="-1"'+(S.pull[k]<0?" selected":"")+'>Целия лог</option>'+L.pulls.map((p,i)=>`<option value="${i}"${S.pull[k]===i?" selected":""}>Пул ${i+1} · ${fx(p.t0,1)}–${fx(p.t1,1)}s · ${fx(p.r0,0)}→${fx(p.r1,0)} RPM</option>`).join("")}</select>`;
+ }
+ function vOne(){
+  const L=S.L[S.act]||S.L.A||S.L.B;
+  if(!L)return`<div class="panel"><h3>Зареди лог</h3><p class="muted">Качи Bootmod3 CSV файл, постави текст или натисни „Пример“. Всичко се смята локално в браузъра.</p></div>`;
+  const m=mask(L),ev=findings(L,m);
+  let mr=null,mb=null,mt=null,mi=null,mh=null,w=null;const cm=L.tm.map(()=>0);
+  for(let i=0;i<L.n;i++){if(!m[i])continue;
+   if(L.rpm&&fin(L.rpm[i])&&(mr==null||L.rpm[i]>mr))mr=L.rpm[i];
+   if(L.ba&&fin(L.ba[i])&&(mb==null||L.ba[i]>mb))mb=L.ba[i];
+   if(L.bt&&fin(L.bt[i])&&(mt==null||L.bt[i]>mt))mt=L.bt[i];
+   if(L.iat&&fin(L.iat[i])&&(mi==null||L.iat[i]>mi))mi=L.iat[i];
+   if(L.hp&&L.hp[i]>0&&(!L.load||L.load[i]>=70)&&(mh==null||L.hp[i]<mh))mh=L.hp[i];
+   if(fin(L.wt[i])&&(w==null||L.wt[i]<w))w=L.wt[i];
+   L.tm.forEach((a,k)=>{if(a[i]<cm[k])cm[k]=a[i]});
+  }
+  const cls=v=>v==null?"":v<=-3?"bm3-bad":v<-1?"bm3-mid":"bm3-good";
+  const cyl=L.tm.map((a,k)=>`<div class="bm3-cy"><div class="muted" style="font-size:10px">${E(L.tn[k])}</div><div class="bm3-mono ${cls(cm[k])}" style="font-weight:800;margin-top:2px">${cm[k].toFixed(1)}°</div><div class="bm3-bar"><i style="width:${Math.max(5,Math.min(100,-cm[k]*14))}%;background:${cm[k]<=-3?"var(--danger)":cm[k]<-1?"var(--warn)":"var(--good)"}"></i></div></div>`).join("");
+  const shown=ev.filter(e=>e.s!=="info").length;
+  return`
+  <div class="panel"><div class="row" style="justify-content:space-between;gap:8px"><div class="row" style="gap:6px;align-items:center"><span class="muted">Активен лог:</span>${["A","B"].map(k=>`<button type="button" class="btn small ${S.act===k?"":"secondary"}" data-bm3-act="${k}">${k==="A"?"А":"Б"}</button>`).join("")}</div>
+   <span class="muted bm3-mono" style="font-size:11px">${m.reduce((a,b)=>a+b,0)} / ${L.n} семпъла · ${L.dur.toFixed(1)}s · ${L.unit}</span></div></div>
+  <div class="bm3-grid4" style="margin-bottom:12px">
+   <div class="panel" style="margin:0;padding:12px"><div class="bm3-k">Макс. RPM</div><div class="bm3-v">${fx(mr,0)}</div></div>
+   <div class="panel" style="margin:0;padding:12px"><div class="bm3-k">Макс. буст</div><div class="bm3-v bm3-A">${fx(mb,2)}</div><div class="muted" style="font-size:10px;margin-top:2px">цел ${fx(mt,2)} ${L.unit}</div></div>
+   <div class="panel" style="margin:0;padding:12px"><div class="bm3-k">Най-лош аванс</div><div class="bm3-v ${cls(w)}">${fx(w,2,"°")}</div></div>
+   <div class="panel" style="margin:0;padding:12px"><div class="bm3-k">Макс. IAT</div><div class="bm3-v bm3-mid">${fx(mi,1,"°C")}</div><div class="muted" style="font-size:10px;margin-top:2px">HPFP мин ${fx(mh,0)} ${L.hu}</div></div>
+  </div>
+  ${L.pulls.length?`<div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><div class="section-title" style="margin:0">Пълна газ (пулове: ${L.pulls.length})</div>${pullOpts(S.act)}</div><div class="bm3-sc"><table class="bm3-table"><tr><th>#</th><th>Време</th><th>RPM</th><th>Пик буст</th><th>Дефицит</th><th>Аванс</th><th>HPFP Δ</th><th>IAT</th></tr>${L.pulls.map((p,i)=>`<tr class="bm3-pk" data-bm3-p="${i}"><td>${i+1}</td><td>${fx(p.t0,1)}–${fx(p.t1,1)}s</td><td>${fx(p.r0,0)}→${fx(p.r1,0)}</td><td>${fx(p.pk,1)}</td><td>${fx(p.gap,2)}</td><td class="${cls(p.w)}">${fx(p.w,1,"°")}</td><td>${fx(p.hd,1,"%")}</td><td>${fx(p.i0,0)}→${fx(p.i1,0)}°</td></tr>`).join("")}</table></div></div>`:""}
+  <div class="bm3-grid2"><div class="panel" style="margin:0"><div class="section-title">Корекции по цилиндри</div><div class="bm3-grid4">${cyl||'<span class="muted">Няма колони за аванс</span>'}</div></div>
+  <div class="panel" style="margin:0"><div class="section-title">Събития (${shown})</div><div class="muted">Сигнали за наблюдение, не окончателна диагноза. Праг на аванса: -3°.</div></div></div>
+  <div style="margin-top:12px">${ev.length?ev.map((e,n)=>`<div class="bm3-ev ${e.s}"><div class="row" style="justify-content:space-between;margin-bottom:4px"><span class="bm3-tag">${E(e.cat)}</span><span class="bm3-mono muted" style="font-size:10.5px">${E(e.at)}</span></div><div style="font-weight:850;font-size:13px">${E(e.ti)}</div><div class="muted" style="margin-top:2px">${E(e.tx)}</div><ul>${e.h.map(h=>"<li>"+E(h)+"</li>").join("")}</ul>${e.i>=0?`<button type="button" class="btn secondary small" style="margin-top:8px" data-bm3-ev="${n}">Покажи на графиката →</button>`:""}</div>`).join(""):`<div class="bm3-ev info"><div style="font-weight:850">Няма засечени отклонения по наличните правила</div><div class="muted">Резултатът зависи от наличните канали и режима.</div></div>`}</div>
+  <div class="row" id="bm3Charts" style="justify-content:space-between;margin:12px 0 6px"><div class="section-title" style="margin:0">Графики</div><div class="row" style="gap:6px;align-items:center"><span class="muted bm3-mono" id="bm3Focus" style="font-size:10.5px"></span><button type="button" class="btn secondary small" id="bm3ResetZoom">Цял лог</button></div></div>
+  <div class="panel"><div class="section-title">Буст и обороти</div><div class="bm3-ro" id="bm3C1R"></div><canvas id="bm3C1" class="bm3-canvas"></canvas></div>
+  <div class="panel"><div class="section-title">Корекции на аванса (°)</div><div class="bm3-ro" id="bm3C2R"></div><canvas id="bm3C2" class="bm3-canvas"></canvas></div>
+  <div class="panel"><div class="section-title">HPFP и IAT</div><div class="bm3-ro" id="bm3C3R"></div><canvas id="bm3C3" class="bm3-canvas"></canvas></div>`;
+ }
+ function drawOne(){
+  const L=S.L[S.act]||S.L.A||S.L.B;if(!L)return;
+  const o={xr:S.xr,xl:"t",xd:2};
+  mk("bm3C1",{...o,S:[ser(L.t,L.bt,"#8c9cb0","Target",{dash:1}),ser(L.t,L.ba,"#258bff","Actual",{lw:2.2}),ser(L.t,L.rpm,"#f0b547","RPM",{ax:1})].filter(Boolean)});
+  mk("bm3C2",{...o,S:L.tm.map((a,k)=>ser(L.t,a,PC[k%4],L.tn[k]))});
+  mk("bm3C3",{...o,S:[ser(L.t,L.hp,"#a78bfa","HPFP"),ser(L.t,L.ht,"#c4b5fd","Target",{dash:1,lw:1.2}),ser(L.t,L.iat,"#fb7185","IAT°C",{ax:1})].filter(Boolean)});
+ }
+ function vCmp(){
+  const A=S.L.A,B=S.L.B;
+  if(!A||!B)return`<div class="panel"><h3>Нужни са два лога</h3><p class="muted">Зареди Лог А и Лог Б (или „Пример“ и в двете). Сравнява се избран пул от всеки лог, а при липса на пулове — целият лог.</p></div>`;
+  const a=sel("A"),b=sel("B");let sa=0,sb=0;
+  const rows=[];
+  const R=(l,x,y,f,win)=>{let s="",t="Информативно";
+   if(win){const hi=win==="hi",u=x.v,v=y.v;if(u==null||v==null)t="Няма данни";else if(Math.abs(u-v)<.05)t="Равни";else{const aw=hi?u>v:u<v;s=aw?"A":"B";t=aw?"Лог А":"Лог Б";aw?sa++:sb++}}
+   rows.push(`<tr><td>${E(l)}</td><td>${f(x)}</td><td>${f(y)}</td><td class="bm3-${s}">${E(t)}</td></tr>`)};
+  const o=v=>({v});
+  R("Най-лош аванс",o(a.w),o(b.w),x=>fx(x.v,2,"°"),"hi");
+  R("% семпли ≤ -3°",o(a.pl),o(b.pl),x=>fx(x.v,1,"%"),"lo");
+  R("Среден дефицит на буста (psi)",o(a.gap),o(b.gap),x=>fx(x.v,2),"lo");
+  R("Макс. изоставане на HPFP",o(a.hd),o(b.hd),x=>fx(x.v,1,"%"),"lo");
+  R("IAT в края",o(a.i1),o(b.i1),x=>fx(x.v,1,"°C"),"lo");
+  R("Пик буст (psi)",o(a.pk),o(b.pk),x=>fx(x.v,2));
+  R("Обороти",{r0:a.r0,r1:a.r1},{r0:b.r0,r1:b.r1},x=>fx(x.r0,0)+"→"+fx(x.r1,0));
+  R("Продължителност",o(a.dur),o(b.dur),x=>fx(x.v,1,"s"));
+  R("AFR средно",o(a.afr),o(b.afr),x=>fx(x.v,2));
+  const hd=sa===sb?`Близки (${sa} : ${sb})`:`По-благоприятен е Лог ${sa>sb?"А":"Б"} (${Math.max(sa,sb)} : ${Math.min(sa,sb)})`;
+  return`<div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="bm3-tag" style="background:var(--accent);color:#fff">СРАВНЕНИЕ</span><b style="font-size:13px">${hd}</b></div><p class="muted">Точкуват се нормализирани показатели (аванс, % корекции, дефицит на буста, HPFP, IAT). За честно сравнение избери пул при сходни условия.</p>
+  <div class="bm3-grid2" style="margin-top:10px"><div><div class="bm3-k bm3-A" style="margin-bottom:4px">Лог А · ${E(S.L.A.name)}</div>${pullOpts("A")}</div><div><div class="bm3-k bm3-B" style="margin-bottom:4px">Лог Б · ${E(S.L.B.name)}</div>${pullOpts("B")}</div></div></div>
+  <div class="panel bm3-sc"><table class="bm3-table"><tr><th>Показател</th><th class="bm3-A">А</th><th class="bm3-B">Б</th><th>По-добре</th></tr>${rows.join("")}</table></div>
+  <div class="panel"><div class="section-title">Буст (psi)</div><div class="bm3-ro" id="bm3D1R"></div><canvas id="bm3D1" class="bm3-canvas"></canvas></div>
+  <div class="panel"><div class="section-title">Най-лоша корекция (°)</div><div class="bm3-ro" id="bm3D2R"></div><canvas id="bm3D2" class="bm3-canvas"></canvas></div>`;
+ }
+ function drawCmp(){
+  const A=S.L.A,B=S.L.B;if(!A||!B)return;
+  const a=sel("A"),b=sel("B"),rpm=!!(A.rpm&&B.rpm);
+  const X=(L,p)=>rpm?L.rpm.subarray(p.s,p.e+1):Float64Array.from(L.t.subarray(p.s,p.e+1),v=>v-L.t[p.s]);
+  const Y=(L,p,arr,k=1)=>arr?Float64Array.from(arr.subarray(p.s,p.e+1),v=>v*k):null;
+  const xa=X(A,a),xb=X(B,b),o={xl:rpm?"RPM":"t",xd:rpm?0:1};
+  mk("bm3D1",{...o,S:[ser(xa,Y(A,a,A.ba,A.k),"#38bdf8","А"),ser(xb,Y(B,b,B.ba,B.k),"#a78bfa","Б")].filter(Boolean)});
+  mk("bm3D2",{...o,S:[ser(xa,Y(A,a,A.wt),"#38bdf8","А"),ser(xb,Y(B,b,B.wt),"#f06464","Б")].filter(Boolean)});
+ }
+
+ function slots(){
+  const el=q("#bm3Slots");if(!el)return;
+  el.innerHTML=["A","B"].map(k=>`<div class="panel" data-bm3-slot="${k}" style="margin:0;padding:12px"><div class="row" style="justify-content:space-between"><b class="bm3-${k}">Лог ${k==="A"?"А":"Б"}</b><span class="muted bm3-mono" id="bm3Sm${k}" style="font-size:10.5px"></span></div><div class="muted" id="bm3Sn${k}" style="margin:3px 0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+  <div class="row" style="gap:6px"><label class="btn small" style="flex:1">CSV<input type="file" data-bm3-f="${k}" accept=".csv,text/csv,text/plain,*/*" hidden></label><button type="button" class="btn secondary small" data-bm3-ps="${k}">Постави</button><button type="button" class="btn secondary small" data-bm3-sm="${k}">Пример</button><button type="button" class="btn secondary small" data-bm3-cl="${k}" aria-label="Изчисти лог">✕</button></div></div>`).join("");
+ }
+ function head(){
+  ["A","B"].forEach(k=>{const L=S.L[k];if(q("#bm3Sn"+k))q("#bm3Sn"+k).textContent=L?L.name:"Не е зареден";if(q("#bm3Sm"+k))q("#bm3Sm"+k).textContent=L?L.n+" реда · "+L.dur.toFixed(1)+"s":""});
+  if(q("#bm3Bar"))q("#bm3Bar").style.display=S.L.A||S.L.B?"":"none";
+  if(q("#bm3TabOne"))q("#bm3TabOne").className=S.tab==="one"?"on":"";
+  if(q("#bm3TabCmp"))q("#bm3TabCmp").className=S.tab==="cmp"?"on":"";
+  if(q("#bm3Modes"))q("#bm3Modes").innerHTML=Object.entries(MODES).map(([k,v])=>`<button type="button" class="filter-chip ${S.mode===k?"active":""}" data-bm3-m="${k}">${v}</button>`).join("");
+ }
+ function renderBm3(){
+  head();
+  const view=q("#bm3View");if(!view)return;
+  view.innerHTML=S.tab==="one"?vOne():vCmp();
+  S.tab==="one"?drawOne():drawCmp();
+ }
+ function setLog(k,name,txt){
+  const P=csv(txt);if(!P)return showToast("Няма достатъчно числови редове.","warn");
+  try{S.L[k]=build(name,P)}catch(e){return showToast("Грешка при четене: "+e.message,"danger")}
+  S.pull[k]=longest(S.L[k]);S.act=k;S.xr=null;if(S.L.A&&S.L.B)S.tab="cmp";else S.tab="one";
+  renderBm3();showToast("Зареден Лог "+(k==="A"?"А":"Б")+": "+S.L[k].n+" реда, "+S.L[k].pulls.length+" пула.","good");
+ }
+ function file(f,k){
+  if(!f)return;if(!f.size)return showToast("Файлът е 0 байта — ползвай „Постави“.","warn");
+  const r=new FileReader();r.onload=e=>setLog(k,f.name,String(e.target.result||""));r.readAsText(f);
+ }
+
+ function block(tag,k){
+  const L=S.L[k],m=mask(L),ev=findings(L,m),p=sel(k);
+  const o=[`${tag} ${L.name} — ${L.n} семпъла, ${L.pulls.length} пула`,
+   `Избран пул: ${fx(p.t0,1)}–${fx(p.t1,1)}s, ${fx(p.r0,0)}→${fx(p.r1,0)} RPM, пик буст ${fx(p.pk,2)} psi, дефицит ${fx(p.gap,2)} psi, най-лош аванс ${fx(p.w,2,"°")} (${fx(p.pl,1,"%")} семпли ≤ -3°), HPFP изоставане ${fx(p.hd,1,"%")}, IAT ${fx(p.i0,0)}→${fx(p.i1,0)}°C, AFR ${fx(p.afr,2)}`];
+  o.push(ev.length?"Събития:\n"+ev.map(e=>`- [${e.cat}] ${e.ti}${e.at!=="—"?" ("+e.at+")":""} — ${e.tx}`).join("\n"):"Събития: няма засечени по правилата");
+  return o.join("\n");
+ }
+ function report(){
+  const car=activeCar();
+  const carTag=car?(" · "+(car.nick||car.details?.model||car.vin)):"";
+  const h="BMW B48 / Bootmod3 лог"+carTag+" — режим: "+MODES[S.mode];
+  if(S.tab==="cmp"&&S.L.A&&S.L.B)return[h+" (сравнение)",block("ЛОГ А:","A"),block("ЛОГ Б:","B")].join("\n\n");
+  const k=S.L[S.act]?S.act:S.L.A?"A":S.L.B?"B":null;return k?h+"\n"+block("Лог",k):"";
+ }
+ function copyText(t){
+  if(!t)return Promise.resolve(false);
+  const fb=()=>{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;top:-9999px";document.body.appendChild(a);a.select();let r=false;try{r=document.execCommand("copy")}catch{}a.remove();showToast(r?"Отчетът е копиран.":"Неуспешно копиране.",r?"good":"danger");return r};
+  return navigator.clipboard&&isSecureContext?navigator.clipboard.writeText(t).then(()=>{showToast("Отчетът е копиран.","good");return true},fb):Promise.resolve(fb());
+ }
+
+ function sample(v){
+  const H="Time,Engine speed[rpm],Accel. Pedal[%],Boost (Actual)[psi],Boost (Target)[psi],Timing Cor. Cyl 1[deg],Timing Cor. Cyl 2[deg],Timing Cor. Cyl 3[deg],Timing Cor. Cyl 4[deg],HPFP Actual[psi],HPFP Target[psi],AFR Actual,IAT[C]",R=[H],bad=v!=="B";
+  for(let i=0;i<360;i++){
+   const t=+(i*.05).toFixed(2),pull=(t>=3.5&&t<=7.5)||(t>=11&&t<=15);
+   const p=t<11?(t-3.5)/4:(t-11)/4;let rpm=1800+Math.sin(t)*200,pd=20,bt=5,ba=4.8;
+   if(pull){rpm=2700+p*3800;pd=99;bt=21-p*1.2;ba=Math.max(4,bt-(p<.15?(.15-p)*40:.35))}
+   else if(t>7.5&&t<11||t>15){rpm=Math.max(1200,2400-(t<11?t-7.5:t-15)*400);pd=10;bt=2;ba=2.3}
+   const w=bad&&pull&&p>.45,c3=w?-4.5*Math.min(1,(p-.45)/.2):0,c1=w?-1.5:0,c4=w&&p>.6?-1.1:0;
+   const ht=pull?4400:2950,ha=pull?ht-(bad&&p>.7?520:60):ht+Math.sin(t*3)*40,afr=pull?12.1+Math.sin(t*5)*.15:14.6,iat=(bad?34:30)+t*(bad?2.1:1.2);
+   R.push([t,rpm.toFixed(0),pd,ba.toFixed(2),bt.toFixed(2),c1,0,c3.toFixed(2),c4,ha.toFixed(0),ht,afr.toFixed(2),iat.toFixed(1)].join(","));
+  }
+  return R.join("\n");
+ }
+
+ const dlg=q("#bm3PasteDialog");
+ q("#bm3DlgClose")?.addEventListener("click",()=>dlg?.close());
+ q("#bm3DlgCancel")?.addEventListener("click",()=>dlg?.close());
+ q("#bm3DlgOk")?.addEventListener("click",()=>{
+  const x=(q("#bm3DlgCsv")?.value||"").trim();
+  if(!x)return showToast("Постави CSV съдържание.","warn");
+  let n=((q("#bm3DlgName")?.value||"Log.csv").trim());
+  if(!/\.csv$/i.test(n))n+=".csv";
+  dlg?.close();
+  setLog(S.paste,n,x);
+ });
+
+ document.addEventListener("click",e=>{
+  const t=e.target.closest("button,tr.bm3-pk");if(!t)return;
+  const d=t.dataset;
+  if(t.id==="bm3TabOne"){S.tab="one";renderBm3()}
+  else if(t.id==="bm3TabCmp"){S.tab="cmp";renderBm3()}
+  else if(d.bm3M){S.mode=d.bm3M;renderBm3()}
+  else if(d.bm3Act){if(!S.L[d.bm3Act])return showToast("Лог "+d.bm3Act+" не е зареден.","warn");S.act=d.bm3Act;S.xr=null;renderBm3()}
+  else if(d.bm3Ps){
+   S.paste=d.bm3Ps;
+   const car=activeCar();
+   const prefix=car?(car.nick||car.details?.model||"").replace(/[^a-zA-Z0-9_-]+/g,"_"):"";
+   if(q("#bm3DlgTitle"))q("#bm3DlgTitle").textContent="Постави CSV за Лог "+(d.bm3Ps==="A"?"А":"Б");
+   if(q("#bm3DlgName"))q("#bm3DlgName").value=(prefix?prefix+"_":"")+"B48_Log_"+d.bm3Ps+".csv";
+   if(q("#bm3DlgCsv"))q("#bm3DlgCsv").value="";
+   dlg?.showModal();
+  }
+  else if(d.bm3Sm)setLog(d.bm3Sm,"B48_Sample_"+d.bm3Sm+".csv",sample(d.bm3Sm));
+  else if(d.bm3Cl){S.L[d.bm3Cl]=null;S.pull[d.bm3Cl]=-1;if(S.act===d.bm3Cl)S.act=d.bm3Cl==="A"?"B":"A";if(!S.L.A||!S.L.B)S.tab="one";renderBm3()}
+  else if(d.bm3Ev!=null){const L=S.L[S.act],ev=findings(L,mask(L))[+d.bm3Ev];if(ev&&ev.i>=0){const c=L.t[ev.i];S.xr=[c-3,c+3];if(q("#bm3Focus"))q("#bm3Focus").textContent="▶ "+ev.cat+" "+ev.at;drawOne();q("#bm3Charts")?.scrollIntoView({behavior:"smooth"})}}
+  else if(t.matches("tr.bm3-pk")){S.pull[S.act]=+d.bm3P;const p=S.L[S.act].pulls[+d.bm3P];S.xr=[p.t0-.5,p.t1+.5];renderBm3();q("#bm3Charts")?.scrollIntoView({behavior:"smooth"})}
+  else if(t.id==="bm3ResetZoom"){S.xr=null;if(q("#bm3Focus"))q("#bm3Focus").textContent="";drawOne()}
+  else if(t.id==="bm3CopyReport")copyText(report());
+  else if(t.id==="bm3OpenAi"){const r=report();if(!r)return showToast("Първо зареди лог.","warn");const target=q("#bm3AiTarget")?.value||"https://claude.ai/new";copyText(r+"\n\nНаправи допълнителен анализ на данните и дай насоки за проверка.").then(()=>setTimeout(()=>window.open(target,"_blank","noopener,noreferrer"),250))}
+ });
+
+ document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset?.bm3F){file(t.files[0],t.dataset.bm3F);t.value=""}
+  else if(t.dataset?.bm3Pull){const k=t.dataset.bm3Pull;S.pull[k]=+t.value;const p=S.L[k].pulls[S.pull[k]];S.xr=p&&S.tab==="one"?[p.t0-.5,p.t1+.5]:null;renderBm3()}
+ });
+
+ document.addEventListener("dragover",e=>{const s=e.target.closest("[data-bm3-slot]");if(s){e.preventDefault();s.classList.add("bm3-drop")}});
+ document.addEventListener("dragleave",e=>{const s=e.target.closest("[data-bm3-slot]");if(s)s.classList.remove("bm3-drop")});
+ document.addEventListener("drop",e=>{const s=e.target.closest("[data-bm3-slot]");if(s){e.preventDefault();s.classList.remove("bm3-drop");file(e.dataTransfer.files[0],s.dataset.bm3Slot)}});
+
+ let rt;
+ addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{if(currentScreen==="logs")S.tab==="one"?drawOne():drawCmp()},150)});
+
+ window.bm3Redraw=()=>{if(S.L.A||S.L.B)S.tab==="one"?drawOne():drawCmp()};
+
+ slots();
+ renderBm3();
+})();
 </script>
 
-<script type="module" src="./cloud-sync.js"></script>
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://yufnrdqshvxxfskvudnp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1Zm5yZHFzaHZ4eGZza3Z1ZG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI5MTMsImV4cCI6MjA5MDYyODkxM30.xU5b11uQ_7jF2Y_xS8_9tG_0nY6a5b4c3d2e1f0g";
+
+const STORAGE_KEY = "mgu_cars";
+const ACTIVE_KEY = "mgu_active";
+const THEME_KEY = "mgu_theme";
+const PENDING_KEY = "mgu_cloud_pending";
+const LAST_SYNC_KEY = "mgu_cloud_last_sync";
+const DATA_VERSION = 4;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const slot = document.getElementById("cloudSyncSlot");
+if (slot) {
+ slot.innerHTML = `
+  <details class="drop-panel" id="cloudSyncPanel">
+   <summary>
+    <div class="panel-lead">
+     <span class="panel-icon">☁️</span>
+     <div>
+      <div>CLOUD СИНХРОНИЗАЦИЯ (SUPABASE)</div>
+      <div class="drop-sub">Вход с акаунт, синхрон между устройства и статус на връзката</div>
+     </div>
+    </div>
+    <span class="chev">▾</span>
+   </summary>
+   <div id="cloudAuthLoggedOut">
+    <div class="form-grid">
+     <div class="field"><label>ИМЕЙЛ</label><input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
+     <div class="field"><label>ПАРОЛА</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    </div>
+    <div class="btn-row">
+     <button class="btn" id="cloudSignInBtn" type="button">Вход</button>
+     <button class="btn secondary" id="cloudSignUpBtn" type="button">Регистрация</button>
+    </div>
+   </div>
+   <div id="cloudAuthLoggedIn" class="hidden">
+    <div class="alert good" id="cloudUserInfo"></div>
+    <div class="btn-row">
+     <button class="btn" id="cloudSyncNowBtn" type="button">Синхронизирай сега</button>
+     <button class="btn secondary" id="cloudSignOutBtn" type="button">Изход</button>
+    </div>
+   </div>
+   <div id="cloudStatusMessage" class="form-msg">Проверка на сесията...</div>
+   <div style="display:none">
+    <span id="dashboardCloud">—</span>
+   </div>
+  </details>
+ `;
+}
+
+const el = id => document.getElementById(id);
+let currentUser = null;
+let syncing = false;
+let syncTimer = null;
+
+function setCloudMessage(text) {
+ const m = el("cloudStatusMessage");
+ if (m) m.textContent = text;
+ const d = el("dashboardCloud");
+ if (d) d.textContent = text;
+ if (typeof window.refreshTopCloudButton === "function") {
+  window.refreshTopCloudButton();
+ }
+}
+
+function getLocalCars() {
+ try {
+  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  return Array.isArray(raw) ? raw : [];
+ } catch {
+  return [];
+ }
+}
+
+function getLocalActiveVin() {
+ return localStorage.getItem(ACTIVE_KEY) || "";
+}
+
+function setLocalState(nextCars, nextActiveVin, nextTheme) {
+ localStorage.setItem(STORAGE_KEY, JSON.stringify(nextCars));
+ if (nextActiveVin) localStorage.setItem(ACTIVE_KEY, nextActiveVin);
+ if (nextTheme === "light" || nextTheme === "dark") {
+  localStorage.setItem(THEME_KEY, nextTheme);
+  document.documentElement.dataset.theme = nextTheme;
+ }
+}
+
+function markPending(vin) {
+ try {
+  const list = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+  const set = new Set(Array.isArray(list) ? list : []);
+  if (vin) set.add(vin);
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...set]));
+  if (typeof window.refreshTopCloudButton === "function") {
+   window.refreshTopCloudButton();
+  }
+ } catch {}
+}
+
+function clearPending(vins) {
+ try {
+  const list = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+  const set = new Set(Array.isArray(list) ? list : []);
+  (vins || []).forEach(v => set.delete(v));
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...set]));
+  if (typeof window.refreshTopCloudButton === "function") {
+   window.refreshTopCloudButton();
+  }
+ } catch {}
+}
+
+function recordToRow(userId, car) {
+ return {
+  user_id: userId,
+  vin: car.vin,
+  nick: car.nick || car.vin,
+  data: {
+   app: "M-GARAGE PRO",
+   version: DATA_VERSION,
+   car
+  },
+  updated_at: new Date().toISOString()
+ };
+}
+
+function rowToCar(row) {
+ const d = row?.data;
+ if (d && typeof d === "object") {
+  if (d.car && typeof d.car === "object") return { ...d.car, vin: row.vin || d.car.vin };
+  if (d.vin || d.details || d.done) return { ...d, vin: row.vin || d.vin };
+ }
+ return null;
+}
+
+function mergeCars(localList, remoteList) {
+ const map = new Map();
+ for (const c of localList) {
+  if (c && c.vin) map.set(c.vin, { source: "local", car: c });
+ }
+ for (const r of remoteList) {
+  if (!r || !r.vin) continue;
+  const existing = map.get(r.vin);
+  if (!existing) {
+   map.set(r.vin, { source: "remote", car: r.car, remoteUpdated: r.updated_at });
+  } else {
+   const lTime = Date.parse(existing.car?.updatedAt || existing.car?.details?.updatedAt || 0) || 0;
+   const rTime = Date.parse(r.updated_at || 0) || 0;
+   if (rTime > lTime) {
+    map.set(r.vin, { source: "remote", car: r.car, remoteUpdated: r.updated_at });
+   }
+  }
+ }
+ return [...map.values()].map(x => x.car);
+}
+
+async function syncNow(reason = "manual") {
+ if (!currentUser) {
+  setCloudMessage("Не сте влезли в акаунт. Данните се пазят локално.");
+  return;
+ }
+ if (syncing) return;
+ syncing = true;
+ setCloudMessage("Синхронизация с облака...");
+
+ try {
+  const { data: remoteRows, error: fetchErr } = await supabase
+   .from("garage_vehicles")
+   .select("vin, nick, data, updated_at")
+   .eq("user_id", currentUser.id);
+
+  if (fetchErr) throw fetchErr;
+
+  const remoteCars = (remoteRows || [])
+   .map(row => ({ vin: row.vin, updated_at: row.updated_at, car: rowToCar(row) }))
+   .filter(x => x.car && x.car.vin);
+
+  const localCars = getLocalCars();
+  const merged = mergeCars(localCars, remoteCars);
+
+  const rowsToUpsert = merged.map(c => recordToRow(currentUser.id, c));
+  if (rowsToUpsert.length > 0) {
+   const { error: upErr } = await supabase
+    .from("garage_vehicles")
+    .upsert(rowsToUpsert, { onConflict: "user_id,vin" });
+   if (upErr) throw upErr;
+  }
+
+  const activeVin = getLocalActiveVin() || merged[0]?.vin || "";
+  setLocalState(merged, activeVin);
+  clearPending(merged.map(c => c.vin));
+  localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+
+  setCloudMessage("Синхронизирано (" + merged.length + " " + (merged.length === 1 ? "машина" : "машини") + ")");
+  if (typeof window.location !== "undefined" && reason === "login") {
+   window.location.reload();
+  }
+ } catch (err) {
+  console.error("Cloud sync error:", err);
+  setCloudMessage("Грешка при синхронизация: " + (err?.message || err));
+ } finally {
+  syncing = false;
+ }
+}
+
+function scheduleSync() {
+ if (!currentUser) return;
+ const activeVin = getLocalActiveVin();
+ markPending(activeVin);
+ setCloudMessage("Има незапазени промени за облака...");
+ clearTimeout(syncTimer);
+ syncTimer = setTimeout(() => syncNow("auto"), 900);
+}
+
+function updateAuthUI(user) {
+ currentUser = user || null;
+ const loggedOut = el("cloudAuthLoggedOut");
+ const loggedIn = el("cloudAuthLoggedIn");
+ const userInfo = el("cloudUserInfo");
+
+ if (currentUser) {
+  loggedOut?.classList.add("hidden");
+  loggedIn?.classList.remove("hidden");
+  if (userInfo) userInfo.textContent = "Влезли сте като: " + (currentUser.email || currentUser.id);
+  setCloudMessage("Готово за синхронизация.");
+ } else {
+  loggedOut?.classList.remove("hidden");
+  loggedIn?.classList.add("hidden");
+  setCloudMessage("Не сте влезли в акаунт. Данните се пазят локално.");
+ }
+}
+
+el("cloudSignInBtn")?.addEventListener("click", async () => {
+ const email = (el("cloudEmail")?.value || "").trim();
+ const password = el("cloudPassword")?.value || "";
+ if (!email || !password) return setCloudMessage("Въведете имейл и парола.");
+ setCloudMessage("Влизане...");
+ const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+ if (error) return setCloudMessage("Грешка при вход: " + error.message);
+ updateAuthUI(data.user);
+ await syncNow("login");
+});
+
+el("cloudSignUpBtn")?.addEventListener("click", async () => {
+ const email = (el("cloudEmail")?.value || "").trim();
+ const password = el("cloudPassword")?.value || "";
+ if (!email || !password) return setCloudMessage("Въведете имейл и парола.");
+ setCloudMessage("Регистрация...");
+ const { data, error } = await supabase.auth.signUp({ email, password });
+ if (error) return setCloudMessage("Грешка при регистрация: " + error.message);
+ if (data.session) {
+  updateAuthUI(data.user);
+  await syncNow("login");
+ } else {
+  setCloudMessage("Регистрацията е успешна. Проверете имейла си за потвърждение.");
+ }
+});
+
+el("cloudSignOutBtn")?.addEventListener("click", async () => {
+ await supabase.auth.signOut();
+ updateAuthUI(null);
+});
+
+el("cloudSyncNowBtn")?.addEventListener("click", () => syncNow("manual"));
+
+const origSetItem = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(key, value) {
+ origSetItem(key, value);
+ if (key === STORAGE_KEY) {
+  scheduleSync();
+ }
+};
+
+window.addEventListener("online", () => {
+ if (currentUser) syncNow("online");
+});
+
+const { data: { session } } = await supabase.auth.getSession();
+updateAuthUI(session?.user || null);
+if (session?.user) {
+ syncNow("init");
+}
+
+supabase.auth.onAuthStateChange((_event, nextSession) => {
+ updateAuthUI(nextSession?.user || null);
+});
+</script>
 </body>
 </html>
