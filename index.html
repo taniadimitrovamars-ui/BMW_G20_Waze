@@ -525,8 +525,8 @@ a{color:var(--accent)}
 
 .status-pill{
  border-radius:999px;
- padding:5px 9px;
- font-size:9px;font-weight:900;letter-spacing:.5px;
+ padding:4px 8px;
+ font-size:8.5px;font-weight:900;letter-spacing:.5px;
  background:var(--accent-soft);color:var(--accent);
  white-space:nowrap;
 }
@@ -546,41 +546,41 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 
-/* Компактен уиджит Документи и критични срокове със скала */
+/* Оптимизиран компактен уиджит Документи и критични срокове */
 .docs-widget{
  background:var(--surface);
  border:1px solid var(--border);
- border-radius:18px;
- padding:11px 13px;
- margin:10px 0;
+ border-radius:16px;
+ padding:9px 11px;
+ margin:8px 0;
  box-shadow:var(--shadow);
 }
 .dw-head{
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:8px;
- margin-bottom:8px;
+ gap:6px;
+ margin-bottom:6px;
 }
 .dw-title{
- font-size:9.5px;
+ font-size:9px;
  font-weight:900;
- letter-spacing:1px;
+ letter-spacing:.9px;
  color:var(--muted);
  text-transform:uppercase;
 }
 .dw-list{
  display:grid;
- gap:6px;
+ gap:4px;
 }
 .dw-item{
  display:flex;
  flex-direction:column;
- gap:5px;
+ gap:3px;
  background:var(--surface-2);
  border:1px solid var(--border);
- border-radius:12px;
- padding:7px 10px;
+ border-radius:10px;
+ padding:5px 8px;
  transition:border-color .2s ease,background .2s ease;
 }
 .dw-item.is-good{
@@ -598,20 +598,20 @@ a{color:var(--accent)}
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:8px;
+ gap:6px;
 }
 .dw-main{
  min-width:0;
  flex:1;
 }
 .dw-name{
- font-size:11.5px;
+ font-size:11px;
  font-weight:900;
  overflow-wrap:anywhere;
- line-height:1.25;
+ line-height:1.2;
 }
 .dw-sub{
- font-size:9.5px;
+ font-size:9px;
  color:var(--muted);
  margin-top:1px;
  font-variant-numeric:tabular-nums;
@@ -622,30 +622,8 @@ a{color:var(--accent)}
 .dw-right{
  display:flex;
  align-items:center;
- gap:5px;
+ gap:4px;
  flex-shrink:0;
-}
-.dw-days-pill{
- font-size:9px;
- font-weight:950;
- padding:2px 7px;
- border-radius:999px;
- background:var(--surface-3);
- color:var(--muted);
- white-space:nowrap;
- font-variant-numeric:tabular-nums;
-}
-.dw-days-pill.good{
- background:var(--good-soft);
- color:var(--good);
-}
-.dw-days-pill.warn{
- background:var(--warn-soft);
- color:var(--warn);
-}
-.dw-days-pill.danger{
- background:var(--danger-soft);
- color:var(--danger);
 }
 .dw-meter{
  display:flex;
@@ -653,7 +631,7 @@ a{color:var(--accent)}
  gap:2px;
 }
 .dw-meter-track{
- height:4px;
+ height:3px;
  border-radius:999px;
  background:var(--surface-3);
  overflow:hidden;
@@ -667,33 +645,44 @@ a{color:var(--accent)}
  display:flex;
  justify-content:space-between;
  align-items:center;
- font-size:9px;
+ font-size:8.5px;
  font-weight:800;
  color:var(--muted);
  font-variant-numeric:tabular-nums;
+ line-height:1.15;
 }
 .dw-link-btn{
  border:1px solid var(--border);
  background:var(--surface-3);
  color:var(--accent);
- border-radius:8px;
- padding:3px 7px;
- font-size:9.5px;
+ border-radius:7px;
+ padding:2px 6px;
+ font-size:9px;
  font-weight:900;
  text-decoration:none;
  white-space:nowrap;
 }
+.dw-icon-btn{
+ width:24px;
+ height:24px;
+ min-height:24px;
+ padding:0;
+ border-radius:7px;
+ font-size:11px;
+ line-height:1;
+}
 .dw-foot{
  display:flex;
  gap:6px;
- margin-top:8px;
+ margin-top:6px;
 }
 .dw-foot .btn{
  flex:1;
- min-height:31px;
- padding:6px 10px;
- font-size:10.5px;
- border-radius:10px;
+ min-height:28px;
+ padding:4px 8px;
+ font-size:10px;
+ border-radius:9px;
+ gap:4px;
 }
 
 .health-widget{
@@ -1639,12 +1628,12 @@ details[open] > summary{
    <div class="docs-widget" id="docsWidget">
     <div class="dw-head">
      <div class="dw-title">ДОКУМЕНТИ И КРИТИЧНИ СРОКОВЕ</div>
-     <span class="status-pill" id="dwCountBadge">0 файла</span>
+     <span class="status-pill" id="dwCountBadge">0</span>
     </div>
     <div class="dw-list" id="dwList"></div>
     <div class="dw-foot">
-     <button class="btn small" id="dwAddDocBtn" type="button">＋ Документ</button>
-     <button class="btn secondary small" id="dwOpenAllBtn" type="button">Всички документи</button>
+     <button class="btn small" id="dwAddDocBtn" type="button" title="Добави документ">＋ Документ</button>
+     <button class="btn secondary small" id="dwOpenAllBtn" type="button" title="Всички документи">☰ Всички</button>
     </div>
    </div>
 
@@ -2975,7 +2964,7 @@ function renderDocsWidget(car){
  const badgeEl=$("dwCountBadge");
  if(!listEl||!car)return;
  listEl.replaceChildren();
- if(badgeEl)badgeEl.textContent=car.documents.length+(car.documents.length===1?" файл":" файла");
+ if(badgeEl)badgeEl.textContent=String(car.documents.length);
 
  const nowDate=parseFlexibleDate(today());
  const criticalDocs=car.documents.filter(d=>{
@@ -2989,7 +2978,7 @@ function renderDocsWidget(car){
   .slice(0,4);
 
  if(!items.length){
-  listEl.innerHTML='<div class="empty" style="padding:12px 10px">Няма добавени документи (ГТП, винетка, застраховка, фактури).</div>';
+  listEl.innerHTML='<div class="empty" style="padding:10px 8px">Няма документи (ГТП, винетка, застраховка, фактури).</div>';
   return;
  }
 
@@ -2998,30 +2987,24 @@ function renderDocsWidget(car){
   const diffDays=(dObj&&nowDate)?Math.round((dObj.getTime()-nowDate.getTime())/86400000):null;
 
   let tone="good";
-  let badgeText="";
   let pct=100;
   const cycleSpan=365;
 
   if(diffDays!==null){
    if(diffDays<0){
     tone="danger";
-    badgeText="Изтекъл ("+formatDays(diffDays)+")";
     pct=0;
    }else if(diffDays===0){
     tone="danger";
-    badgeText="Изтича днес";
     pct=2;
    }else if(diffDays<=14){
     tone="danger";
-    badgeText=formatDays(diffDays);
     pct=Math.max(4,Math.round((diffDays/cycleSpan)*100));
    }else if(diffDays<=60){
     tone="warn";
-    badgeText=formatDays(diffDays);
     pct=Math.max(10,Math.round((diffDays/cycleSpan)*100));
    }else{
     tone="good";
-    badgeText=formatDays(diffDays);
     pct=Math.min(100,Math.max(18,Math.round((diffDays/cycleSpan)*100)));
    }
   }
@@ -3050,13 +3033,6 @@ function renderDocsWidget(car){
   const right=document.createElement("div");
   right.className="dw-right";
 
-  if(badgeText){
-   const pill=document.createElement("span");
-   pill.className="dw-days-pill "+tone;
-   pill.textContent=badgeText;
-   right.append(pill);
-  }
-
   const safeUrl=safeHttpUrl(doc.fileUrl);
   if(safeUrl){
    const a=document.createElement("a");
@@ -3064,18 +3040,17 @@ function renderDocsWidget(car){
    a.href=safeUrl;
    a.target="_blank";
    a.rel="noopener noreferrer";
-   a.textContent="Отвори";
+   a.textContent="↗";
+   a.title="Отвори документа";
    right.append(a);
   }
 
   const editBtn=document.createElement("button");
   editBtn.type="button";
-  editBtn.className="btn secondary small";
-  editBtn.style.minHeight="24px";
-  editBtn.style.padding="2px 7px";
-  editBtn.style.fontSize="10px";
+  editBtn.className="btn secondary small dw-icon-btn";
   editBtn.textContent="✎";
   editBtn.title="Редакция";
+  editBtn.setAttribute("aria-label","Редакция на "+(doc.title||"документ"));
   editBtn.addEventListener("click",()=>openEditRecord("document",doc));
   right.append(editBtn);
 
@@ -3099,10 +3074,10 @@ function renderDocsWidget(car){
    const meta=document.createElement("div");
    meta.className="dw-meter-meta";
    const leftLbl=document.createElement("span");
-   leftLbl.textContent=diffDays<0?"Срокът е изтекъл":diffDays<=14?"Критичен срок":diffDays<=60?"Наближава подновяване":"Валиден срок";
+   leftLbl.textContent=diffDays<0?"Изтекъл срок":diffDays===0?"Изтича днес":diffDays<=14?"Критичен срок":diffDays<=60?"Наближава":"Валиден";
    const rightLbl=document.createElement("span");
    rightLbl.style.color=tone==="danger"?"var(--danger)":tone==="warn"?"var(--warn)":"var(--good)";
-   rightLbl.textContent=diffDays<0?("просрочен с "+formatDays(diffDays)):("остават "+formatDays(diffDays));
+   rightLbl.textContent=diffDays<0?("просрочен с "+formatDays(diffDays)):diffDays===0?"днес":("остават "+formatDays(diffDays));
 
    meta.append(leftLbl,rightLbl);
    meter.append(track,meta);
