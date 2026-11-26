@@ -1085,13 +1085,36 @@ details[open] > summary{
  margin-top:2px;
 }
 
+.cloud-auth-box{
+ margin-top:12px;
+ padding-top:12px;
+ border-top:1px solid var(--border);
+}
+.cloud-auth-title{
+ font-size:11px;
+ font-weight:900;
+ letter-spacing:.6px;
+ color:var(--muted);
+ text-transform:uppercase;
+ margin-bottom:8px;
+}
+.cloud-auth-actions{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+ margin-top:10px;
+}
+.cloud-auth-actions .btn{
+ flex:1;
+}
+
 .rules{margin-top:12px}
-.rules ~ * button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
-.rules ~ * button:disabled{opacity:.55!important}
-.rules ~ * input,.rules ~ * select{background:var(--surface-2)!important;color:var(--text)!important;border:1px solid var(--border)!important}
-.rules ~ *{color:var(--text)}
-.rules ~ * .muted,.rules ~ * small{color:var(--muted)}
-.rules ~ * .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) button{background:var(--accent)!important;color:#fff!important;border:1px solid var(--accent)!important;border-radius:11px!important;font-weight:800!important;opacity:1!important}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) button:disabled{opacity:.55!important}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) input,.rules ~ details.drop-panel:not(#cloudSyncPanel) select{background:var(--surface-2)!important;color:var(--text)!important;border:1px solid var(--border)!important}
+.rules ~ details.drop-panel:not(#cloudSyncPanel){color:var(--text)}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) .muted,.rules ~ details.drop-panel:not(#cloudSyncPanel) small{color:var(--muted)}
+.rules ~ details.drop-panel:not(#cloudSyncPanel) .secondary{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important}
 
 .bottom-nav{
  position:fixed;left:0;right:0;bottom:0;z-index:40;
@@ -1239,7 +1262,7 @@ details[open] > summary{
     <div class="gcw-sub" id="gcwMeta">Профил: проверка... · Последна синхронизация: няма данни</div>
     <div class="gcw-actions">
      <button class="btn small" id="gcwSyncBtn" type="button">↻ Синхронизирай</button>
-     <button class="btn secondary small" id="gcwOpenPanelBtn" type="button">Панел Cloud</button>
+     <button class="btn secondary small" id="gcwOpenPanelBtn" type="button">Вход / Cloud</button>
     </div>
    </div>
 
@@ -1464,19 +1487,40 @@ details[open] > summary{
     <div id="localMessage" class="form-msg"></div>
    </details>
 
-   <details class="drop-panel" id="cloudSyncPanel">
+   <details class="drop-panel" id="cloudSyncPanel" open>
     <summary>
      <div class="panel-lead">
       <span class="panel-icon">☁️</span>
       <div>
        <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
-       <div class="drop-sub">Акаунт, синхронизация, облачен архив, устройства и история</div>
+       <div class="drop-sub">Вход и регистрация, синхронизация, облачен архив и история</div>
       </div>
      </div>
      <span class="chev">▾</span>
     </summary>
     <div class="muted" id="dashboardCloud">Локален режим · Готов за синхронизация</div>
     <div class="muted" id="cloudUser" style="margin-top:4px">Профил: не е влязло устройство</div>
+
+    <div class="cloud-auth-box" id="cloudAuthBox">
+     <div class="cloud-auth-title">ВХОД И РЕГИСТРАЦИЯ В АКАУНТ</div>
+     <div class="form-grid">
+      <div class="field full">
+       <label for="cloudEmail">ИМЕЙЛ</label>
+       <input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com">
+      </div>
+      <div class="field full">
+       <label for="cloudPassword">ПАРОЛА</label>
+       <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+     </div>
+     <div class="cloud-auth-actions">
+      <button class="btn small" id="cloudLoginBtn" type="button">Вход</button>
+      <button class="btn secondary small" id="cloudRegisterBtn" type="button">Регистрация</button>
+      <button class="btn secondary small hidden" id="cloudLogoutBtn" type="button">Изход</button>
+     </div>
+     <div id="cloudAuthStatus" class="form-msg"></div>
+    </div>
+
     <div class="btn-row">
      <button class="btn small" id="cloudSync" type="button">↻ Синхронизирай сега</button>
     </div>
@@ -1921,7 +1965,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪЖ, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -2284,6 +2328,7 @@ function refreshGarageCloudWidget(){
 
  const cloudStateEl=$("dashboardCloud");
  const cloudUserEl=$("cloudUser");
+ const logoutBtn=$("cloudLogoutBtn");
  const lastSyncRaw=localStorage.getItem(LAST_SYNC_KEY);
  let pendingCount=0;
  try{
@@ -2293,6 +2338,9 @@ function refreshGarageCloudWidget(){
 
  const rawCloudText=(cloudStateEl?.textContent||"").trim();
  const lowerText=rawCloudText.toLowerCase();
+ const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
+ const isLoggedIn=!/не е вляз|не е проверен|изляз/i.test(userLine);
+ if(logoutBtn)logoutBtn.classList.toggle("hidden",!isLoggedIn);
 
  let mode=forcedCloudState;
  if(!mode){
@@ -2353,7 +2401,6 @@ function refreshGarageCloudWidget(){
  badgeEl.style.color=pendingCount>0?"var(--warn)":"var(--good)";
  badgeEl.style.background=pendingCount>0?"var(--warn-soft)":"var(--good-soft)";
 
- const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
  const syncLine=formatDateTime(lastSyncRaw);
  metaEl.textContent=userLine+" · Последна синхронизация: "+syncLine;
 }
