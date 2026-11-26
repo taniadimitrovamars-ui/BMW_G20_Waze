@@ -225,6 +225,50 @@ a{color:var(--accent)}
 .stat-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.7px}
 .stat-value{font-size:19px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}
 
+/* Cloud Sync уиджит в Гараж */
+.garage-cloud-widget{
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:var(--radius);
+ padding:14px 16px;
+ margin:12px 0;
+ box-shadow:var(--shadow);
+}
+.gcw-top{
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ gap:10px;
+}
+.gcw-title{
+ font-size:10px;
+ font-weight:900;
+ letter-spacing:1.1px;
+ color:var(--muted);
+ text-transform:uppercase;
+}
+.gcw-state{
+ font-size:13px;
+ font-weight:900;
+ margin-top:4px;
+ color:var(--warn);
+}
+.gcw-sub{
+ font-size:11px;
+ color:var(--muted);
+ margin-top:5px;
+ line-height:1.45;
+ overflow-wrap:anywhere;
+}
+.gcw-actions{
+ display:flex;
+ gap:8px;
+ margin-top:12px;
+}
+.gcw-actions .btn{
+ flex:1;
+}
+
 .seg-bar{
  display:flex;
  gap:6px;
@@ -370,17 +414,45 @@ textarea{min-height:82px;resize:vertical}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:9px;padding:22px 10px 8px;letter-spacing:1.1px}
 
-.step-card{
- background:var(--surface-2);border:1px solid var(--border);
- border-radius:17px;padding:14px;margin:10px 0;
+/* Сгъваеми MGU стъпки */
+details.step-card{
+ background:var(--surface-2);
+ border:1px solid var(--border);
+ border-radius:17px;
+ padding:13px 14px;
+ margin:10px 0;
+ transition:border-color .16s ease;
 }
-.step-header{display:flex;align-items:flex-start;gap:11px}
-.step-check{flex:0 0 21px;width:21px;height:21px;margin:2px 0 0;accent-color:var(--good)}
+details.step-card[open]{
+ border-color:color-mix(in srgb,var(--accent) 55%,var(--border));
+}
+details.step-card > summary{
+ list-style:none;
+ cursor:pointer;
+ display:flex;
+ align-items:flex-start;
+ gap:10px;
+}
+details.step-card > summary::-webkit-details-marker{display:none}
+.step-check{flex:0 0 21px;width:21px;height:21px;margin:2px 0 0;accent-color:var(--good);cursor:pointer}
 .step-title-wrap{flex:1;min-width:0}
+.step-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .step-title{font-size:13px;font-weight:900;color:var(--text);line-height:1.35}
+.step-badge{
+ flex:0 0 auto;
+ font-size:9px;
+ font-weight:900;
+ padding:3px 7px;
+ border-radius:999px;
+ background:var(--surface-3);
+ color:var(--muted);
+ letter-spacing:.5px;
+}
+.step-badge.cmd{background:var(--accent-soft);color:var(--accent)}
 .step-description{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px}
-.step-status{font-size:9px;font-weight:900;color:var(--good);margin-top:6px}
-.step-details{margin:12px 0 0 32px;font-size:11px;line-height:1.65;color:var(--text)}
+.step-meta-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.step-status{font-size:9px;font-weight:900;color:var(--good)}
+.step-details{margin:12px 0 0 31px;font-size:11px;line-height:1.65;color:var(--text)}
 .step-details p{margin:0 0 9px}
 .step-warning{
  background:var(--warn-soft);border:1px solid var(--warn);
@@ -578,6 +650,21 @@ details[open] > summary{
     </div>
    </div>
 
+   <div class="garage-cloud-widget" id="garageCloudWidget">
+    <div class="gcw-top">
+     <div>
+      <div class="gcw-title">CLOUD SYNC · M-GARAGE PRO 2.4</div>
+      <div class="gcw-state" id="gcwState">● Проверка...</div>
+     </div>
+     <span class="status-pill" id="gcwPendingBadge">0 чакащи</span>
+    </div>
+    <div class="gcw-sub" id="gcwMeta">Профил: проверка... · Последна синхронизация: няма данни</div>
+    <div class="gcw-actions">
+     <button class="btn small" id="gcwSyncBtn" type="button">↻ Синхронизирай</button>
+     <button class="btn secondary small" id="gcwOpenPanelBtn" type="button">Панел Cloud</button>
+    </div>
+   </div>
+
    <details class="drop-panel" open>
     <summary>
      <div>
@@ -652,7 +739,7 @@ details[open] > summary{
   <section class="screen" id="screen-mgu">
    <div class="panel">
     <div class="section-title">BMW MGU · ПЪЛНА ПРОЦЕДУРА</div>
-    <div class="muted">Отбелязвай стъпките след реалното им изпълнение. Командите се копират, но не се изпълняват автоматично от приложението.</div>
+    <div class="muted">Кликни върху стъпка, за да я разгънеш или свиеш. Отбелязвай квадратчето след реалното ѝ изпълнение.</div>
 
     <details class="ref-box">
      <summary>Важна информация и Златни правила <span><span class="chev">▾</span></span></summary>
@@ -674,6 +761,10 @@ details[open] > summary{
 
     <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
     <div class="muted" id="stepsProgressText"></div>
+    <div class="btn-row">
+     <button class="btn secondary small" id="expandAllStepsBtn" type="button">Разгъни всички</button>
+     <button class="btn secondary small" id="collapseAllStepsBtn" type="button">Свий всички</button>
+    </div>
    </div>
    <div id="stepsList"></div>
   </section>
@@ -916,6 +1007,8 @@ details[open] > summary{
 const STORAGE_KEY="mgu_cars";
 const ACTIVE_KEY="mgu_active";
 const THEME_KEY="mgu_theme";
+const PENDING_KEY="mgu_cloud_pending";
+const LAST_SYNC_KEY="mgu_cloud_last_sync";
 const DATA_VERSION=4;
 
 const STEPS=[
@@ -1031,6 +1124,34 @@ function formatDate(value){
 }
 function message(id,text){if($(id))$(id).textContent=text}
 
+function refreshGarageCloudWidget(){
+ const stateEl=$("gcwState");
+ const badgeEl=$("gcwPendingBadge");
+ const metaEl=$("gcwMeta");
+ if(!stateEl||!badgeEl||!metaEl)return;
+
+ const cloudStateEl=$("dashboardCloud");
+ const cloudUserEl=$("cloudUser");
+ const lastSyncRaw=localStorage.getItem(LAST_SYNC_KEY);
+ let pendingCount=0;
+ try{
+  const p=JSON.parse(localStorage.getItem(PENDING_KEY)||"[]");
+  if(Array.isArray(p))pendingCount=p.length;
+ }catch{}
+
+ const cloudText=cloudStateEl?.textContent?.trim()||"● Локален режим";
+ stateEl.textContent=cloudText;
+ stateEl.style.color=cloudStateEl?.style.color||"var(--warn)";
+
+ badgeEl.textContent=pendingCount+" чакащи";
+ badgeEl.style.color=pendingCount?"var(--warn)":"var(--good)";
+ badgeEl.style.background=pendingCount?"var(--warn-soft)":"var(--good-soft)";
+
+ const userLine=cloudUserEl?.textContent?.trim()||"Профил: не е проверен";
+ const syncLine=lastSyncRaw?formatDate(lastSyncRaw):"няма данни";
+ metaEl.textContent=userLine+" · Последна синхронизация: "+syncLine;
+}
+
 function updateFab(){
  const fab=$("fabAdd");
  if(!fab)return;
@@ -1104,6 +1225,7 @@ function renderGarage(){
  addBtn.addEventListener("click",()=>openSheet("car","Нов автомобил"));
  bar.append(addBtn);
  updateFab();
+ refreshGarageCloudWidget();
 }
 
 function reminderState(r,car){
@@ -1154,12 +1276,14 @@ function renderOverview(car){
  renderFinance(car);
  $("statReminders").textContent=car.reminders.filter(r=>!r.completed).length;
 
+ const mguDone=STEPS.filter(s=>car.done[s.id]).length;
  const d=car.details;
  $("overviewDetails").textContent=[
   [d.make,d.model].filter(Boolean).join(" "),d.year||"",
   d.engine?"Двигател: "+d.engine:"",d.transmission?"Кутия: "+d.transmission:"",
   d.fuel?"Гориво: "+d.fuel:"",d.color?"Цвят: "+d.color:"",
-  d.registration?"Рег.: "+d.registration:""
+  d.registration?"Рег.: "+d.registration:"",
+  "MGU: "+mguDone+"/"+STEPS.length
  ].filter(Boolean).join(" · ")||"Попълни детайлите на автомобила в раздел „Още“.";
 
  const active=car.reminders.filter(r=>!r.completed);
@@ -1218,24 +1342,54 @@ async function copyCommand(command,button){
 }
 
 function renderSteps(car){
+ const openIds=new Set(
+  Array.from(document.querySelectorAll("#stepsList details.step-card[open]"))
+   .map(el=>el.dataset.stepId)
+   .filter(Boolean)
+ );
  const done=STEPS.filter(s=>car.done[s.id]).length,percent=Math.round(done/STEPS.length*100);
  $("stepsProgress").style.width=percent+"%";
  $("stepsProgressText").textContent=done+" от "+STEPS.length+" изпълнени · "+percent+"%";
  const container=$("stepsList");container.replaceChildren();
+
  STEPS.forEach(step=>{
-  const card=document.createElement("article");card.className="step-card";
-  const header=document.createElement("div");header.className="step-header";
-  const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.className="step-check";
-  checkbox.checked=car.done[step.id]===true;checkbox.setAttribute("aria-label","Отбележи "+step.title);
+  const card=document.createElement("details");
+  card.className="step-card";
+  card.dataset.stepId=step.id;
+  if(openIds.has(step.id))card.open=true;
+
+  const summary=document.createElement("summary");
+
+  const checkbox=document.createElement("input");
+  checkbox.type="checkbox";
+  checkbox.className="step-check";
+  checkbox.checked=car.done[step.id]===true;
+  checkbox.setAttribute("aria-label","Отбележи "+step.title);
+  checkbox.addEventListener("click",e=>e.stopPropagation());
   checkbox.addEventListener("change",()=>{
    if(checkbox.checked)car.done[step.id]=true;else delete car.done[step.id];
    save();renderSteps(car);renderOverview(car);
   });
+
   const titleWrap=document.createElement("div");titleWrap.className="step-title-wrap";
+  const titleRow=document.createElement("div");titleRow.className="step-title-row";
   const title=document.createElement("div");title.className="step-title";title.textContent=step.title;
+  const badge=document.createElement("span");
+  badge.className="step-badge"+(step.command?" cmd":"");
+  badge.textContent=step.command?"CMD":"ИНФО";
+  titleRow.append(title,badge);
+
   const description=document.createElement("div");description.className="step-description";description.textContent=step.description;
-  const status=document.createElement("div");status.className="step-status";status.textContent=car.done[step.id]?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
-  titleWrap.append(title,description,status);header.append(checkbox,titleWrap);
+
+  const metaRow=document.createElement("div");metaRow.className="step-meta-row";
+  const status=document.createElement("div");status.className="step-status";
+  status.style.color=car.done[step.id]?"var(--good)":"var(--muted)";
+  status.textContent=car.done[step.id]?"✓ ИЗПЪЛНЕНО":"○ НЕ Е ОТБЕЛЯЗАНО";
+  const chev=document.createElement("span");chev.className="chev";chev.textContent="▾";
+  metaRow.append(status,chev);
+
+  titleWrap.append(titleRow,description,metaRow);
+  summary.append(checkbox,titleWrap);
 
   const details=document.createElement("div");details.className="step-details";
   const explanation=document.createElement("p");explanation.textContent=step.explanation;details.append(explanation);
@@ -1256,7 +1410,7 @@ function renderSteps(car){
    const expected=document.createElement("div");expected.className="step-expected";expected.textContent=step.expected;
    details.append(expectedLabel,expected);
   }
-  card.append(header,details);container.append(card);
+  card.append(summary,details);container.append(card);
  });
 }
 
@@ -1457,6 +1611,33 @@ $("fabAdd").addEventListener("click",()=>{
  openSheet(currentSeg,titles[currentSeg]||"Нов запис");
 });
 
+$("gcwSyncBtn").addEventListener("click",()=>{
+ const cloudBtn=$("cloudSync");
+ if(cloudBtn&&!cloudBtn.disabled){
+  cloudBtn.click();
+ }else{
+  showScreen("more");
+  const panel=$("cloudSyncPanel");
+  if(panel){panel.open=true;panel.scrollIntoView({behavior:"smooth",block:"start"})}
+ }
+});
+
+$("gcwOpenPanelBtn").addEventListener("click",()=>{
+ showScreen("more");
+ const panel=$("cloudSyncPanel");
+ if(panel){
+  panel.open=true;
+  setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),120);
+ }
+});
+
+$("expandAllStepsBtn").addEventListener("click",()=>{
+ document.querySelectorAll("#stepsList details.step-card").forEach(d=>d.open=true);
+});
+$("collapseAllStepsBtn").addEventListener("click",()=>{
+ document.querySelectorAll("#stepsList details.step-card").forEach(d=>d.open=false);
+});
+
 $("sheetClose").addEventListener("click",closeSheet);
 $("sheetBackdrop").addEventListener("click",e=>{if(e.target===$("sheetBackdrop"))closeSheet()});
 
@@ -1502,6 +1683,7 @@ $("deleteCarButton").addEventListener("click",()=>{
 
 window.renderAll=renderAll;
 window.setTheme=setTheme;
+window.refreshGarageCloudWidget=refreshGarageCloudWidget;
 
 loadCars();
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
