@@ -131,6 +131,22 @@ a{color:var(--accent)}
  color:var(--danger);
 }
 
+.cloud-badge{
+ display:inline-flex;
+ align-items:center;
+ gap:5px;
+ font-size:10px;
+ font-weight:900;
+ padding:3px 9px;
+ border-radius:999px;
+ background:var(--surface-3);
+ color:var(--muted);
+ border:1px solid var(--border);
+}
+.cloud-badge.ok{background:var(--good-soft);color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
+.cloud-badge.sync,.cloud-badge.idle{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+.cloud-badge.err{background:var(--danger-soft);color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--border))}
+
 .screen{display:none}
 .screen.active{display:block;animation:screenIn .2s cubic-bezier(.22,1,.36,1)}
 @keyframes screenIn{
@@ -1610,12 +1626,8 @@ details[open] > summary{
 .mlog-ev.crit .mlog-tag{background:var(--danger);color:#fff}
 .mlog-ev.info .mlog-tag{background:var(--accent);color:#fff}
 .mlog-ev ul{margin:6px 0 0;padding-left:16px;color:var(--text);font-size:11px;line-height:1.5}
-.mlog-cy{border:1px solid var(--border);border-radius:12px;padding:8px;background:var(--surface-2)}
-.mlog-bar{height:6px;border-radius:9px;background:var(--surface-3);margin-top:6px;overflow:hidden}
-.mlog-bar i{display:block;height:100%}
 .mlog-good{color:var(--good)}.mlog-bad{color:var(--danger)}.mlog-mid{color:var(--warn)}
 .mlog-A{color:#38bdf8}.mlog-B{color:#a78bfa}
-.mlog-drop{outline:2px dashed var(--accent);outline-offset:-2px}
 dialog.mlog-dlg{
  background:var(--surface);color:var(--text);border:1px solid var(--border);
  border-radius:20px;width:min(620px,95vw);max-width:95vw;padding:16px;
@@ -1955,7 +1967,7 @@ dialog.mlog-dlg::backdrop{background:rgba(3,7,13,.72);backdrop-filter:blur(4px)}
      <div class="field"><label>ТИП</label><select id="pVehicleType"><option value="car">Автомобил</option><option value="atv">ATV / UTV</option></select></div>
      <div class="field"><label>МАРКА</label><input id="pMake"></div>
      <div class="field"><label>МОДЕЛ</label><input id="pModel"></div>
-     <div class="field"><label>ГОДИНА</label><input id="pYear" type="number"></div>
+     <div class="field"><label>ГОДИНА</label><input id="pYear" type="number" min="1900" max="2100" step="1"></div>
      <div class="field"><label>ДВИГАТЕЛ</label><input id="pEngine" placeholder="B46D / 1000cc"></div>
      <div class="field"><label>СКОРОСТНА КУТИЯ</label><input id="pTransmission" placeholder="8HP / CVT"></div>
      <div class="field"><label>ПРОБЕГ (KM)</label><input id="pMileage" type="number" min="0"></div>
@@ -2423,6 +2435,7 @@ function setPhotoPos(vin,pos){
  });
  const car=activeCar();
  if(car&&car.vin===vin)renderHeroPhoto(car);
+ if(typeof window.notifyCloudLocalChange==="function")window.notifyCloudLocalChange();
 }
 
 function ensureDropPanelIcons(){
@@ -2571,7 +2584,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -2876,9 +2889,12 @@ function loadCars(){
   if(!cars.some(c=>c.vin===activeVin))activeVin=cars[0]?.vin||"";
  }catch(error){console.error("Load garage:",error);cars=[];activeVin=""}
 }
+window.loadCars=loadCars;
+
 function save(){
  localStorage.setItem(STORAGE_KEY,JSON.stringify(cars.map(cleanCar).filter(Boolean)));
  localStorage.setItem(ACTIVE_KEY,activeVin);
+ if(typeof window.notifyCloudLocalChange==="function")window.notifyCloudLocalChange();
 }
 function activeCar(){return cars.find(car=>car.vin===activeVin)||null}
 function setTheme(theme){
@@ -2914,7 +2930,7 @@ function openCloudPanel(){
 function refreshTopCloudButton(){
  const topBtn=$("topCloudBtn");
  if(!topBtn)return;
- const cloudStateEl=$("dashboardCloud");
+ const badgeEl=$("cloudStatusBadge");
  const lastSyncRaw=localStorage.getItem(LAST_SYNC_KEY);
  let pendingCount=0;
  try{
@@ -2922,21 +2938,25 @@ function refreshTopCloudButton(){
   if(Array.isArray(p))pendingCount=p.length;
  }catch{}
 
- const rawCloudText=(cloudStateEl?.textContent||"").trim().toLowerCase();
+ const rawCloudText=(badgeEl?.textContent||"").trim().toLowerCase();
  topBtn.classList.remove("synced","pending","error");
- if(rawCloudText.includes("греш")||rawCloudText.includes("offline")||rawCloudText.includes("проблем")){
+ if(rawCloudText.includes("греш")||rawCloudText.includes("невалиден")){
   topBtn.classList.add("error");
   topBtn.textContent="☁ Грешка";
+ }else if(rawCloudText.includes("синхронизира...")||rawCloudText.includes("изтегля")){
+  topBtn.classList.add("pending");
+  topBtn.textContent="☁ Синхр...";
  }else if(pendingCount>0){
   topBtn.classList.add("pending");
   topBtn.textContent="☁ ("+pendingCount+")";
- }else if(rawCloudText.includes("синхронизиран")||rawCloudText.includes("готов")||rawCloudText.includes("online")||lastSyncRaw){
+ }else if(rawCloudText.includes("свързан")||rawCloudText.includes("синхронизирано")||lastSyncRaw){
   topBtn.classList.add("synced");
   topBtn.textContent="☁ Синхр.";
  }else{
   topBtn.textContent="☁ Cloud";
  }
 }
+window.refreshTopCloudButton=refreshTopCloudButton;
 
 function updateFab(){
  const fab=$("fabAdd");
@@ -4617,7 +4637,6 @@ function renderRecords(containerId,records,type,car){
 }
 
 function renderAll(){
- ensureDropPanelIcons();
  renderGarage();
  const car=activeCar();if(!car)return;
  renderOverview(car);renderProfile(car);renderSteps(car);
@@ -4625,6 +4644,7 @@ function renderAll(){
  renderRecordsForActiveSeg(car);
  renderShareQr();
 }
+window.renderAll=renderAll;
 
 function generateAtvCode(){
  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -5165,23 +5185,19 @@ $("collapseAllStepsBtn").addEventListener("click",()=>{
 
 $("sheetClose").addEventListener("click",closeSheet);
 $("sheetBackdrop").addEventListener("click",e=>{if(e.target===$("sheetBackdrop"))closeSheet()});
-document.addEventListener("keydown",e=>{
- if(e.key==="Escape"){
-  if(garageMenuOpen){garageMenuOpen=false;renderGarage()}
-  if(!$("sheetBackdrop")?.classList.contains("hidden"))closeSheet();
- }
-});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheetBackdrop").classList.contains("hidden"))closeSheet()});
 
-$("bottomNav").addEventListener("click",e=>{
- const btn=e.target.closest("[data-screen]");
+$("bottomNav").addEventListener("click",event=>{
+ const btn=event.target.closest("[data-screen]");
  if(btn)showScreen(btn.dataset.screen);
 });
-
-$("serviceSegs").addEventListener("click",e=>{
- const btn=e.target.closest("[data-seg]");
+$("serviceSegs").addEventListener("click",event=>{
+ const btn=event.target.closest("[data-seg]");
  if(btn)showSeg(btn.dataset.seg);
 });
 
+$("themeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
+$("backupButton").addEventListener("click",exportBackup);
 $("addCarButton").addEventListener("click",addCar);
 $("saveProfileButton").addEventListener("click",saveProfile);
 $("addServiceButton").addEventListener("click",addService);
@@ -5189,1112 +5205,1319 @@ $("addReminderButton").addEventListener("click",addReminder);
 $("addModificationButton").addEventListener("click",addModification);
 $("addExpenseButton").addEventListener("click",addExpense);
 $("addDocumentButton").addEventListener("click",addDocument);
-$("themeToggle").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
-$("backupButton").addEventListener("click",exportBackup);
 $("exportLocalButton").addEventListener("click",exportBackup);
 $("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
-$("localImportFile").addEventListener("change",e=>{importBackup(e.target.files[0]);e.target.value=""});
-
+$("localImportFile").addEventListener("change",async event=>{await importBackup(event.target.files[0]);event.target.value=""});
 $("renameCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- const next=prompt("Ново име за превозното средство:",car.nick);
- if(next===null)return;
- car.nick=safeText(next,30)||(car.details?.vehicleType==="atv"?"ATV":"BMW");
- save();renderAll();
- showToast("Името е обновено","good");
+ const next=prompt("Ново име в гаража:",car.nick);
+ if(next!==null&&next.trim()){car.nick=safeText(next,30);save();renderAll();showToast("Името е променено","good")}
 });
 $("resetStepsButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да нулирам ли отметките на всички MGU стъпки?"))return;
- car.done={};save();renderSteps(car);renderOverview(car);
- showToast("MGU стъпките са нулирани");
+ if(!confirm("Да изчистя ли всички отметки за този автомобил?"))return;
+ car.done={};save();renderAll();showToast("Стъпките са нулирани");
 });
 $("deleteCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да изтрия ли "+car.nick+" ("+car.vin+") от гаража?"))return;
- cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";
- save();renderAll();
- showToast("Превозното средство е премахнато от гаража");
+ if(!confirm("Да изтрия ли превозното средство и всички локални записи за него?"))return;
+ cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";save();renderAll();
+ showToast("Превозното средство е изтрито");
 });
 
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
+["sDate","mDate","eDate","dDate"].forEach(id=>$(id).value=today());
 loadCars();
 if(shouldAutoLoadDemo()){
  loadDemoCar(true);
-}else{
- renderAll();
 }
 if($("shareUrlInput")){
  const savedShare=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"");
  $("shareUrlInput").value=savedShare||getQrShareUrl();
 }
+renderAll();
 initPwaSupport();
-renderShareQr();
-updateFab();
-refreshTopCloudButton();
 </script>
 
-<!-- ========== M-LOG LAB · BM3 B48 ТЕЛЕМЕТРИЯ (ИНТЕГРИРАН МОДУЛ) ========== -->
+<!-- M-LOG LAB · BM3 / B48 ЛОГ АНАЛИЗАТОР -->
 <script>
 (()=>{
-const m$ = id => document.getElementById(id);
-const mhas = (m,k) => k in m.col;
-const mget = (m,k,i) => m.col[k]?.[i];
+"use strict";
 
-const mp = t => {
-  const s=t.trim(); if(!s) return null;
-  const f=s[0]==='"'?s.slice(1,-1).replace(/""/g,'"').trim():s;
-  if(f===''||f==='-'||f==='N/A') return null;
-  const n=Number(f.replace(',','.')); return Number.isFinite(n)?n:null;
-};
+const MLOG_KEY="mlog_lab_v1";
+const MLOG_MODES=[
+ ["b","Буст +WGDC"],["i","Аванс +Корекции"],["f","Гориво +STFT"],
+ ["t","Темп. IAT/CLT/OIL"],["d","Детонации"],["a","Всички"]
+];
 
-const msplit = l => {
-  const o=[]; let c='',q=false;
-  for(let i=0;i<l.length;i++){
-    const ch=l[i];
-    if(ch==='"') q=!q;
-    else if((ch===','||ch===';')&&!q){ o.push(c); c=''; }
-    else c+=ch;
-  }
-  o.push(c); return o;
-};
+let mlogState={slots:[null,null],tab:"one",mode:"b",win:null,cur:null};
+let mlogDlgTarget=0;
+let mlogSaveTimer=null;
 
-function parseBM3(txt, name){
-  const lines=txt.split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2) throw new Error('Файлът има твърде малко редове.');
-  let hi=0;
-  for(let i=0;i<Math.min(lines.length,8);i++){
-    const cells=msplit(lines[i]).map(c=>c.replace(/^"|"$/g,'').trim());
-    if(cells.some(c=>/rpm|boost|throttle|time/i.test(c))){ hi=i; break; }
-  }
-  const hdr=msplit(lines[hi]).map(c=>c.replace(/^"|"$/g,'').trim());
-  const rows=[];
-  for(let i=hi+1;i<lines.length;i++){
-    const cells=msplit(lines[i]);
-    if(cells.length>=2) rows.push(cells.map(mp));
-  }
-  if(!rows.length) throw new Error('Не са намерени числови редове.');
-  const n=rows.length, col={};
-  hdr.forEach((h,ci)=>{
-    if(!h) return;
-    const arr=new Float64Array(n);
-    for(let r=0;r<n;r++) arr[r]=rows[r][ci] ?? NaN;
-    col[h]=arr;
-  });
-  let t=null;
-  for(const k of ['Time (s)','Time','time','Seconds']){
-    if(k in col){
-      const a=col[k];
-      const step=a.length>1?(a[1]-a[0]):0.08;
-      if(step>0 && step<5 && a[a.length-1]-a[0]>0.5){ t=a; break; }
-    }
-  }
-  if(!t){ t=new Float64Array(n); for(let i=0;i<n;i++) t[i]=i*0.08; }
-  return {name, n, t, col, hdr};
-}
-
-const mavg = (a,w) => {
-  const o=new Float32Array(a.length); let s=0;
-  for(let i=0;i<a.length;i++){ s+=a[i]; if(i>=w) s-=a[i-w]; o[i]=s/Math.min(i+1,w); }
-  return o;
-};
-const mmin = a => { let m=Infinity; for(let i=0;i<a.length;i++) if(a[i]<m) m=a[i]; return m; };
-const mmax = a => { let m=-Infinity; for(let i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; };
-const mfmt = (v,d=1) => (v===null||v===undefined||!Number.isFinite(v))?'—':Number(v).toFixed(d);
-
-function findPulls(m){
-  const rpm=m.col['RPM (RPM)']; if(!rpm) return [];
-  const thr=m.col['Throttle position (%)'], gear=m.col['Gear'], out=[];
-  let s=-1;
-  for(let i=0;i<m.n;i++){
-    const on = rpm[i]>2200 && (!thr || thr[i]>75);
-    if(on && s<0) s=i;
-    else if((!on || i===m.n-1) && s>=0){
-      const e=on?i:i-1, dur=m.t[e]-m.t[s], dRpm=rpm[e]-rpm[s];
-      if(dur>=1.2 && dRpm>=1200) out.push({s,e,t0:m.t[s],t1:m.t[e],dur,r0:rpm[s],r1:rpm[e],g:gear?gear[Math.floor((s+e)/2)]:null});
-      s=-1;
-    }
-  }
-  return out;
-}
-
-function getSlice(m, pull){
-  if(!pull) return {i0:0,i1:m.n-1,t:m.t,n:m.n,col:m.col};
-  const i0=pull.s, i1=pull.e+1, t=m.t.subarray(i0,i1), col={};
-  for(const k in m.col) col[k]=m.col[k].subarray(i0,i1);
-  return {i0,i1,t,n:t.length,col};
-}
-
-function detectPlatform(m){
-  const b=m.col['Boost target (PSI)']||m.col['Boost (PSI)'];
-  const maxB=b?mmax(b):0;
-  const hasEwg=mhas(m,'EWG duty cycle (%)');
-  if(maxB>22 || hasEwg) return {name:'B48 / B58 · Stage 2 (BM3)', sub: maxB>22?'Висок целеви буст (>22 PSI)':'EWG активен'};
-  return {name:'B48 / B46 · Stock / Stage 1', sub: maxB?`Макс. буст ~${mfmt(maxB,1)} PSI`:'Стандартен профил'};
-}
-
-function analyze(m, pull){
-  const s=getSlice(m, pull), n=s.n, c=s.col, plat=detectPlatform(m);
-  const thr=c['Throttle position (%)'], rpm=c['RPM (RPM)'], gear=c['Gear'];
-  const bt=c['Boost target (PSI)'], ba=c['Boost (PSI)'], map=c['MAP (PSI)'];
-  const wg=c['Wastegate duty cycle (%)'], ewg=c['EWG duty cycle (%)'];
-  const tps=c['Throttle position sensor (V)'], tpsA=c['Throttle position sensor A (V)'], tpsB=c['Throttle position sensor B (V)'];
-  const afrT=c['AFR target'], afrA=c['AFR actual'], rail=c['Rail pressure (PSI)'], hpfp=c['HPFP actual (MPa)'];
-  const loadT=c['Load target (%)'], loadA=c['Load actual (%)'], torq=c['Torque actual (Nm)'], stft=c['STFT (%)'], ltft=c['LTFT (%)'];
-  const iat=c['IAT (°F)'], ect=c['Coolant temp (°F)'], oil=c['Oil temp (°F)'], ign=c['Ignition timing (°)'], knock=c['Knock retard (°)'];
-  const cyl=[1,2,3,4].map(k=>c[`Timing cyl${k} (°)`]);
-  const events=[];
-  const add=(sev,tag,title,bullets,tStart,tEnd)=>events.push({sev,tag,title,bullets,tStart,tEnd});
-
-  if(thr && rpm){
-    let dipStart=-1, dipMinT=100, dipMinRpm=0, dipGear=null;
-    for(let i=1;i<n;i++){
-      if(rpm[i-1]>2400 && thr[i-1]>80 && thr[i]<thr[i-1]-12){
-        if(dipStart<0){ dipStart=i; dipMinT=thr[i]; dipMinRpm=rpm[i]; dipGear=gear?gear[i]:null; }
-        else if(thr[i]<dipMinT){ dipMinT=thr[i]; dipMinRpm=rpm[i]; }
-      }else if(dipStart>=0 && (thr[i]>85 || i-dipStart>15)){
-        if(dipMinT<70) add('crit','throttle','Затваряне на дросела под пълно натоварване',
-          [`Дроселът пада до ${mfmt(dipMinT,0)}% при ~${Math.round(dipMinRpm)} RPM${dipGear?' на '+Math.round(dipGear)+' предавка':''}.`,
-           'Възможни причини: превишен целеви буст, прегряване на IAT/масло, пробив във всмукателния път или корекция на аванса.'],
-          s.t[Math.max(0,dipStart-1)], s.t[Math.min(n-1,i)]);
-        dipStart=-1; dipMinT=100;
-      }
-    }
-  }
-
-  if(bt && (ba||map)){
-    const act=ba||map;
-    let lagStart=-1, maxDef=0, lagRpm=0;
-    for(let i=0;i<n;i++){
-      if(thr && thr[i]<80){ lagStart=-1; maxDef=0; continue; }
-      if(bt[i]>14 && act[i]<bt[i]-4.5){
-        if(lagStart<0){ lagStart=i; maxDef=bt[i]-act[i]; lagRpm=rpm?rpm[i]:0; }
-        else if(bt[i]-act[i]>maxDef){ maxDef=bt[i]-act[i]; if(rpm)lagRpm=rpm[i]; }
-      }else if(lagStart>=0){
-        if(s.t[i-1]-s.t[lagStart]>=0.25 && maxDef>=5)
-          add('warn','boost','Недостиг на буст спрямо целта',
-            [`Максимален дефицит ${mfmt(maxDef,1)} PSI (цел ${mfmt(bt[i-1],1)} PSI vs реално ${mfmt(act[i-1],1)} PSI) около ${Math.round(lagRpm)} RPM.`,
-             'Провери за теч на налягане (chargepipe / интеркулер / вакууми) и управлението на wastegate/EWG.'],
-            s.t[lagStart], s.t[i-1]);
-        lagStart=-1; maxDef=0;
-      }
-    }
-    let overStart=-1, maxOver=0;
-    for(let i=0;i<n;i++){
-      if(thr && thr[i]<75){ overStart=-1; maxOver=0; continue; }
-      if(bt[i]>5 && act[i]>bt[i]+3.5){
-        if(overStart<0){ overStart=i; maxOver=act[i]-bt[i]; }
-        else maxOver=Math.max(maxOver,act[i]-bt[i]);
-      }else if(overStart>=0){
-        if(maxOver>=3.5) add('warn','boost','Превишаване на буста (Overboost)',
-          [`Реалният буст надвишава целта с до +${mfmt(maxOver,1)} PSI.`,
-           'Провери PID настройките на буста, бавната реакция на wastegate/EWG или засядане на лостовия механизъм.'],
-          s.t[overStart], s.t[i-1]);
-        overStart=-1; maxOver=0;
-      }
-    }
-  }
-
-  let kStart=-1, kMin=0, kCyls=new Set();
-  for(let i=0;i<n;i++){
-    let worst=0; const hit=[];
-    if(knock && knock[i]<-1.5){ worst=Math.min(worst,knock[i]); hit.push('Knock'); }
-    cyl.forEach((arr,idx)=>{ if(arr && arr[i]<-1.5){ worst=Math.min(worst,arr[i]); hit.push('Cyl '+(idx+1)); } });
-    if(worst<-1.5){
-      if(kStart<0){ kStart=i; kMin=worst; kCyls=new Set(hit); }
-      else{ kMin=Math.min(kMin,worst); hit.forEach(x=>kCyls.add(x)); }
-    }else if(kStart>=0){
-      if(kMin<-2.0) add(kMin<-4.5?'crit':'warn','timing','Връщане на аванса / детонационна корекция',
-        [`Максимална корекция ${mfmt(kMin,1)}° в [${[...kCyls].join(', ')}]${rpm?' при ~'+Math.round(rpm[kStart])+' RPM':''}.`,
-         'Октанът на горивото, високата температура на всмукаемия въздух (IAT) или твърде агресивният аванс са чести причини.'],
-        s.t[kStart], s.t[i-1]);
-      kStart=-1; kMin=0; kCyls.clear();
-    }
-  }
-
-  if(afrT && afrA){
-    let lStart=-1, lMax=0;
-    for(let i=0;i<n;i++){
-      if(thr && thr[i]<70){ lStart=-1; lMax=0; continue; }
-      if(afrA[i]>afrT[i]+0.8 && afrA[i]>12.5){
-        if(lStart<0){ lStart=i; lMax=afrA[i]-afrT[i]; }
-        else lMax=Math.max(lMax,afrA[i]-afrT[i]);
-      }else if(lStart>=0){
-        if(lMax>=0.9) add('crit','afr','Обедняване на сместа при натоварване',
-          [`Реалното AFR е по-бедно от целта с до +${mfmt(lMax,2)} (цел ${mfmt(afrT[i-1],2)} vs реално ${mfmt(afrA[i-1],2)}).`,
-           'Провери налягането на горивото (HPFP / Rail), дебитомера / сензорите и евентуален въздушен теч след дебитомера.'],
-          s.t[lStart], s.t[i-1]);
-        lStart=-1; lMax=0;
-      }
-    }
-  }
-
-  if(rail){
-    const minR=mmin(rail), maxR=mmax(rail);
-    if(minR<1800 && thr && mmax(thr)>85)
-      add('warn','fuel','Спад в налягането на горивната рейка',
-        [`Минимално налягане на рейката ${Math.round(minR)} PSI (макс. ${Math.round(maxR)} PSI) при пълна газ.`,
-         'Провери високото налягане на горивото и състоянието на помпата за високо налягане / ниско налягане при висока мощност.'],
-        s.t[0], s.t[n-1]);
-  }
-  if(hpfp){
-    const minH=mmin(hpfp);
-    if(minH<12 && thr && mmax(thr)>85)
-      add('warn','fuel','Ниско налягане на HPFP при натоварване',
-        [`HPFP пада до ${mfmt(minH,1)} MPa при високо натоварване.`,
-         'Сравни целевото и реалното налягане на HPFP при висок въртящ момент.'],
-        s.t[0], s.t[n-1]);
-  }
-
-  if(iat){
-    const sI=iat[0], eI=iat[n-1], mxI=mmax(iat);
-    if(eI-sI>18 || mxI>130)
-      add(mxI>145?'crit':'warn','iat','Повишение на температурата на всмукаемия въздух (IAT)',
-        [`IAT се променя от ${mfmt(sI,0)}°F до ${mfmt(eI,0)}°F (макс. ${mfmt(mxI,0)}°F, Δ +${mfmt(eI-sI,0)}°F).`,
-         'Интеркулерът достига топлинно насищане; възможно е да последва връщане на аванса или ограничаване на буста.'],
-        s.t[0], s.t[n-1]);
-  }
-  if(ect && mmax(ect)>225)
-    add('warn','temp','Висока температура на охлаждащата течност',
-      [`Максимална температура ${mfmt(mmax(ect),0)}°F.`,
-       'Провери охлаждането, нивото на антифриза и термостатите/водната помпа при продължително натоварване.'],
-      s.t[0], s.t[n-1]);
-  if(oil && mmax(oil)>250)
-    add('warn','temp','Висока температура на моторното масло',
-      [`Максимална температура на маслото ${mfmt(mmax(oil),0)}°F.`,
-       'Високата температура на маслото снижава вискозитета и може да доведе до защитни ограничения.'],
-      s.t[0], s.t[n-1]);
-
-  if(stft && ltft){
-    let maxT=0;
-    for(let i=0;i<n;i++) maxT=Math.max(maxT,Math.abs((stft[i]||0)+(ltft[i]||0)));
-    if(maxT>18) add('info','trims','Значителни горивни корекции (STFT + LTFT)',
-      [`Сумарната горивна корекция достига ${mfmt(maxT,1)}%.`,
-       'Следи за стабилност на сместа и евентуални отклонения по горивната система или сензорите.'],
-      s.t[0], s.t[n-1]);
-  }
-
-  const wgAct=wg||ewg;
-  if(wgAct && mmax(wgAct)>92)
-    add('info','wg','Високо натоварване на wastegate / EWG (>92%)',
-      [`Максимално управление на wastegate/EWG ${mfmt(mmax(wgAct),0)}%.`,
-       'Турбината работи близо до горния си праг за този целеви буст.'],
-      s.t[0], s.t[n-1]);
-
-  const sum={
-    maxRpm: rpm?mmax(rpm):null,
-    maxBoost: (ba||map)?mmax(ba||map):null,
-    maxTargetBoost: bt?mmax(bt):null,
-    minAfr: afrA?mmin(afrA):null,
-    maxAfr: afrA?mmax(afrA):null,
-    minIgn: ign?mmin(ign):null,
-    minKnock: knock?mmin(knock):null,
-    maxIat: iat?mmax(iat):null,
-    maxEct: ect?mmax(ect):null,
-    maxOil: oil?mmax(oil):null,
-    maxLoad: loadA?mmax(loadA):null,
-    maxTorq: torq?mmax(torq):null,
-    tpsMin: tps?mmin(tps):null, tpsMax: tps?mmax(tps):null,
-    tpsAMin: tpsA?mmin(tpsA):null, tpsAMax: tpsA?mmax(tpsA):null,
-    tpsBMin: tpsB?mmin(tpsB):null, tpsBMax: tpsB?mmax(tpsB):null,
-    wgMax: wgAct?mmax(wgAct):null,
-    stftMin: stft?mmin(stft):null, stftMax: stft?mmax(stft):null,
-    ltftMin: ltft?mmin(ltft):null, ltftMax: ltft?mmax(ltft):null,
-    events
-  };
-  return {plat, sum, s};
-}
-
-const state={A:null, B:null, slot:'A', mode:'overview', pullA:null, pullB:null, zoom:null};
-let activeDlgSlot='A';
-
-function setMode(mode){
-  state.mode=mode;
-  if(mode!=='compare') renderOne();
-  else renderCompare();
-}
-
-function renderSlots(){
-  const g=m$('mlogSlots'); g.innerHTML='';
-  for(const sl of ['A','B']){
-    const m=state[sl], pulls=m?findPulls(m):[], curPull=sl==='A'?state.pullA:state.pullB;
-    const card=document.createElement('div');
-    card.className='record';
-    card.style.margin='0';
-    card.dataset.slot=sl;
-    card.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
-        <strong class="mlog-${sl}">ЛОГ ${sl}</strong>
-        <span class="muted mlog-mono">${m ? `${m.n} реда · ${mfmt(m.t[m.t.length-1]-m.t[0],1)}s` : 'Не е зареден'}</span>
-      </div>
-      <div class="muted" style="margin-bottom:8px;overflow-wrap:anywhere">${m ? m.name : 'Избери CSV файл или постави съдържание'}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button type="button" class="btn secondary small" data-pick="${sl}">Файл</button>
-        <button type="button" class="btn secondary small" data-paste="${sl}">Постави CSV</button>
-        ${m?`<button type="button" class="btn secondary small" data-clear="${sl}">Изчисти</button>`:''}
-      </div>
-      ${pulls.length?`<div class="field" style="margin-top:8px"><label>ОТКРИТИ ПУЛОВЕ (${pulls.length})</label><select data-pull="${sl}">
-        <option value="">Целият лог</option>
-        ${pulls.map((p,i)=>`<option value="${i}" ${curPull===i?'selected':''}>#${i+1}: ${mfmt(p.t0,1)}–${mfmt(p.t1,1)}s (${Math.round(p.r0)}→${Math.round(p.r1)} rpm${p.g?', G'+Math.round(p.g):''})</option>`).join('')}
-      </select></div>`:''}
-      <input type="file" accept=".csv,text/csv" data-file="${sl}" hidden>`;
-    g.appendChild(card);
-  }
-  g.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>g.querySelector(`[data-file="${b.dataset.pick}"]`).click());
-  g.querySelectorAll('[data-file]').forEach(inp=>inp.onchange=e=>{ if(e.target.files[0]) loadSlot(inp.dataset.file, e.target.files[0]); inp.value=''; });
-  g.querySelectorAll('[data-paste]').forEach(b=>b.onclick=()=>openPaste(b.dataset.paste));
-  g.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>{
-    state[b.dataset.clear]=null;
-    if(b.dataset.clear==='A')state.pullA=null; else state.pullB=null;
-    state.zoom=null; refresh();
-  });
-  g.querySelectorAll('[data-pull]').forEach(sel=>sel.onchange=()=>{
-    const v=sel.value===''?null:Number(sel.value);
-    if(sel.dataset.pull==='A')state.pullA=v; else state.pullB=v;
-    state.zoom=null; refresh();
-  });
-}
-
-function loadSlot(sl, file){
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      state[sl]=parseBM3(String(r.result||''), file.name);
-      if(sl==='A')state.pullA=null; else state.pullB=null;
-      state.zoom=null; state.slot=sl; refresh();
-      showToast(`Зареден е ЛОГ ${sl}: ${file.name}`,"good");
-    }catch(err){ alert('Грешка при четене на лога: '+err.message); }
-  };
-  r.readAsText(file);
-}
-
-function openPaste(sl){
-  activeDlgSlot=sl;
-  m$('mlogDlgTitle').textContent=`Постави CSV съдържание — ЛОГ ${sl}`;
-  m$('mlogDlgName').value=`Вставен лог ${sl}`;
-  m$('mlogDlgCsv').value='';
-  m$('mlogPasteDialog').showModal();
-}
-m$('mlogDlgClose').onclick=()=>m$('mlogPasteDialog').close();
-m$('mlogDlgCancel').onclick=()=>m$('mlogPasteDialog').close();
-m$('mlogDlgOk').onclick=()=>{
+function mlogSave(){
+ clearTimeout(mlogSaveTimer);
+ mlogSaveTimer=setTimeout(()=>{
   try{
-    state[activeDlgSlot]=parseBM3(m$('mlogDlgCsv').value, m$('mlogDlgName').value.trim()||`Вставен лог ${activeDlgSlot}`);
-    if(activeDlgSlot==='A')state.pullA=null; else state.pullB=null;
-    state.zoom=null; state.slot=activeDlgSlot; m$('mlogPasteDialog').close(); refresh();
-    showToast(`CSV за ЛОГ ${activeDlgSlot} е анализиран`,"good");
-  }catch(err){ alert('Грешка при парсване: '+err.message); }
-};
-
-function renderModes(){
-  const bar=m$('mlogBar'), box=m$('mlogModes');
-  if(!state.A && !state.B){ bar.style.display='none'; return; }
-  bar.style.display='block';
-  const isCmp=m$('mlogTabCmp').classList.contains('on');
-  if(isCmp){ box.innerHTML=''; return; }
-  const tabs=[['overview','Общ преглед'],['events','Събития'],['graph','Графика'],['sensors','Сензори']];
-  box.innerHTML=tabs.map(([k,l])=>`<button type="button" class="btn small ${state.mode===k?'':'secondary'}" data-m="${k}">${l}</button>`).join('');
-  box.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+   localStorage.setItem(MLOG_KEY,JSON.stringify({
+    tab:mlogState.tab,
+    mode:mlogState.mode,
+    slots:mlogState.slots.map(s=>s?{name:s.name,csv:s.csv}:null)
+   }));
+  }catch(e){}
+ },350);
 }
 
-function refresh(){
-  renderSlots(); renderModes();
-  const isCmp=m$('mlogTabCmp').classList.contains('on');
-  if(isCmp) renderCompare(); else renderOne();
+function mlogEsc(s){
+ return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 }
 
-function kpi(label, val, cls=''){
-  return `<div class="stat" style="margin:0"><div class="mlog-k">${label}</div><div class="mlog-v ${cls}">${val}</div></div>`;
+function mlogCss(v){
+ return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 }
 
-function renderOne(){
-  const v=m$('mlogView'), m=state[state.slot]||state.A||state.B;
-  if(!m){
-    v.innerHTML='<div class="panel empty">Зареди Bootmod3 CSV файл в ЛОГ А, за да започне анализът на телеметрията.</div>';
-    return;
-  }
-  const pull=state.slot==='B'?state.pullB:state.pullA;
-  const pulls=findPulls(m);
-  const {plat, sum, s}=analyze(m, pull!==null&&pulls[pull]?pulls[pull]:null);
-  const crits=sum.events.filter(e=>e.sev==='crit').length;
-  const warns=sum.events.filter(e=>e.sev==='warn').length;
-
-  let html=`<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <div><strong>${plat.name}</strong><div class="muted">${plat.sub}</div></div>
-      <span class="status-pill">${crits?crits+' критични':warns?warns+' предупреждения':'Без аномалии'}</span>
-    </div>
-    <div class="mlog-grid4">
-      ${kpi('Макс. обороти', sum.maxRpm?Math.round(sum.maxRpm)+' RPM':'—')}
-      ${kpi('Макс. буст', sum.maxBoost!==null?mfmt(sum.maxBoost,1)+' PSI':'—')}
-      ${kpi('Диапазон AFR', sum.minAfr!==null?mfmt(sum.minAfr,2)+'–'+mfmt(sum.maxAfr,2):'—')}
-      ${kpi('Мин. аванс / корекция', (sum.minIgn!==null?mfmt(sum.minIgn,1)+'°':'—')+' / '+(sum.minKnock!==null?mfmt(sum.minKnock,1)+'°':'—'), sum.minKnock<-3?'mlog-bad':sum.minKnock<-1.5?'mlog-mid':'mlog-good')}
-    </div>
-  </div>`;
-
-  if(state.mode==='overview' || state.mode==='events'){
-    html+=`<div class="panel"><div class="section-title">ОТКРИТИ СЪБИТИЯ (${sum.events.length})</div>`;
-    if(!sum.events.length) html+='<div class="alert good">Не са открити критични спадове в дросела, буста, сместа или аванса в избрания интервал.</div>';
-    for(const e of sum.events){
-      html+=`<div class="mlog-ev ${e.sev}">
-        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-          <div><span class="mlog-tag">${e.tag}</span> <strong style="margin-left:6px">${e.title}</strong></div>
-          <span class="muted mlog-mono">${mfmt(e.tStart,1)}–${mfmt(e.tEnd,1)}s</span>
-        </div>
-        <ul>${e.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
-      </div>`;
-    }
-    html+='</div>';
-  }
-
-  if(state.mode==='overview' || state.mode==='graph'){
-    html+=`<div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="section-title" style="margin-bottom:0">ТЕЛЕМЕТРИЧНА ГРАФИКА</div>
-        <button type="button" class="btn secondary small" id="mlogResetZoom">Нулирай мащаба</button>
-      </div>
-      <div class="mlog-ro" id="mlogReadout">Премести или докосни графиката за стойности в реално време</div>
-      <canvas id="mlogChart" class="mlog-canvas"></canvas>
-    </div>`;
-  }
-
-  if(state.mode==='overview' || state.mode==='sensors'){
-    const rows=[
-      ['RPM', sum.maxRpm!==null?`макс. ${Math.round(sum.maxRpm)} RPM`:'—'],
-      ['Буст (реално / цел)', `${sum.maxBoost!==null?mfmt(sum.maxBoost,1)+' PSI':'—'} / ${sum.maxTargetBoost!==null?mfmt(sum.maxTargetBoost,1)+' PSI':'—'}`],
-      ['AFR (мин–макс)', sum.minAfr!==null?`${mfmt(sum.minAfr,2)} – ${mfmt(sum.maxAfr,2)}`:'—'],
-      ['Аванс / Knock', `${sum.minIgn!==null?mfmt(sum.minIgn,1)+'°':'—'} / ${sum.minKnock!==null?mfmt(sum.minKnock,1)+'°':'—'}`],
-      ['Температури (IAT / ECT / Oil)', `${sum.maxIat!==null?mfmt(sum.maxIat,0)+'°F':'—'} / ${sum.maxEct!==null?mfmt(sum.maxEct,0)+'°F':'—'} / ${sum.maxOil!==null?mfmt(sum.maxOil,0)+'°F':'—'}`],
-      ['Натоварване / Въртящ момент', `${sum.maxLoad!==null?mfmt(sum.maxLoad,0)+'%':'—'} / ${sum.maxTorq!==null?Math.round(sum.maxTorq)+' Nm':'—'}`],
-      ['TPS (мин–макс)', sum.tpsMin!==null?`${mfmt(sum.tpsMin,2)} – ${mfmt(sum.tpsMax,2)} V`:'—'],
-      ['Wastegate / EWG макс.', sum.wgMax!==null?`${mfmt(sum.wgMax,0)}%`:'—'],
-      ['Горивни корекции (STFT / LTFT)', `${sum.stftMin!==null?mfmt(sum.stftMin,1)+'..'+mfmt(sum.stftMax,1)+'%':'—'} / ${sum.ltftMin!==null?mfmt(sum.ltftMin,1)+'..'+mfmt(sum.ltftMax,1)+'%':'—'}`]
-    ];
-    html+=`<div class="panel"><div class="section-title">СЕНЗОРНИ ПОКАЗАТЕЛИ</div><div class="mlog-sc"><table class="mlog-table"><tbody>
-      ${rows.map(([k,val])=>`<tr><th>${k}</th><td class="mlog-mono">${val}</td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  }
-
-  v.innerHTML=html;
-  if(m$('mlogChart')) drawChart(s);
-}
-
-function drawChart(s){
-  const c=m$('mlogChart'); if(!c) return;
-  const dpr=window.devicePixelRatio||1, rect=c.getBoundingClientRect();
-  c.width=Math.max(280,rect.width)*dpr; c.height=190*dpr;
-  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
-  const w=c.width/dpr, h=c.height/dpr;
-  const t0=s.t[0], t1=s.t[s.t.length-1];
-  const z0=state.zoom?state.zoom[0]:t0, z1=state.zoom?state.zoom[1]:t1;
-
-  const series=[];
-  const map=[
-    ['RPM (RPM)', '#38bdf8', 0, 7500, 'RPM'],
-    ['Boost (PSI)', '#28c58a', -5, 32, 'PSI'],
-    ['Boost target (PSI)', '#f0b547', -5, 32, 'PSI'],
-    ['Throttle position (%)', '#a78bfa', 0, 100, '%'],
-    ['Ignition timing (°)', '#fb7185', -10, 35, '°']
-  ];
-  for(const [k,col,mn,mx,u] of map){
-    if(k in s.col) series.push({k,col,mn,mx,u,a:s.col[k],sm:mavg(s.col[k],4)});
-  }
-
-  const paint=hoverT=>{
-    ctx.clearRect(0,0,w,h);
-    ctx.strokeStyle='rgba(148,163,184,.15)'; ctx.lineWidth=1;
-    for(let g=1;g<4;g++){ const y=h*g/4; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-    for(const sr of series){
-      ctx.strokeStyle=sr.col; ctx.lineWidth=1.7; ctx.beginPath();
-      let started=false;
-      for(let i=0;i<s.t.length;i++){
-        const tv=s.t[i]; if(tv<z0||tv>z1) continue;
-        const v=sr.sm[i]; if(!Number.isFinite(v)) continue;
-        const x=((tv-z0)/Math.max(0.01,z1-z0))*w;
-        const y=h-((v-sr.mn)/Math.max(0.001,sr.mx-sr.mn))*(h-18)-9;
-        if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
-      }
-      ctx.stroke();
-    }
-    if(hoverT!==null){
-      const hx=((hoverT-z0)/Math.max(0.01,z1-z0))*w;
-      ctx.strokeStyle='rgba(240,245,252,.45)'; ctx.beginPath(); ctx.moveTo(hx,0); ctx.lineTo(hx,h); ctx.stroke();
-      let idx=0, best=1e9;
-      for(let i=0;i<s.t.length;i++){ const d=Math.abs(s.t[i]-hoverT); if(d<best){ best=d; idx=i; } }
-      const ro=m$('mlogReadout');
-      if(ro) ro.textContent=`t=${mfmt(s.t[idx],2)}s · `+series.map(sr=>`${sr.k.split(' ')[0]}: ${mfmt(sr.a[idx],1)}${sr.u}`).join(' | ');
-    }
-  };
-  paint(null);
-
-  const posToT=e=>{
-    const r=c.getBoundingClientRect();
-    const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
-    return z0+Math.max(0,Math.min(1,cx/r.width))*(z1-z0);
-  };
-  c.onmousemove=e=>paint(posToT(e));
-  c.ontouchmove=e=>paint(posToT(e));
-  c.onmouseleave=()=>paint(null);
-  let dragStart=null;
-  c.onmousedown=e=>{ dragStart=posToT(e); };
-  c.onmouseup=e=>{
-    if(dragStart===null) return;
-    const endT=posToT(e);
-    if(Math.abs(endT-dragStart)>0.35) state.zoom=[Math.min(dragStart,endT),Math.max(dragStart,endT)];
-    dragStart=null; paint(null);
-  };
-  if(m$('mlogResetZoom')) m$('mlogResetZoom').onclick=()=>{ state.zoom=null; paint(null); };
-}
-
-function renderCompare(){
-  const v=m$('mlogView');
-  if(!state.A || !state.B){
-    v.innerHTML='<div class="panel empty">Зареди и двата лога (ЛОГ А и ЛОГ Б), за да сравниш показателите и събитията.</div>';
-    return;
-  }
-  const a=analyze(state.A, state.pullA!==null?findPulls(state.A)[state.pullA]:null).sum;
-  const b=analyze(state.B, state.pullB!==null?findPulls(state.B)[state.pullB]:null).sum;
-  const pairs=[
-    ['Макс. обороти', a.maxRpm?Math.round(a.maxRpm)+' RPM':'—', b.maxRpm?Math.round(b.maxRpm)+' RPM':'—'],
-    ['Макс. буст', a.maxBoost!==null?mfmt(a.maxBoost,1)+' PSI':'—', b.maxBoost!==null?mfmt(b.maxBoost,1)+' PSI':'—'],
-    ['Макс. цел буст', a.maxTargetBoost!==null?mfmt(a.maxTargetBoost,1)+' PSI':'—', b.maxTargetBoost!==null?mfmt(b.maxTargetBoost,1)+' PSI':'—'],
-    ['Мин. AFR', a.minAfr!==null?mfmt(a.minAfr,2):'—', b.minAfr!==null?mfmt(b.minAfr,2):'—'],
-    ['Мин. аванс', a.minIgn!==null?mfmt(a.minIgn,1)+'°':'—', b.minIgn!==null?mfmt(b.minIgn,1)+'°':'—'],
-    ['Макс. корекция (Knock)', a.minKnock!==null?mfmt(a.minKnock,1)+'°':'—', b.minKnock!==null?mfmt(b.minKnock,1)+'°':'—'],
-    ['Макс. IAT', a.maxIat!==null?mfmt(a.maxIat,0)+'°F':'—', b.maxIat!==null?mfmt(b.maxIat,0)+'°F':'—'],
-    ['Брой събития', String(a.events.length), String(b.events.length)]
-  ];
-  v.innerHTML=`<div class="panel"><div class="section-title">СРАВНЕНИЕ ЛОГ А VS ЛОГ Б</div><div class="mlog-sc"><table class="mlog-table">
-    <thead><tr><th>Показател</th><th class="mlog-A">ЛОГ А</th><th class="mlog-B">ЛОГ Б</th></tr></thead>
-    <tbody>${pairs.map(([k,va,vb])=>`<tr><th>${k}</th><td class="mlog-mono">${va}</td><td class="mlog-mono">${vb}</td></tr>`).join('')}</tbody>
-  </table></div></div>`;
-}
-
-function buildReportText(){
-  const m=state[state.slot]||state.A||state.B;
-  if(!m) return '';
-  const pull=state.slot==='B'?state.pullB:state.pullA;
-  const pulls=findPulls(m);
-  const {plat, sum}=analyze(m, pull!==null&&pulls[pull]?pulls[pull]:null);
-  const lines=[
-    `M-LOG LAB отчет · ${m.name} (${plat.name})`,
-    `Макс. RPM: ${sum.maxRpm?Math.round(sum.maxRpm):'—'} | Макс. буст: ${sum.maxBoost!==null?mfmt(sum.maxBoost,1)+' PSI':'—'} | Мин. AFR: ${sum.minAfr!==null?mfmt(sum.minAfr,2):'—'} | Мин. Knock: ${sum.minKnock!==null?mfmt(sum.minKnock,1)+'°':'—'}`
-  ];
-  if(!sum.events.length){
-    lines.push('Събития: няма открити критични аномалии.');
+function mlogLine(line,d){
+ let out=[],cur="",q=false;
+ for(let i=0;i<line.length;i++){
+  let c=line[i];
+  if(q){
+   if(c==='"'&&line[i+1]==='"'){cur+='"';i++;}
+   else if(c==='"')q=false;
+   else cur+=c;
   }else{
-    sum.events.forEach(e=>{
-      lines.push(`- [${e.sev.toUpperCase()}] ${e.title} (${mfmt(e.tStart,1)}–${mfmt(e.tEnd,1)}s): ${e.bullets.join(' ')}`);
-    });
+   if(c==='"')q=true;
+   else if(c===d){out.push(cur.trim());cur="";}
+   else cur+=c;
   }
-  return lines.join('\n');
+ }
+ out.push(cur.trim());
+ return out;
 }
 
-m$('mlogTabOne').onclick=()=>{ m$('mlogTabOne').classList.add('on'); m$('mlogTabCmp').classList.remove('on'); refresh(); };
-m$('mlogTabCmp').onclick=()=>{ m$('mlogTabCmp').classList.add('on'); m$('mlogTabOne').classList.remove('on'); refresh(); };
+function mlogParseCsv(text){
+ const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim());
+ if(lines.length<3)throw new Error("CSV файлът е твърде кратък.");
+ let hi=0,d=",";
+ for(let i=0;i<Math.min(10,lines.length);i++){
+  const cand=[",",";","\t"].sort((a,b)=>lines[i].split(b).length-lines[i].split(a).length)[0];
+  const cells=mlogLine(lines[i],cand);
+  if(cells.length>=4&&/time|rpm/i.test(lines[i])){hi=i;d=cand;break;}
+ }
+ const headers=mlogLine(lines[hi],d).map((h,i)=>h||("col_"+i));
+ const cols={};headers.forEach(h=>cols[h]=[]);
+ const rows=[];
+ for(let i=hi+1;i<lines.length;i++){
+  const cells=mlogLine(lines[i],d);
+  if(cells.length<2)continue;
+  const r={};
+  headers.forEach((h,j)=>{
+   const v=(cells[j]??"").replace(/[^\d.eE+-]/g,"");
+   const n=v===""||v==="-"||v==="+"||v==="."?NaN:Number(v);
+   r[h]=n;cols[h].push(n);
+  });
+  rows.push(r);
+ }
+ if(!rows.length)throw new Error("Няма валидни числови редове в CSV.");
+ return{headers,cols,rows};
+}
 
-m$('mlogCopyReport').onclick=async()=>{
-  const txt=buildReportText();
-  if(!txt) return showToast('Няма зареден лог за отчет','warn');
-  try{
-    if(navigator.clipboard&&window.isSecureContext) await navigator.clipboard.writeText(txt);
-    else{
-      const ta=document.createElement('textarea'); ta.value=txt;
-      ta.style.position='fixed'; ta.style.opacity='0'; document.body.append(ta);
-      ta.focus(); ta.select(); document.execCommand('copy'); ta.remove();
+function mlogPick(headers,list){
+ const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+ const H=headers.map(h=>({h,n:norm(h)}));
+ for(const p of list){
+  const pn=norm(p);
+  let f=H.find(x=>x.n===pn);if(f)return f.h;
+  f=H.find(x=>x.n.startsWith(pn));if(f)return f.h;
+  f=H.find(x=>x.n.includes(pn));if(f)return f.h;
+ }
+ return null;
+}
+
+function mlogClean(arr){return arr.filter(x=>typeof x==="number"&&!Number.isNaN(x));}
+function mlogAvg(a){a=mlogClean(a);return a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN;}
+function mlogMin(a){a=mlogClean(a);return a.length?Math.min(...a):NaN;}
+function mlogMax(a){a=mlogClean(a);return a.length?Math.max(...a):NaN;}
+function mlogPct(a,p){
+ a=mlogClean(a).slice().sort((x,y)=>x-y);
+ if(!a.length)return NaN;
+ const idx=(a.length-1)*p,lo=Math.floor(idx),hi=Math.ceil(idx);
+ return lo===hi?a[lo]:a[lo]*(hi-idx)+a[hi]*(idx-lo);
+}
+function mlogFmt(v,d=1){return Number.isFinite(v)?v.toFixed(d):"—";}
+
+function mlogAnalyze(name,csv){
+ const {headers,cols,rows}=mlogParseCsv(csv);
+ const pick=l=>mlogPick(headers,l);
+ const map={
+  time:pick(["Time","Time (s)","Timestamp"]),
+  rpm:pick(["Engine speed","Engine Speed","RPM"]),
+  pedal:pick(["Accel. Pedal Pos.","Accel Pedal","Accelerator Pedal","Pedal Position"]),
+  thr:pick(["Throttle Angle","Throttle Position","Throttle"]),
+  load:pick(["Engine Load","Load Actual","Actual Load"]),
+  loadT:pick(["Engine Load Target","Load Target","Target Load"]),
+  boost:pick(["Boost (Pre-Throttle)","Boost","MAP","Manifold Absolute Pressure","Charge Pipe Pressure"]),
+  boostT:pick(["Boost Target","Target Boost","Boost Setpoint"]),
+  wgdc:pick(["Wastegate Duty Cycle","WGDC","Wastegate"]),
+  ign:pick(["Ignition Timing (Cyl. 1)","Ignition Timing Cyl 1","Timing Cyl 1","Ignition Timing"]),
+  afr:pick(["Air Fuel Ratio","AFR","Lambda"]),
+  afrT:pick(["Air Fuel Ratio Target","AFR Target","Target AFR","Lambda Target"]),
+  stft:pick(["STFT","Short Term Fuel Trim"]),
+  ltft:pick(["LTFT","Long Term Fuel Trim"]),
+  hpfp:pick(["Rail Pressure","Fuel Rail Pressure","HPFP","High Pressure Fuel"]),
+  hpfpT:pick(["Rail Pressure Target","Fuel Rail Pressure Target","HPFP Target"]),
+  iat:pick(["Intake Air Temp","IAT"]),
+  clt:pick(["Coolant Temp","ECT"]),
+  oil:pick(["Oil Temp","Engine Oil Temp"]),
+  knock:pick(["Knock Detected","Knock Count","Knock"])
+ };
+ map.cor=[1,2,3,4,5,6].map(c=>pick([`Timing Cor. (Cyl. ${c})`,`Timing Cor (Cyl ${c})`,`Timing Correction Cyl ${c}`,`Cyl ${c} Timing Cor`])).filter(Boolean);
+
+ const tRaw=map.time?cols[map.time]:rows.map((_,i)=>i*0.05);
+ const t0=tRaw.find(Number.isFinite)??0;
+ const t=tRaw.map(v=>Number.isFinite(v)?(v-t0):NaN);
+ const dt=Math.max(0.005,(mlogMax(t)-mlogMin(t))/Math.max(1,rows.length-1));
+
+ const bRaw=map.boost?cols[map.boost]:null;
+ let bUnit="psi";
+ if(bRaw){
+  const med=mlogPct(bRaw,0.5),mx=mlogMax(bRaw);
+  if(mx>80&&med>60)bUnit="kpa";
+  else if(mx<5&&med>0.3)bUnit="bar";
+ }
+ const toPsi=arr=>!arr?null:arr.map(v=>{
+  if(!Number.isFinite(v))return NaN;
+  if(bUnit==="kpa")return(v-101.325)*0.145038;
+  if(bUnit==="bar")return v>1.9?(v-1.01325)*14.5038:v*14.5038;
+  return v;
+ });
+ const boost=toPsi(bRaw),boostT=toPsi(map.boostT?cols[map.boostT]:null);
+
+ const iRaw=map.iat?cols[map.iat]:null;
+ const toC=arr=>!arr?null:arr.map(v=>!Number.isFinite(v)?NaN:(mlogPct(arr,0.5)>85?(v-32)*5/9:v));
+ const iat=toC(iRaw),clt=toC(map.clt?cols[map.clt]:null),oil=toC(map.oil?cols[map.oil]:null);
+
+ const afrRaw=map.afr?cols[map.afr]:null,afrTRaw=map.afrT?cols[map.afrT]:null;
+ const isLam=afrRaw&&mlogPct(afrRaw,0.5)<3;
+ const afr=afrRaw?afrRaw.map(v=>Number.isFinite(v)?(isLam?v*14.7:v):NaN):null;
+ const afrT=afrTRaw?afrTRaw.map(v=>Number.isFinite(v)?(isLam?v*14.7:v):NaN):null;
+
+ const hRaw=map.hpfp?cols[map.hpfp]:null,hTRaw=map.hpfpT?cols[map.hpfpT]:null;
+ const toBar=arr=>!arr?null:arr.map(v=>{
+  if(!Number.isFinite(v))return NaN;
+  const m=mlogMax(arr);
+  if(m>8000)return v*0.0001;
+  if(m>600)return v*0.0689476;
+  return v;
+ });
+ const hpfp=toBar(hRaw),hpfpT=toBar(hTRaw);
+
+ const rpm=map.rpm?cols[map.rpm]:null;
+ const pedal=map.pedal?cols[map.pedal]:null;
+ const thr=map.thr?cols[map.thr]:null;
+ const wgdc=map.wgdc?cols[map.wgdc]:null;
+ const ign=map.ign?cols[map.ign]:null;
+ const stft=map.stft?cols[map.stft]:null;
+ const ltft=map.ltft?cols[map.ltft]:null;
+ const load=map.load?cols[map.load]:null;
+ const loadT=map.loadT?cols[map.loadT]:null;
+ const knock=map.knock?cols[map.knock]:null;
+ const cor=map.cor.map(h=>cols[h]);
+
+ const wot=rows.map((_,i)=>{
+  const p=pedal?pedal[i]:NaN,th=thr?thr[i]:NaN;
+  if(Number.isFinite(p))return p>=80;
+  if(Number.isFinite(th))return th>=75;
+  return false;
+ });
+ const pulls=[];let s=-1;
+ for(let i=0;i<=rows.length;i++){
+  if(i<rows.length&&wot[i]){if(s<0)s=i;}
+  else if(s>=0){
+   const e=i-1,dur=t[e]-t[s];
+   const r0=rpm?rpm[s]:NaN,r1=rpm?rpm[e]:NaN;
+   if(dur>=1.2&&(!Number.isFinite(r0)||r1-r0>=700))pulls.push({s,e,dur,r0,r1});
+   s=-1;
+  }
+ }
+ if(!pulls.length)pulls.push({s:0,e:rows.length-1,dur:t[rows.length-1]-t[0],r0:rpm?rpm[0]:NaN,r1:rpm?rpm[rows.length-1]:NaN,full:true});
+
+ pulls.forEach(p=>{
+  const sl=a=>a?a.slice(p.s,p.e+1):[];
+  p.maxBoost=mlogMax(sl(boost));
+  p.maxBoostT=mlogMax(sl(boostT));
+  p.avgWgdc=mlogAvg(sl(wgdc));
+  p.maxWgdc=mlogMax(sl(wgdc));
+  p.minIgn=mlogMin(sl(ign));
+  p.maxIgn=mlogMax(sl(ign));
+  p.minCor=cor.length?Math.min(...cor.map(c=>mlogMin(sl(c))).filter(Number.isFinite)):NaN;
+  p.minAfr=mlogMin(sl(afr));
+  p.maxAfr=mlogMax(sl(afr));
+  p.minHpfp=mlogMin(sl(hpfp));
+  p.iat0=iat?iat[p.s]:NaN;
+  p.iat1=iat?iat[p.e]:NaN;
+  p.dIat=p.iat1-p.iat0;
+  p.maxClt=mlogMax(sl(clt));
+  p.maxOil=mlogMax(sl(oil));
+  p.avgStft=mlogAvg(sl(stft));
+  p.knockCnt=knock?sl(knock).filter(v=>v>0).length:0;
+ });
+
+ const primary=pulls.slice().sort((a,b)=>(b.r1-b.r0||b.dur)-(a.r1-a.r0||a.dur))[0];
+
+ const findings=[];
+ const add=(sev,title,detail,causes)=>{findings.push({sev,title,detail,causes});};
+
+ const cylMin=cor.map((c,i)=>({cyl:i+1,min:mlogMin(c),avg:mlogAvg(c)}));
+ const worstCyl=cylMin.slice().sort((a,b)=>a.min-b.min)[0];
+ if(worstCyl&&worstCyl.min<=-3){
+  const big=cylMin.filter(x=>x.min<=-3).map(x=>`Цил.${x.cyl} (${x.min.toFixed(1)}°)`).join(", ");
+  add(worstCyl.min<=-5?"crit":"warn",
+   `Timing корекции до ${worstCyl.min.toFixed(1)}° (${big})`,
+   "Двигателят връща аванс под натоварване.",
+   ["Октаново число по-ниско от изискваното за OTS мапа (напр. 95 вместо 98/100)","Висок IAT (heat soak) при повторен пул","Износени свещи или бобина на засегнатия цилиндър","Лоша партида гориво — пробвай 100 октана или малко E85 смес"]);
+ }
+ if(boost&&boostT){
+  const diffs=pulls.flatMap(p=>{
+   const out=[];
+   for(let i=p.s;i<=p.e;i++)if(Number.isFinite(boost[i])&&Number.isFinite(boostT[i])&&boostT[i]>6)out.push(boostT[i]-boost[i]);
+   return out;
+  });
+  const p90=mlogPct(diffs,0.9);
+  if(p90>2.2){
+   add(p90>3.5?"crit":"warn",
+    `Недостиг на буст (${p90.toFixed(1)} psi под target при WOT)`,
+    "Реалното налягане изостава от зададеното.",
+    ["Пропуск в charge pipe или връзките към интеркулера (често при B48)","WGDC удря таван (виж WGDC графиката) — претоварена турбина или засядащ уестгейт","Висока надморска височина или много висок IAT"]);
+  }
+ }
+ if(wgdc&&mlogMax(wgdc)>92){
+  add("warn",
+   `Висок WGDC (пик ${mlogMax(wgdc).toFixed(0)}%)`,
+   "Турбината работи близко до максимума на уестгейта.",
+   ["Малък теч след турбината принуждава уестгейта да затваря напълно","Прекалено агресивен буст target за сток турбина при топло време"]);
+ }
+ if(hpfp&&hpfpT){
+  const drops=pulls.flatMap(p=>{
+   const out=[];
+   for(let i=p.s;i<=p.e;i++)if(Number.isFinite(hpfp[i])&&Number.isFinite(hpfpT[i])&&hpfpT[i]>80)out.push(hpfpT[i]-hpfp[i]);
+   return out;
+  });
+  const mx=mlogMax(drops);
+  if(mx>25){
+   add(mx>45?"crit":"warn",
+    `Пад на налягането в рейла (${mx.toFixed(0)} bar под target)`,
+    "HPFP не успява да поддържа зададеното налягане на горивото.",
+    ["Високо съдържание на етанол над възможностите на сток B48 HPFP","Износена помпа за високо налягане или запушен горивен филтър","Ниско налягане от помпата в резервоара (LPFP)"]);
+  }
+ }
+ if(afr&&afrT){
+  const lean=pulls.flatMap(p=>{
+   const out=[];
+   for(let i=p.s;i<=p.e;i++)if(Number.isFinite(afr[i])&&Number.isFinite(afrT[i])&&(rpm?rpm[i]>3500:true))out.push(afr[i]-afrT[i]);
+   return out;
+  });
+  const mx=mlogMax(lean);
+  if(mx>0.8){
+   add("crit",
+    `Бедна смес под натоварване (+${mx.toFixed(2)} AFR над target)`,
+    "Измереният AFR е по-беден от целевия при високи обороти.",
+    ["Ограничение по дебит на HPFP или инжектор","Неточна калибрация на MAF / MAP сензор","Теч на въздух след дебитомера"]);
+  }
+ }
+ if(stft){
+  const wotStft=pulls.flatMap(p=>stft.slice(p.s,p.e+1)).filter(Number.isFinite);
+  if(wotStft.length&&(mlogMax(wotStft)>12||mlogMin(wotStft)<-12)){
+   add("warn",
+    `Големи STFT корекции при WOT (${mlogMin(wotStft).toFixed(0)}% .. +${mlogMax(wotStft).toFixed(0)}%)`,
+    "ECU добавя или отнема значително гориво в реално време.",
+    ["Променено съдържание на етанол без адаптация на LTFT","Неизправен преден ламбда сонда (O2) сензор","Вакуумен или charge-pipe теч"]);
+  }
+ }
+ if(iat&&mlogMax(iat)>52){
+  add(mlogMax(iat)>62?"crit":"warn",
+   `Висок IAT (${mlogMax(iat).toFixed(0)} °C)`,
+   "Горещ входящ въздух — DME автоматично сваля аванс и буст.",
+   ["Heat soak на заводския въздушно-воден интеркулер (B48)","Нисък дебит или въздух в нискотемпературния охладител кръг (помпа/ниво)","Последователни пулове без охлаждане между тях"]);
+ }
+ if(knock&&mlogClean(knock).some(v=>v>0)){
+  add("crit",
+   `Регистрирани детонации (${mlogClean(knock).filter(v=>v>0).length} проби)`,
+   "Датчикът за детонации е отчел активност.",
+   ["Неподходящо гориво за избрания мап","Висок IAT / прегряване","Смени мапа на по-нисък октан докато не изясниш причината"]);
+ }
+ if(!findings.length){
+  add("info",
+   "Няма засечени критични отклонения",
+   "Буст, аванс, гориво и температури изглеждат в нормални граници за анализирания лог.",
+   ["Провери все пак графиката на Timing корекциите за единични пикове над -3°"]);
+ }
+
+ return{
+  name,csv,rows:rows.length,dur:mlogMax(t)-mlogMin(t),dt,bUnit,
+  t,rpm,pedal,thr,load,loadT,boost,boostT,wgdc,ign,afr,afrT,stft,ltft,hpfp,hpfpT,iat,clt,oil,knock,cor,
+  pulls,primary,cylMin,findings
+ };
+}
+
+function mlogDrawChart(canvas,ro,series,t,win,hoverIdx){
+ const dpr=window.devicePixelRatio||1;
+ const w=canvas.clientWidth||320,h=canvas.clientHeight||190;
+ if(canvas.width!==w*dpr||canvas.height!==h*dpr){canvas.width=w*dpr;canvas.height=h*dpr;}
+ const ctx=canvas.getContext("2d");
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.clearRect(0,0,w,h);
+
+ const valid=series.filter(s=>s.data&&mlogClean(s.data).length);
+ if(!valid.length){
+  ctx.fillStyle=mlogCss("--muted")||"#8c9cb0";
+  ctx.font="12px sans-serif";
+  ctx.fillText("Каналът липсва в този CSV.",14,28);
+  ro.textContent="";
+  return;
+ }
+ const pad={l:38,r:10,t:10,b:20};
+ const pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+ const tMin=win?win[0]:mlogMin(t),tMax=win?win[1]:mlogMax(t);
+ const spanT=Math.max(0.01,tMax-tMin);
+
+ let lo=Infinity,hi=-Infinity;
+ valid.forEach(s=>{
+  for(let i=0;i<t.length;i++){
+   if(t[i]<tMin||t[i]>tMax)continue;
+   const v=s.data[i];
+   if(Number.isFinite(v)){if(v<lo)lo=v;if(v>hi)hi=v;}
+  }
+ });
+ if(!Number.isFinite(lo)){lo=0;hi=1;}
+ if(lo===hi){lo-=1;hi+=1;}
+ const padY=(hi-lo)*0.08;lo-=padY;hi+=padY;
+
+ const xOf=tv=>pad.l+((tv-tMin)/spanT)*pw;
+ const yOf=v=>pad.t+ph-((v-lo)/(hi-lo))*ph;
+
+ ctx.strokeStyle=mlogCss("--border")||"#253447";
+ ctx.lineWidth=1;
+ ctx.fillStyle=mlogCss("--muted")||"#8c9cb0";
+ ctx.font="10px ui-monospace,Menlo,monospace";
+ for(let g=0;g<=4;g++){
+  const y=pad.t+(ph/4)*g;
+  ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+  const val=hi-(hi-lo)*(g/4);
+  ctx.fillText(val.toFixed(Math.abs(hi-lo)<10?1:0),4,y+3);
+ }
+ for(let g=0;g<=4;g++){
+  const tv=tMin+spanT*(g/4);
+  ctx.fillText(tv.toFixed(1)+"s",xOf(tv)-12,h-5);
+ }
+
+ valid.forEach(s=>{
+  ctx.strokeStyle=s.color;
+  ctx.lineWidth=s.dash?1.3:1.8;
+  ctx.setLineDash(s.dash?[4,4]:[]);
+  ctx.beginPath();
+  let pen=false;
+  for(let i=0;i<t.length;i++){
+   if(t[i]<tMin||t[i]>tMax)continue;
+   const v=s.data[i];
+   if(!Number.isFinite(v)){pen=false;continue;}
+   const x=xOf(t[i]),y=yOf(v);
+   if(!pen){ctx.moveTo(x,y);pen=true;}else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+ });
+ ctx.setLineDash([]);
+
+ if(hoverIdx!=null&&hoverIdx>=0&&hoverIdx<t.length&&t[hoverIdx]>=tMin&&t[hoverIdx]<=tMax){
+  const x=xOf(t[hoverIdx]);
+  ctx.strokeStyle="rgba(255,255,255,0.45)";
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,h-pad.b);ctx.stroke();
+  const parts=[`t=${t[hoverIdx].toFixed(2)}s`];
+  valid.forEach(s=>{const v=s.data[hoverIdx];if(Number.isFinite(v))parts.push(`${s.label}:${v.toFixed(s.dec??1)}`);});
+  ro.textContent=parts.join(" · ");
+ }else{
+  ro.textContent=valid.map(s=>`${s.label} (${mlogMin(s.data).toFixed(s.dec??1)}..${mlogMax(s.data).toFixed(s.dec??1)})`).join("  |  ");
+ }
+}
+
+function mlogBuildCharts(D){
+ const pal=["#38bdf8","#a78bfa","#34d399","#fbbf24","#f87171","#f472b6"];
+ const all=[
+  {g:"b",title:"Буст (psi) vs Target",s:[{label:"Boost",data:D.boost,color:"#38bdf8"},{label:"Target",data:D.boostT,color:"#fbbf24",dash:true}]},
+  {g:"b",title:"WGDC (%) и Обороти",s:[{label:"WGDC%",data:D.wgdc,color:"#a78bfa"},{label:"RPM/100",data:D.rpm?D.rpm.map(v=>v/100):null,color:"#34d399",dash:true}]},
+  {g:"i",title:"Аванс Цил. 1 (°)",s:[{label:"Ign1",data:D.ign,color:"#38bdf8"}]},
+  {g:"i",title:"Timing корекции по цилиндри (°)",s:D.cor.map((c,i)=>({label:`C${i+1}`,data:c,color:pal[i%pal.length]}))},
+  {g:"f",title:"AFR vs Target",s:[{label:"AFR",data:D.afr,color:"#38bdf8",dec:2},{label:"Target",data:D.afrT,color:"#fbbf24",dash:true,dec:2}]},
+  {g:"f",title:"STFT / LTFT (%) и HPFP (bar/10)",s:[{label:"STFT%",data:D.stft,color:"#34d399"},{label:"LTFT%",data:D.ltft,color:"#a78bfa",dash:true},{label:"HPFP/10",data:D.hpfp?D.hpfp.map(v=>v/10):null,color:"#f87171"}]},
+  {g:"t",title:"Температури IAT / CLT / Oil (°C)",s:[{label:"IAT",data:D.iat,color:"#38bdf8"},{label:"CLT",data:D.clt,color:"#fbbf24"},{label:"Oil",data:D.oil,color:"#f87171"}]},
+  {g:"d",title:"Детонации & Педал (%)",s:[{label:"Knock",data:D.knock,color:"#f87171",dec:0},{label:"Pedal%",data:D.pedal,color:"#34d399",dash:true}]}
+ ];
+ return mlogState.mode==="a"?all:all.filter(c=>c.g===mlogState.mode);
+}
+
+function mlogBuildReport(D){
+ const p=D.primary;
+ const lines=[
+  `=== M-LOG LAB · ${D.name} ===`,
+  `Редове: ${D.rows} | Продължителност: ${D.dur.toFixed(1)}s | Буст единици: ${D.bUnit}`,
+  `Основен прозорец: ${D.t[p.s].toFixed(2)}s..${D.t[p.e].toFixed(2)}s (${mlogFmt(p.r0,0)}->${mlogFmt(p.r1,0)} rpm)`,
+  `Пик буст: ${mlogFmt(p.maxBoost)} psi (target ${mlogFmt(p.maxBoostT)} psi) | Макс WGDC: ${mlogFmt(p.maxWgdc,0)}%`,
+  `Аванс: ${mlogFmt(p.minIgn)}°..${mlogFmt(p.maxIgn)}° | Най-лоша корекция: ${mlogFmt(p.minCor)}°`,
+  `AFR: ${mlogFmt(p.minAfr,2)}..${mlogFmt(p.maxAfr,2)} | Мин HPFP: ${mlogFmt(p.minHpfp,0)} bar | Ср. STFT: ${mlogFmt(p.avgStft)}%`,
+  `IAT: ${mlogFmt(p.iat0,0)}->${mlogFmt(p.iat1,0)}°C (Δ${mlogFmt(p.dIat,1)}°C) | Макс CLT: ${mlogFmt(p.maxClt,0)}°C | Макс Oil: ${mlogFmt(p.maxOil,0)}°C`,
+  `Цилиндри (мин/ср): ${D.cylMin.map(c=>`C${c.cyl}:${mlogFmt(c.min)}°/${mlogFmt(c.avg)}°`).join(" ")||"няма данни"}`,
+  ``,`Диагностика:`
+ ];
+ D.findings.forEach(f=>{
+  lines.push(`- [${f.sev.toUpperCase()}] ${f.title}: ${f.detail}`);
+  f.causes.forEach(c=>lines.push(`   • ${c}`));
+ });
+ return lines.join("\n");
+}
+
+function mlogWireCanvas(canvas,ro,series,t){
+ let drag=null;
+ const idxFromX=clientX=>{
+  const rect=canvas.getBoundingClientRect();
+  const tMin=mlogState.win?mlogState.win[0]:mlogMin(t),tMax=mlogState.win?mlogState.win[1]:mlogMax(t);
+  const frac=Math.max(0,Math.min(1,(clientX-rect.left-38)/Math.max(1,rect.width-48)));
+  const tv=tMin+frac*(tMax-tMin);
+  let best=0,bd=Infinity;
+  for(let i=0;i<t.length;i++){const d=Math.abs(t[i]-tv);if(d<bd){bd=d;best=i;}}
+  return best;
+ };
+ canvas.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse")drag={x0:e.clientX,idx0:idxFromX(e.clientX)};
+ });
+ canvas.addEventListener("pointermove",e=>{
+  mlogState.cur=idxFromX(e.clientX);
+  mlogRedrawCanvases();
+ });
+ canvas.addEventListener("pointerup",e=>{
+  if(drag&&Math.abs(e.clientX-drag.x0)>14){
+   const a=t[drag.idx0],b=t[idxFromX(e.clientX)];
+   if(Math.abs(b-a)>0.3){mlogState.win=[Math.min(a,b),Math.max(a,b)];mlogRedrawCanvases();}
+  }
+  drag=null;
+ });
+ canvas.addEventListener("dblclick",()=>{mlogState.win=null;mlogRedrawCanvases();});
+}
+
+let mlogCanvasJobs=[];
+function mlogRedrawCanvases(){
+ mlogCanvasJobs.forEach(j=>mlogDrawChart(j.canvas,j.ro,j.series,j.t,mlogState.win,mlogState.cur));
+}
+window.mlogRedraw=mlogRedrawCanvases;
+
+function mlogRenderSlots(){
+ const root=$("mlogSlots");
+ if(!root)return;
+ root.innerHTML="";
+ const need=mlogState.tab==="cmp"?2:1;
+ for(let idx=0;idx<need;idx++){
+  const s=mlogState.slots[idx];
+  const tag=idx===0?"А":"Б";
+  const cls=idx===0?"mlog-A":"mlog-B";
+  const box=document.createElement("div");
+  box.style.cssText="border:1px solid var(--border);border-radius:16px;padding:12px;background:var(--surface-2)";
+  box.innerHTML=`
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+    <strong class="${cls}" style="font-size:13px">Лог ${tag}${s?": "+mlogEsc(s.name):""}</strong>
+    ${s?`<button type="button" class="btn secondary small" data-clr="${idx}" style="min-height:30px;padding:4px 9px">Изчисти</button>`:""}
+   </div>
+   <div class="muted" style="margin-top:4px">${s?`${s.data.rows} реда · ${s.data.dur.toFixed(1)}s · единици: ${s.data.bUnit}`:"Пусни Bootmod3 CSV файл тук или избери от бутоните"}</div>
+   <div class="btn-row" style="margin-top:8px">
+    <label class="btn small" style="margin:0;cursor:pointer">📂 Избери CSV<input type="file" accept=".csv,text/csv,text/plain" data-file="${idx}" style="display:none"></label>
+    <button type="button" class="btn secondary small" data-paste="${idx}">📋 Постави CSV</button>
+    <button type="button" class="btn secondary small" data-demo="${idx}">🧪 Демо</button>
+   </div>`;
+  box.addEventListener("dragover",e=>{e.preventDefault();box.style.outline="2px dashed var(--accent)";});
+  box.addEventListener("dragleave",()=>{box.style.outline="";});
+  box.addEventListener("drop",e=>{
+   e.preventDefault();box.style.outline="";
+   const f=e.dataTransfer.files[0];if(f)mlogLoadFile(idx,f);
+  });
+  root.appendChild(box);
+ }
+ root.querySelectorAll("[data-file]").forEach(inp=>inp.addEventListener("change",e=>{if(e.target.files[0])mlogLoadFile(+inp.dataset.file,e.target.files[0]);}));
+ root.querySelectorAll("[data-paste]").forEach(b=>b.addEventListener("click",()=>mlogOpenPaste(+b.dataset.paste)));
+ root.querySelectorAll("[data-demo]").forEach(b=>b.addEventListener("click",()=>mlogLoadDemo(+b.dataset.demo)));
+ root.querySelectorAll("[data-clr]").forEach(b=>b.addEventListener("click",()=>{
+  mlogState.slots[+b.dataset.clr]=null;mlogState.win=null;mlogSave();mlogRender();
+ }));
+}
+
+function mlogSetSlot(idx,name,csv){
+ try{
+  const data=mlogAnalyze(name,csv);
+  mlogState.slots[idx]={name,csv,data};
+  mlogState.win=null;mlogState.cur=null;
+  mlogSave();mlogRender();
+  showToast(`Зареден лог: ${name} (${data.rows} реда)`,"good");
+ }catch(e){
+  showToast("Грешка в CSV: "+e.message,"danger");
+ }
+}
+
+function mlogLoadFile(idx,file){
+ const r=new FileReader();
+ r.onload=()=>mlogSetSlot(idx,file.name,String(r.result||""));
+ r.readAsText(file);
+}
+
+function mlogOpenPaste(idx){
+ mlogDlgTarget=idx;
+ $("mlogDlgTitle").textContent="M-LOG LAB · Постави CSV за Лог "+(idx===0?"А":"Б");
+ $("mlogDlgName").value=`log_${idx===0?"A":"B"}.csv`;
+ $("mlogDlgCsv").value="";
+ $("mlogPasteDialog").showModal();
+}
+
+function mlogLoadDemo(idx){
+ const rows=["Time,Engine speed,Accel. Pedal Pos.,Boost (Pre-Throttle),Boost Target,Wastegate Duty Cycle,Ignition Timing (Cyl. 1),Timing Cor. (Cyl. 1),Timing Cor. (Cyl. 2),Timing Cor. (Cyl. 3),Timing Cor. (Cyl. 4),Air Fuel Ratio,Air Fuel Ratio Target,STFT,LTFT,Rail Pressure,Rail Pressure Target,Intake Air Temp,Coolant Temp,Oil Temp,Knock Detected"];
+ for(let i=0;i<=160;i++){
+  const t=i*0.05;
+  const wot=t>=1.2&&t<=7.4;
+  const p=wot?100:12;
+  const f=wot?(t-1.2)/6.2:0;
+  const rpm=wot?2600+f*4100:2200;
+  const bt=wot?(18.5+Math.sin(f*Math.PI)*2.2):1.5;
+  const b=idx===0?bt-(wot&&f>0.65?0.6:0.2):bt-(wot&&f>0.55?2.8:0.4);
+  const wg=wot?(68+f*20+(idx===1?7:0)):25;
+  const ign=wot?(7.5+f*6.5-(idx===1?2.5:0)):16;
+  const c1=wot&&f>0.5&&f<0.8?(idx===1?-4.5:-1.5):0;
+  const c3=wot&&f>0.6&&f<0.85?(idx===1?-3.0:0):0;
+  const afrT=wot?12.3:14.7;
+  const afr=afrT+(idx===1&&wot&&f>0.7?0.45:0.05);
+  const hpT=wot?200:120;
+  const hp=hpT-(idx===1&&wot&&f>0.75?28:3);
+  const iat=34+f*(idx===1?21:11);
+  rows.push([t.toFixed(2),rpm.toFixed(0),p,b.toFixed(2),bt.toFixed(2),wg.toFixed(1),ign.toFixed(1),c1.toFixed(1),0,c3.toFixed(1),0,afr.toFixed(2),afrT.toFixed(2),(idx===1?9:2),1,hp.toFixed(0),hpT,iat.toFixed(1),92,104,0].join(","));
+ }
+ mlogSetSlot(idx,idx===0?"B48_Stage2_98RON_A.csv":"B48_Stage2_HeatSoak_B.csv",rows.join("\n"));
+}
+
+function mlogRenderSingle(D){
+ const v=$("mlogView");
+ const p=D.primary;
+ mlogCanvasJobs=[];
+ v.innerHTML=`
+  <div class="panel">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <div class="section-title" style="margin:0">КЛЮЧОВИ ПОКАЗАТЕЛИ · ${p.full?"ЦЯЛ ЛОГ":"ОСНОВЕН ПУЛ"}</div>
+    ${mlogState.win?`<button type="button" class="btn secondary small" id="mlogResetZoom">Нулирай зуум (${mlogState.win[0].toFixed(1)}..${mlogState.win[1].toFixed(1)}s)</button>`:""}
+   </div>
+   <div class="mlog-grid4">
+    <div class="stat"><div class="mlog-k">ПИК БУСТ</div><div class="mlog-v">${mlogFmt(p.maxBoost)} <small style="font-size:11px;color:var(--muted)">psi</small></div><div class="muted">target ${mlogFmt(p.maxBoostT)} psi</div></div>
+    <div class="stat"><div class="mlog-k">МАКС WGDC</div><div class="mlog-v ${p.maxWgdc>92?"mlog-bad":""}">${mlogFmt(p.maxWgdc,0)} <small style="font-size:11px;color:var(--muted)">%</small></div><div class="muted">ср. ${mlogFmt(p.avgWgdc,0)}%</div></div>
+    <div class="stat"><div class="mlog-k">АВАНС / КОРЕКЦИЯ</div><div class="mlog-v ${p.minCor<=-3?"mlog-bad":"mlog-good"}">${mlogFmt(p.maxIgn)}°</div><div class="muted">мин кор. ${mlogFmt(p.minCor)}°</div></div>
+    <div class="stat"><div class="mlog-k">AFR / МИН HPFP</div><div class="mlog-v">${mlogFmt(p.minAfr,2)}</div><div class="muted">HPFP ${mlogFmt(p.minHpfp,0)} bar</div></div>
+    <div class="stat"><div class="mlog-k">IAT НАЧАЛО → КРАЙ</div><div class="mlog-v ${p.iat1>52?"mlog-mid":""}">${mlogFmt(p.iat0,0)}→${mlogFmt(p.iat1,0)}°</div><div class="muted">Δ ${mlogFmt(p.dIat,1)} °C</div></div>
+    <div class="stat"><div class="mlog-k">ОХЛАЖДАНЕ / МАСЛО</div><div class="mlog-v">${mlogFmt(p.maxClt,0)}° / ${mlogFmt(p.maxOil,0)}°</div><div class="muted">пик CLT / Oil</div></div>
+    <div class="stat"><div class="mlog-k">ОБОРОТИ ПУЛ</div><div class="mlog-v">${mlogFmt(p.r0,0)}→${mlogFmt(p.r1,0)}</div><div class="muted">${p.dur.toFixed(2)}s</div></div>
+    <div class="stat"><div class="mlog-k">ДЕТОНАЦИИ / STFT</div><div class="mlog-v ${p.knockCnt>0?"mlog-bad":"mlog-good"}">${p.knockCnt}</div><div class="muted">ср. STFT ${mlogFmt(p.avgStft)}%</div></div>
+   </div>
+  </div>
+
+  <div class="panel">
+   <div class="section-title">ОТКРИТИ ПУЛОВЕ (КЛИКНИ ЗА ЗУУМ)</div>
+   <div class="mlog-sc">
+    <table class="mlog-table">
+     <thead><tr><th>#</th><th>Време</th><th>Обороти</th><th>Буст</th><th>WGDC</th><th>Кор.</th><th>ΔIAT</th></tr></thead>
+     <tbody id="mlogPullsBody"></tbody>
+    </table>
+   </div>
+  </div>
+
+  <div class="panel">
+   <div class="section-title">ДИАГНОСТИКА И ВЕРОЯТНИ ПРИЧИНИ</div>
+   <div id="mlogFindings"></div>
+  </div>
+
+  <div id="mlogCharts"></div>
+
+  ${D.cylMin.length?`
+  <div class="panel">
+   <div class="section-title">TIMING КОРЕКЦИИ ПО ЦИЛИНДРИ</div>
+   <div class="mlog-grid4">${D.cylMin.map(c=>`
+    <div style="border:1px solid var(--border);border-radius:12px;padding:8px;background:var(--surface-2)">
+     <div style="display:flex;justify-content:space-between;font-size:11.5px"><strong>Цил. ${c.cyl}</strong><span class="mlog-mono ${c.min<=-3?"mlog-bad":"mlog-good"}">${c.min.toFixed(1)}°</span></div>
+     <div class="muted">ср. ${c.avg.toFixed(2)}°</div>
+     <div class="mlog-bar"><i style="width:${Math.min(100,Math.abs(c.min)*12)}%;background:${c.min<=-3?"var(--danger)":"var(--good)"}"></i></div>
+    </div>`).join("")}
+   </div>
+  </div>`:""}
+ `;
+
+ const rz=$("mlogResetZoom");
+ if(rz)rz.addEventListener("click",()=>{mlogState.win=null;mlogRedrawCanvases();mlogRender();});
+
+ const pb=$("mlogPullsBody");
+ D.pulls.forEach((pl,i)=>{
+  const tr=document.createElement("tr");tr.className="mlog-pk";
+  tr.innerHTML=`<td>${i+1}</td><td class="mlog-mono">${D.t[pl.s].toFixed(1)}–${D.t[pl.e].toFixed(1)}s</td><td class="mlog-mono">${mlogFmt(pl.r0,0)}→${mlogFmt(pl.r1,0)}</td><td class="mlog-mono">${mlogFmt(pl.maxBoost)} psi</td><td class="mlog-mono">${mlogFmt(pl.maxWgdc,0)}%</td><td class="mlog-mono ${pl.minCor<=-3?"mlog-bad":""}">${mlogFmt(pl.minCor)}°</td><td class="mlog-mono">${mlogFmt(pl.dIat,1)}°</td>`;
+  tr.addEventListener("click",()=>{mlogState.win=[Math.max(0,D.t[pl.s]-0.3),D.t[pl.e]+0.3];mlogRender();});
+  pb.appendChild(tr);
+ });
+
+ const fb=$("mlogFindings");
+ D.findings.forEach(f=>{
+  const div=document.createElement("div");
+  div.className="mlog-ev "+(f.sev==="crit"?"crit":f.sev==="info"?"info":"warn");
+  div.innerHTML=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="mlog-tag">${f.sev==="crit"?"КРИТИЧНО":f.sev==="info"?"НОРМА":"ВНИМАНИЕ"}</span><strong style="font-size:12.5px">${mlogEsc(f.title)}</strong></div><div class="muted" style="margin-top:4px">${mlogEsc(f.detail)}</div><ul>${f.causes.map(c=>`<li>${mlogEsc(c)}</li>`).join("")}</ul>`;
+  fb.appendChild(div);
+ });
+
+ const ch=$("mlogCharts");
+ mlogBuildCharts(D).forEach(spec=>{
+  const card=document.createElement("div");card.className="panel";
+  card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div class="section-title" style="margin:0">${spec.title}</div><span class="muted" style="font-size:10px">плъзни за зуум · 2x клик = нулиране</span></div><div class="mlog-ro"></div><canvas class="mlog-canvas"></canvas>`;
+  ch.appendChild(card);
+  const ro=card.querySelector(".mlog-ro"),canvas=card.querySelector("canvas");
+  mlogCanvasJobs.push({canvas,ro,series:spec.s,t:D.t});
+  mlogWireCanvas(canvas,ro,spec.s,D.t);
+ });
+ requestAnimationFrame(mlogRedrawCanvases);
+}
+
+function mlogRenderCompare(A,B){
+ const v=$("mlogView");
+ mlogCanvasJobs=[];
+ const pa=A.primary,pb=B.primary;
+ const rows=[
+  ["Пик буст (psi)",pa.maxBoost,pb.maxBoost,1,1],
+  ["Target буст (psi)",pa.maxBoostT,pb.maxBoostT,1,0],
+  ["Макс WGDC (%)",pa.maxWgdc,pb.maxWgdc,0,-1],
+  ["Макс аванс (°)",pa.maxIgn,pb.maxIgn,1,1],
+  ["Най-лоша корекция (°)",pa.minCor,pb.minCor,1,1],
+  ["Мин AFR",pa.minAfr,pb.minAfr,2,0],
+  ["Мин HPFP (bar)",pa.minHpfp,pb.minHpfp,0,1],
+  ["IAT начало (°C)",pa.iat0,pb.iat0,0,-1],
+  ["IAT край (°C)",pa.iat1,pb.iat1,0,-1],
+  ["ΔIAT в пула (°C)",pa.dIat,pb.dIat,1,-1],
+  ["Макс CLT (°C)",pa.maxClt,pb.maxClt,0,-1],
+  ["Макс Oil (°C)",pa.maxOil,pb.maxOil,0,-1]
+ ];
+ const normT=D=>D.t.slice(D.primary.s,D.primary.e+1).map(x=>x-D.t[D.primary.s]);
+ const normS=(D,arr)=>arr?arr.slice(D.primary.s,D.primary.e+1):null;
+ const tA=normT(A),tB=normT(B);
+ const maxT=Math.max(mlogMax(tA)||1,mlogMax(tB)||1);
+ const grid=Array.from({length:120},(_,i)=>i*(maxT/119));
+ const interp=(ts,ys)=>{
+  if(!ys||!ts.length)return null;
+  return grid.map(tg=>{
+   if(tg<ts[0]||tg>ts[ts.length-1])return NaN;
+   let j=0;while(j<ts.length-2&&ts[j+1]<tg)j++;
+   const span=ts[j+1]-ts[j];
+   return span<=0?ys[j]:ys[j]+((tg-ts[j])/span)*(ys[j+1]-ys[j]);
+  });
+ };
+
+ v.innerHTML=`
+  <div class="panel">
+   <div class="section-title">СРАВНЕНИЕ ПО ОСНОВЕН ПУЛ (А vs Б)</div>
+   <div class="mlog-sc">
+    <table class="mlog-table">
+     <thead><tr><th>Показател</th><th class="mlog-A">А (${mlogEsc(A.name)})</th><th class="mlog-B">Б (${mlogEsc(B.name)})</th><th>Разлика (Б−А)</th></tr></thead>
+     <tbody>${rows.map(([lbl,va,vb,dec,dir])=>{
+      const d=vb-va;
+      const cls=!Number.isFinite(d)||dir===0?"":((d*dir)>0.05?"mlog-good":(d*dir)<-0.05?"mlog-bad":"");
+      return`<tr><td>${lbl}</td><td class="mlog-mono">${mlogFmt(va,dec)}</td><td class="mlog-mono">${mlogFmt(vb,dec)}</td><td class="mlog-mono ${cls}">${Number.isFinite(d)?(d>=0?"+":"")+d.toFixed(dec):"—"}</td></tr>`;
+     }).join("")}</tbody>
+    </table>
+   </div>
+  </div>
+  <div id="mlogCmpCharts"></div>
+ `;
+
+ const specs=[
+  {title:"Буст (psi) подравнен по старт на пула",s:[{label:"А",data:interp(tA,normS(A,A.boost)),color:"#38bdf8"},{label:"Б",data:interp(tB,normS(B,B.boost)),color:"#a78bfa"}]},
+  {title:"WGDC (%) А vs Б",s:[{label:"А",data:interp(tA,normS(A,A.wgdc)),color:"#38bdf8"},{label:"Б",data:interp(tB,normS(B,B.wgdc)),color:"#a78bfa"}]},
+  {title:"Аванс Цил. 1 (°) А vs Б",s:[{label:"А",data:interp(tA,normS(A,A.ign)),color:"#38bdf8"},{label:"Б",data:interp(tB,normS(B,B.ign)),color:"#a78bfa"}]},
+  {title:"IAT (°C) А vs Б",s:[{label:"А",data:interp(tA,normS(A,A.iat)),color:"#38bdf8"},{label:"Б",data:interp(tB,normS(B,B.iat)),color:"#a78bfa"}]}
+ ];
+ const ch=$("mlogCmpCharts");
+ specs.forEach(spec=>{
+  const card=document.createElement("div");card.className="panel";
+  card.innerHTML=`<div class="section-title">${spec.title}</div><div class="mlog-ro"></div><canvas class="mlog-canvas"></canvas>`;
+  ch.appendChild(card);
+  const ro=card.querySelector(".mlog-ro"),canvas=card.querySelector("canvas");
+  mlogCanvasJobs.push({canvas,ro,series:spec.s,t:grid});
+  mlogWireCanvas(canvas,ro,spec.s,grid);
+ });
+ requestAnimationFrame(mlogRedrawCanvases);
+}
+
+function mlogRender(){
+ $("mlogTabOne")?.classList.toggle("on",mlogState.tab==="one");
+ $("mlogTabCmp")?.classList.toggle("on",mlogState.tab==="cmp");
+ mlogRenderSlots();
+ const A=mlogState.slots[0]?.data,B=mlogState.slots[1]?.data;
+ const bar=$("mlogBar");
+ if(bar)bar.style.display=A?"block":"none";
+
+ const modes=$("mlogModes");
+ if(modes){
+  modes.innerHTML=mlogState.tab==="one"?MLOG_MODES.map(([k,l])=>`<button type="button" class="filter-chip ${mlogState.mode===k?"active":""}" data-m="${k}">${l}</button>`).join(""):"";
+  modes.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{mlogState.mode=b.dataset.m;mlogSave();mlogRender();}));
+ }
+
+ const v=$("mlogView");
+ if(!v)return;
+ if(!A){
+  v.innerHTML=`<div class="empty">Зареди Bootmod3 CSV лог в <strong>Лог А</strong> (или натисни <strong>🧪 Демо</strong>), за да видиш графиките, пуловете и диагностиката.</div>`;
+  return;
+ }
+ if(mlogState.tab==="cmp"){
+  if(!B){
+   v.innerHTML=`<div class="empty">Зареди втори лог в <strong>Лог Б</strong>, за да сравниш два пула или две ревизии на мапа.</div>`;
+   return;
+  }
+  mlogRenderCompare(A,B);
+ }else{
+  mlogRenderSingle(A);
+ }
+}
+
+$("mlogTabOne")?.addEventListener("click",()=>{mlogState.tab="one";mlogState.win=null;mlogSave();mlogRender();});
+$("mlogTabCmp")?.addEventListener("click",()=>{mlogState.tab="cmp";mlogState.win=null;mlogSave();mlogRender();});
+
+$("mlogDlgClose")?.addEventListener("click",()=>$("mlogPasteDialog")?.close());
+$("mlogDlgCancel")?.addEventListener("click",()=>$("mlogPasteDialog")?.close());
+$("mlogDlgOk")?.addEventListener("click",()=>{
+ const csv=$("mlogDlgCsv").value.trim();
+ if(!csv){showToast("Постави CSV текст първо","warn");return;}
+ $("mlogPasteDialog")?.close();
+ mlogSetSlot(mlogDlgTarget,$("mlogDlgName").value.trim()||"pasted.csv",csv);
+});
+
+$("mlogSaveToCar")?.addEventListener("click",()=>{
+ const A=mlogState.slots[0]?.data;
+ if(!A)return;
+ const report=mlogBuildReport(A);
+ if(typeof window.appendLogNoteToActiveCar==="function"){
+  window.appendLogNoteToActiveCar(report);
+ }
+});
+
+$("mlogCopyReport")?.addEventListener("click",async()=>{
+ const A=mlogState.slots[0]?.data;
+ if(!A)return;
+ const report=mlogBuildReport(A);
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(report);
+  else{
+   const ta=document.createElement("textarea");ta.value=report;ta.style.position="fixed";ta.style.opacity="0";
+   document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+  }
+  showToast("Отчетът е копиран в клипборда","good");
+ }catch{
+  showToast("Неуспешно копиране на отчета","danger");
+ }
+});
+
+$("mlogOpenAi")?.addEventListener("click",async()=>{
+ const A=mlogState.slots[0]?.data;
+ if(!A)return;
+ const prompt="Анализирай този Bootmod3 B48 лог отчет като опитен BMW тунер. Оцени безопасността (timing корекции, буст vs target, WGDC, AFR, HPFP, IAT) и препоръчай конкретни следващи стъпки:\n\n"+mlogBuildReport(A);
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(prompt);
+  showToast("Промптът с отчета е копиран — постави го в AI чата","good");
+ }catch{}
+ const target=$("mlogAiTarget")?.value||"https://claude.ai/new";
+ window.open(target,"_blank","noopener,noreferrer");
+});
+
+window.addEventListener("resize",mlogRedrawCanvases);
+
+try{
+ const saved=JSON.parse(localStorage.getItem(MLOG_KEY)||"null");
+ if(saved){
+  if(saved.tab==="one"||saved.tab==="cmp")mlogState.tab=saved.tab;
+  if(saved.mode)mlogState.mode=saved.mode;
+  if(Array.isArray(saved.slots)){
+   saved.slots.forEach((s,i)=>{
+    if(s&&s.csv){
+     try{mlogState.slots[i]={name:s.name||`log_${i+1}.csv`,csv:s.csv,data:mlogAnalyze(s.name||`log_${i+1}.csv`,s.csv)};}catch(e){}
     }
-    showToast('Отчетът е копиран','good');
-  }catch{ showToast('Неуспешно копиране','danger'); }
-};
-
-m$('mlogSaveToCar').onclick=()=>{
-  const txt=buildReportText();
-  if(!txt) return showToast('Няма зареден лог за запис','warn');
-  if(typeof window.appendLogNoteToActiveCar==='function'){
-    window.appendLogNoteToActiveCar(txt);
+   });
   }
-};
+ }
+}catch(e){}
 
-m$('mlogOpenAi').onclick=async()=>{
-  const txt=buildReportText();
-  const target=m$('mlogAiTarget')?.value||'https://claude.ai/new';
-  if(txt){
-    try{
-      if(navigator.clipboard&&window.isSecureContext) await navigator.clipboard.writeText(txt);
-    }catch{}
-    showToast('Отчетът е копиран в клипборда за AI анализ','good');
-  }
-  window.open(target,'_blank','noopener,noreferrer');
-};
-
-window.mlogRedraw=()=>{
-  const m=state[state.slot]||state.A||state.B;
-  if(!m) return;
-  const pull=state.slot==='B'?state.pullB:state.pullA;
-  const pulls=findPulls(m);
-  const {s}=analyze(m, pull!==null&&pulls[pull]?pulls[pull]:null);
-  if(m$('mlogChart')) drawChart(s);
-};
-
-refresh();
+mlogRender();
 })();
 </script>
 
-<!-- ========== CLOUD SYNC (SUPABASE) — СЛОТ ЗА ИНТЕГРАЦИЯ ========== -->
+<!-- CLOUD SYNC · SUPABASE -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const slot = document.getElementById("cloudSyncSlot");
-  if (!slot) return;
+(() => {
+  const DEFAULT_URL = 'https://wpxuqlrnlkuywctzffpx.supabase.co';
+  const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndweHVxbHJubGt1eXdjdHpmZnB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzQ5NjMsImV4cCI6MjA5MTk1MDk2M30.t20x05q9k93pJ1F6e7F_x0lN-Z6m0zO4qR5s_vW7x9Y';
 
-  slot.innerHTML = `
-    <details class="drop-panel" id="cloudSyncPanel">
-      <summary>
-        <div class="panel-lead">
-          <span class="panel-icon">☁️</span>
-          <div>
-            <div>CLOUD СИНХРОНИЗАЦИЯ (SUPABASE)</div>
-            <div class="drop-sub">Резервно копие и синхрон на гаража между устройства</div>
-          </div>
-        </div>
-        <span class="chev">▾</span>
-      </summary>
-      <div class="panel" id="cloudPanel" style="margin:0;box-shadow:none;background:transparent;border:0;padding:4px 0 0">
-        <div class="muted" style="margin-bottom:10px">
-          Синхронизира гаража, сервизите, модификациите, разходите, напомнянията и документите между устройства.
-        </div>
-
-        <div class="form-grid" style="margin-bottom:10px">
-          <div class="field">
-            <label>ИМЕЙЛ</label>
-            <input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com">
-          </div>
-          <div class="field">
-            <label>ПАРОЛА</label>
-            <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••">
-          </div>
-        </div>
-
-        <div class="btn-row" style="margin-top:8px">
-          <button class="btn small" id="btnSignIn" type="button">Вход</button>
-          <button class="btn secondary small" id="btnSignUp" type="button">Регистрация</button>
-          <button class="btn secondary small" id="btnSignOut" type="button" disabled>Изход</button>
-        </div>
-
-        <div style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-            <span id="cloudStatusBadge" class="cloud-badge offline">Няма конфигурация</span>
-            <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;cursor:pointer">
-              <input id="chkAutoSync" type="checkbox" checked style="width:auto">
-              Авто-синхрон
-            </label>
-          </div>
-          <div id="cloudUserInfo" class="muted" style="margin-top:6px">Не си влязъл в облачен акаунт.</div>
-          <div id="cloudMsg" class="form-msg" style="margin-top:6px"></div>
-          <div class="btn-row" style="margin-top:8px">
-            <button class="btn secondary small" id="btnSyncNow" type="button" disabled>Синхронизирай сега</button>
-          </div>
-        </div>
-
-        <details class="ref-box" style="margin-top:12px">
-          <summary>Настройки на облачния сървър (Supabase) <span><span class="chev">▾</span></span></summary>
-          <div class="form-grid" style="margin-top:8px">
-            <div class="field full">
-              <label>SUPABASE URL</label>
-              <input id="cloudUrl" type="url" placeholder="https://xxxx.supabase.co">
-            </div>
-            <div class="field full">
-              <label>SUPABASE ANON KEY</label>
-              <input id="cloudKey" type="password" placeholder="eyJ...">
-            </div>
-          </div>
-          <div class="btn-row" style="margin-top:10px">
-            <button class="btn secondary small" id="btnSaveCloudCfg" type="button">Запази сървъра</button>
-            <button class="btn secondary small" id="btnResetCloudCfg" type="button">По подразбиране</button>
-          </div>
-        </details>
-      </div>
-    </details>
-  `;
-});
-</script>
-
-<script>
-/* ===== CLOUD SYNC (SUPABASE) ===== */
-(function initCloudSync(){
-  const STORAGE_CFG_KEY = "m_garage_pro_cloud_cfg_v1";
-  const DEFAULT_SUPABASE_URL = "https://vfyzpxcvtyufivlhqzog.supabase.co";
-  const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmeXpweGN2dHl1Zml2bGhxem9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTYwODUsImV4cCI6MjA5MTI5MjA4NX0.sF176b1r98TebX-C3uE61G810nD09r_gG3T78t76d0Y";
-  const CDN_SOURCES = [
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
-    "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js",
-    "https://esm.sh/@supabase/supabase-js@2"
-  ];
-
-  const $ = (id) => document.getElementById(id);
-  const el = {
-    url: $("cloudUrl"),
-    key: $("cloudKey"),
-    email: $("cloudEmail"),
-    pass: $("cloudPassword"),
-    saveCfg: $("btnSaveCloudCfg"),
-    resetCfg: $("btnResetCloudCfg"),
-    signUp: $("btnSignUp"),
-    signIn: $("btnSignIn"),
-    signOut: $("btnSignOut"),
-    syncNow: $("btnSyncNow"),
-    autoSync: $("chkAutoSync"),
-    badge: $("cloudStatusBadge"),
-    userInfo: $("cloudUserInfo"),
-    msg: $("cloudMsg")
+  const LS = {
+    url: 'mg_sb_url',
+    key: 'mg_sb_key',
+    updated: 'mg_local_updated_at',
+    lastSync: 'mgu_cloud_last_sync'
   };
 
   let sb = null;
   let currentUser = null;
   let syncTimer = null;
   let isSyncing = false;
-  let sdkPromise = null;
+  let lastAppliedRemoteAt = null;
+  let bootStarted = false;
 
-  function setMsg(text, type = "info") {
-    if (!el.msg) return;
-    el.msg.textContent = text || "";
-    el.msg.style.color =
-      type === "err" ? "#ff6b6b" :
-      type === "ok"  ? "#38d996" : "#9fb0c7";
+  const $c = (id) => document.getElementById(id);
+
+  function mountCloudUi() {
+    const slot = $c('cloudSyncSlot');
+    if (!slot || $c('cloudSyncPanel')) return;
+
+    slot.innerHTML = `
+      <details class="drop-panel" id="cloudSyncPanel">
+        <summary>
+          <div class="panel-lead">
+            <span class="panel-icon">☁️</span>
+            <div>
+              <div>CLOUD SYNC · SUPABASE</div>
+              <div class="drop-sub">Синхронизация на гаража между телефон, таблет и компютър</div>
+            </div>
+          </div>
+          <span class="chev">▾</span>
+        </summary>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <span class="cloud-badge idle" id="cloudStatusBadge">Инициализация...</span>
+          <span class="muted" id="cloudLastSync" style="font-size:11px"></span>
+        </div>
+
+        <div id="cloudAuthLoggedOut">
+          <div class="form-grid">
+            <div class="field full">
+              <label>ИМЕЙЛ</label>
+              <input id="cloudEmailInput" type="email" autocomplete="email" placeholder="you@example.com">
+            </div>
+            <div class="field full">
+              <label>ПАРОЛА (МИН. 6 СИМВОЛА)</label>
+              <input id="cloudPassInput" type="password" autocomplete="current-password" placeholder="••••••••">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn small" id="cloudSignInBtn" type="button">Вход</button>
+            <button class="btn secondary small" id="cloudSignUpBtn" type="button">Регистрация</button>
+            <button class="btn secondary small" id="cloudResetPassBtn" type="button">Забравена парола</button>
+          </div>
+        </div>
+
+        <div id="cloudAuthLoggedIn" class="hidden">
+          <div class="alert good" style="margin-top:0">
+            Влязъл като: <strong id="cloudUserEmail"></strong>
+          </div>
+          <div class="btn-row">
+            <button class="btn small" id="cloudSyncNowBtn" type="button">↻ Синхронизирай сега</button>
+            <button class="btn secondary small" id="cloudPullBtn" type="button">↓ Изтегли от облака</button>
+            <button class="btn danger small" id="cloudSignOutBtn" type="button">Изход</button>
+          </div>
+        </div>
+
+        <div id="cloudMessage" class="form-msg"></div>
+
+        <details class="ref-box" id="cloudConfigDetails" style="margin-top:12px">
+          <summary>Настройки на Supabase сървър <span><span class="chev">▾</span></span></summary>
+          <div class="form-grid" style="margin-top:8px">
+            <div class="field full">
+              <label>SUPABASE PROJECT URL</label>
+              <input id="cloudUrlInput" type="url" placeholder="https://xxxx.supabase.co">
+            </div>
+            <div class="field full">
+              <label>SUPABASE ANON PUBLIC KEY</label>
+              <input id="cloudKeyInput" type="text" placeholder="eyJ...">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn small" id="cloudSaveConfigBtn" type="button">Запази конфигурацията</button>
+            <button class="btn secondary small" id="cloudResetConfigBtn" type="button">По подразбиране</button>
+          </div>
+        </details>
+      </details>
+    `;
   }
 
-  function setBadge(state, text) {
-    if (!el.badge) return;
-    el.badge.className = "cloud-badge " + state;
-    el.badge.textContent = text;
-  }
-
-  function normalizeUrl(raw) {
-    const clean = (raw || "").trim().replace(/\/+$/, "");
-    if (!clean) return "";
-    if (/^https?:\/\//i.test(clean)) return clean;
-    return "https://" + clean;
-  }
-
-  function loadCfg() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_CFG_KEY) || "null");
-      const rawUrl = saved?.url || DEFAULT_SUPABASE_URL;
-      const rawKey = (saved?.key || DEFAULT_SUPABASE_KEY || "").trim();
-      return {
-        url: normalizeUrl(rawUrl),
-        key: rawKey,
-        autoSync: saved?.autoSync !== undefined ? !!saved.autoSync : true
-      };
-    } catch {
-      return {
-        url: DEFAULT_SUPABASE_URL,
-        key: DEFAULT_SUPABASE_KEY,
-        autoSync: true
-      };
+  function loadSupabaseSdk() {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      return Promise.resolve(true);
     }
-  }
-
-  function saveCfg(cfg) {
-    localStorage.setItem(STORAGE_CFG_KEY, JSON.stringify({
-      url: normalizeUrl(cfg.url),
-      key: (cfg.key || "").trim(),
-      autoSync: !!cfg.autoSync
-    }));
-  }
-
-  function formatError(err, fallback = "Неизвестна грешка") {
-    const raw = err?.message || err?.error_description || String(err || fallback);
-    if (/load failed|failed to fetch|networkerror/i.test(raw)) {
-      return `Мрежова грешка (${raw}) — провери достъпа до интернет, VPN/DNS филтри или дали Supabase проектът е активен.`;
-    }
-    return raw;
-  }
-
-  function injectScript(src) {
-    return new Promise((resolve, reject) => {
-      if (window.supabase && typeof window.supabase.createClient === "function") {
-        resolve(window.supabase);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.onload = () => {
-        if (window.supabase && typeof window.supabase.createClient === "function") {
-          resolve(window.supabase);
-        } else {
-          reject(new Error(`SDK скриптът зареди без createClient от ${src}`));
+    const sources = [
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+      'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+    ];
+    return new Promise((resolve) => {
+      let i = 0;
+      const tryNext = () => {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          resolve(true);
+          return;
         }
+        if (i >= sources.length) {
+          resolve(false);
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = sources[i++];
+        s.async = true;
+        s.onload = () => {
+          if (window.supabase && typeof window.supabase.createClient === 'function') {
+            resolve(true);
+          } else {
+            tryNext();
+          }
+        };
+        s.onerror = tryNext;
+        document.head.appendChild(s);
       };
-      script.onerror = () => reject(new Error(`Неуспешно зареждане на SDK от ${src}`));
-      document.head.appendChild(script);
+      tryNext();
     });
   }
 
-  async function ensureSdk() {
-    if (window.supabase && typeof window.supabase.createClient === "function") {
-      return window.supabase;
-    }
-    if (sdkPromise) return sdkPromise;
-
-    sdkPromise = (async () => {
-      let lastErr = null;
-      for (const src of CDN_SOURCES) {
-        try {
-          return await injectScript(src);
-        } catch (err) {
-          lastErr = err;
-        }
-      }
-      throw lastErr || new Error("Неуспешно зареждане на Supabase SDK от всички CDN източници.");
-    })().catch((err) => {
-      sdkPromise = null;
-      throw err;
-    });
-
-    return sdkPromise;
+  function getConfig() {
+    const url = (localStorage.getItem(LS.url) || DEFAULT_URL).trim().replace(/\/+$/, '');
+    const key = (localStorage.getItem(LS.key) || DEFAULT_KEY).trim();
+    return { url, key };
   }
 
-  async function initClient() {
-    const cfg = loadCfg();
-    if (!cfg.url || !cfg.key) {
-      sb = null;
-      setBadge("offline", "Няма конфигурация");
-      return null;
+  function setStatus(type, text) {
+    const badge = $c('cloudStatusBadge');
+    if (badge) {
+      badge.className = 'cloud-badge ' + type;
+      badge.textContent = text;
     }
+    if (typeof window.refreshTopCloudButton === 'function') {
+      window.refreshTopCloudButton();
+    }
+  }
+
+  function setCloudMsg(text, isError = false) {
+    const el = $c('cloudMessage');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+  }
+
+  function updateLastSyncLabel(iso) {
+    const el = $c('cloudLastSync');
+    if (!el) return;
+    if (!iso) {
+      el.textContent = '';
+      return;
+    }
+    localStorage.setItem(LS.lastSync, iso);
     try {
-      new URL(cfg.url);
+      const d = new Date(iso);
+      el.textContent = 'Последно: ' + d.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     } catch {
-      sb = null;
-      setBadge("err", "Невалиден URL");
-      setMsg("Supabase URL не е валиден адрес.", "err");
-      return null;
+      el.textContent = 'Последно: ' + iso;
     }
-
-    try {
-      const supabaseLib = await ensureSdk();
-      sb = supabaseLib.createClient(cfg.url, cfg.key, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      });
-
-      const { data, error } = await sb.auth.getSession();
-      if (error) throw error;
-      currentUser = data?.session?.user || null;
-      updateAuthUI();
-
-      sb.auth.onAuthStateChange((_event, session) => {
-        currentUser = session?.user || null;
-        updateAuthUI();
-        if (currentUser && loadCfg().autoSync) {
-          pullFromCloud(true);
-        }
-      });
-
-      return sb;
-    } catch (err) {
-      sb = null;
-      setBadge("err", "Грешка при връзка");
-      setMsg(formatError(err, "Грешка при инициализация на Supabase"), "err");
-      return null;
-    }
-  }
-
-  function updateAuthUI() {
-    const loggedIn = !!currentUser;
-    if (el.userInfo) {
-      el.userInfo.textContent = loggedIn
-        ? `Влязъл като: ${currentUser.email || currentUser.id}`
-        : "Не си влязъл в облачен акаунт.";
-    }
-    if (el.signOut) el.signOut.disabled = !loggedIn;
-    if (el.syncNow) el.syncNow.disabled = !loggedIn;
-    if (loggedIn) {
-      setBadge("ok", "Свързан");
-    } else if (sb) {
-      setBadge("idle", "Готов за вход");
+    if (typeof window.refreshTopCloudButton === 'function') {
+      window.refreshTopCloudButton();
     }
   }
 
   function collectLocalSnapshot() {
-    const snapshot = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (!k || k === STORAGE_CFG_KEY) continue;
-      if (k.startsWith("m_garage") || k.startsWith("mgarage") || k.startsWith("mlog")) {
-        snapshot[k] = localStorage.getItem(k);
-      }
-    }
-    return snapshot;
-  }
-
-  function applyCloudSnapshot(payload) {
-    if (!payload || typeof payload !== "object") return;
-    Object.entries(payload).forEach(([k, v]) => {
-      if (typeof v === "string") {
-        localStorage.setItem(k, v);
+    const data = {};
+    const keysToSync = ['mgu_cars', 'mgu_active', 'mgu_theme', 'mgu_photo_pos', 'mlog_lab_v1'];
+    keysToSync.forEach((k) => {
+      const val = localStorage.getItem(k);
+      if (val !== null) {
+        try {
+          data[k] = JSON.parse(val);
+        } catch {
+          data[k] = val;
+        }
       }
     });
+    return data;
   }
 
-  async function pushToCloud(silent = false) {
-    if (!sb || !currentUser || isSyncing) return;
-    isSyncing = true;
-    try {
-      setBadge("sync", "Синхронизира...");
-      const payload = collectLocalSnapshot();
-      const { error } = await sb
-        .from("garage_profiles")
-        .upsert({
-          user_id: currentUser.id,
-          data: payload,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" });
-      if (error) throw error;
-      setBadge("ok", "Синхронизирано");
-      if (!silent) setMsg("Данните са записани в облака.", "ok");
-    } catch (err) {
-      setBadge("err", "Грешка при качване");
-      if (!silent) setMsg(formatError(err, "Грешка при запис в облака"), "err");
-    } finally {
-      isSyncing = false;
-    }
-  }
-
-  async function pullFromCloud(silent = false) {
-    if (!sb || !currentUser || isSyncing) return;
-    isSyncing = true;
-    try {
-      setBadge("sync", "Изтегля данни...");
-      const { data, error } = await sb
-        .from("garage_profiles")
-        .select("data, updated_at")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data?.data) {
-        applyCloudSnapshot(data.data);
-        if (!silent) setMsg("Данните са изтеглени от облака. Презареди страницата, ако не се виждат веднага.", "ok");
-      } else if (!silent) {
-        setMsg("Няма намерени облачни данни за този акаунт.", "info");
+  function applyRemoteSnapshot(snapshot, remoteUpdatedAt) {
+    if (!snapshot || typeof snapshot !== 'object') return false;
+    let changed = false;
+    for (const [k, v] of Object.entries(snapshot)) {
+      if (k.startsWith('mg_sb_') || k.startsWith('sb-')) continue;
+      const serialized = typeof v === 'string' ? v : JSON.stringify(v);
+      if (localStorage.getItem(k) !== serialized) {
+        localStorage.setItem(k, serialized);
+        changed = true;
       }
-      setBadge("ok", "Свързан");
+    }
+    if (remoteUpdatedAt) {
+      localStorage.setItem(LS.updated, remoteUpdatedAt);
+      lastAppliedRemoteAt = remoteUpdatedAt;
+    }
+    return changed;
+  }
+
+  function renderAuthState(user) {
+    currentUser = user || null;
+    const outBox = $c('cloudAuthLoggedOut');
+    const inBox = $c('cloudAuthLoggedIn');
+    const emailEl = $c('cloudUserEmail');
+
+    if (currentUser) {
+      if (outBox) outBox.classList.add('hidden');
+      if (inBox) inBox.classList.remove('hidden');
+      if (emailEl) emailEl.textContent = currentUser.email || currentUser.id;
+      setStatus('ok', 'Свързан');
+    } else {
+      if (outBox) outBox.classList.remove('hidden');
+      if (inBox) inBox.classList.add('hidden');
+      if (emailEl) emailEl.textContent = '';
+      setStatus('idle', 'Не е влязъл');
+    }
+  }
+
+  async function syncWithCloud(forceDirection = 'auto') {
+    if (!sb || !currentUser || isSyncing) return;
+    isSyncing = true;
+    setStatus('sync', 'Синхронизира...');
+
+    try {
+      const { data: rows, error } = await sb
+        .from('garage_sync')
+        .select('payload, updated_at')
+        .eq('user_id', currentUser.id)
+        .limit(1);
+
+      if (error) throw error;
+
+      const remote = rows && rows[0] ? rows[0] : null;
+      const localUpdated = localStorage.getItem(LS.updated) || '';
+      const remoteUpdated = remote ? remote.updated_at : '';
+
+      const localHasCars = (() => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem('mgu_cars') || '[]');
+          return Array.isArray(parsed) && parsed.length > 0;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (forceDirection === 'pull') {
+        if (remote && remote.payload) {
+          const changed = applyRemoteSnapshot(remote.payload, remoteUpdated);
+          updateLastSyncLabel(new Date().toISOString());
+          setStatus('ok', 'Изтеглено');
+          setCloudMsg('Данните са изтеглени от облака.');
+          if (changed && typeof window.loadCars === 'function' && typeof window.renderAll === 'function') {
+            window.loadCars();
+            window.renderAll();
+          }
+        } else {
+          setStatus('ok', 'Няма запис в облака');
+        }
+        return;
+      }
+
+      if (
+        forceDirection !== 'push' &&
+        remote &&
+        remote.payload &&
+        (!localHasCars || (remoteUpdated && (!localUpdated || new Date(remoteUpdated) > new Date(localUpdated))))
+      ) {
+        const changed = applyRemoteSnapshot(remote.payload, remoteUpdated);
+        updateLastSyncLabel(new Date().toISOString());
+        setStatus('ok', 'Синхронизирано');
+        if (changed && typeof window.loadCars === 'function' && typeof window.renderAll === 'function') {
+          window.loadCars();
+          window.renderAll();
+        }
+        return;
+      }
+
+      const nowIso = new Date().toISOString();
+      const payload = collectLocalSnapshot();
+      const { error: upsertErr } = await sb
+        .from('garage_sync')
+        .upsert(
+          { user_id: currentUser.id, payload, updated_at: nowIso },
+          { onConflict: 'user_id' }
+        );
+
+      if (upsertErr) throw upsertErr;
+
+      localStorage.setItem(LS.updated, nowIso);
+      lastAppliedRemoteAt = nowIso;
+      updateLastSyncLabel(nowIso);
+      setStatus('ok', 'Синхронизирано');
+      setCloudMsg('');
     } catch (err) {
-      setBadge("err", "Грешка при изтегляне");
-      if (!silent) setMsg(formatError(err, "Грешка при четене от облака"), "err");
+      console.error('[CloudSync]', err);
+      setStatus('err', 'Грешка при синхр.');
+      setCloudMsg('Грешка: ' + (err.message || err), true);
     } finally {
       isSyncing = false;
     }
   }
 
-  function scheduleAutoSync() {
-    if (!loadCfg().autoSync || !currentUser) return;
+  function schedulePush() {
+    if (!currentUser) return;
+    localStorage.setItem(LS.updated, new Date().toISOString());
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => pushToCloud(true), 1500);
+    syncTimer = setTimeout(() => syncWithCloud('push'), 1500);
+  }
+  window.notifyCloudLocalChange = schedulePush;
+
+  async function initClient() {
+    const { url, key } = getConfig();
+    if ($c('cloudUrlInput')) $c('cloudUrlInput').value = url;
+    if ($c('cloudKeyInput')) $c('cloudKeyInput').value = key;
+
+    const ok = await loadSupabaseSdk();
+    if (!ok || !window.supabase) {
+      setStatus('err', 'Няма връзка с SDK');
+      setCloudMsg('Неуспешно зареждане на Supabase библиотеката (провери интернет връзката).', true);
+      return;
+    }
+
+    try {
+      sb = window.supabase.createClient(url, key);
+    } catch (e) {
+      setStatus('err', 'Невалиден URL/Key');
+      setCloudMsg('Невалидна конфигурация: ' + e.message, true);
+      return;
+    }
+
+    const { data, error } = await sb.auth.getSession();
+    if (error) {
+      setStatus('err', 'Грешка при сесия');
+      setCloudMsg(error.message, true);
+    } else {
+      renderAuthState(data?.session?.user || null);
+      if (data?.session?.user) {
+        await syncWithCloud('auto');
+      }
+    }
+
+    sb.auth.onAuthStateChange(async (_event, session) => {
+      renderAuthState(session?.user || null);
+      if (session?.user) {
+        await syncWithCloud('auto');
+      }
+    });
   }
 
   function bindEvents() {
-    const cfg = loadCfg();
-    if (el.url) el.url.value = cfg.url;
-    if (el.key) el.key.value = cfg.key;
-    if (el.autoSync) el.autoSync.checked = cfg.autoSync;
-
-    el.saveCfg?.addEventListener("click", async () => {
-      const nextCfg = {
-        url: normalizeUrl(el.url?.value),
-        key: (el.key?.value || "").trim(),
-        autoSync: el.autoSync ? el.autoSync.checked : true
-      };
-      if (!nextCfg.url || !nextCfg.key) {
-        setMsg("Попълни и Supabase URL, и Anon Key.", "err");
-        return;
-      }
-      saveCfg(nextCfg);
-      setMsg("Конфигурацията на сървъра е запазена.", "ok");
-      await initClient();
-    });
-
-    el.resetCfg?.addEventListener("click", async () => {
-      localStorage.removeItem(STORAGE_CFG_KEY);
-      const def = loadCfg();
-      if (el.url) el.url.value = def.url;
-      if (el.key) el.key.value = def.key;
-      if (el.autoSync) el.autoSync.checked = def.autoSync;
-      setMsg("Върнати са настройките по подразбиране.", "ok");
-      await initClient();
-    });
-
-    el.autoSync?.addEventListener("change", () => {
-      const cur = loadCfg();
-      saveCfg({ ...cur, autoSync: el.autoSync.checked });
-    });
-
-    el.signIn?.addEventListener("click", async () => {
-      const email = (el.email?.value || "").trim();
-      const password = el.pass?.value || "";
+    $c('cloudSignInBtn')?.addEventListener('click', async () => {
+      if (!sb) return;
+      const email = ($c('cloudEmailInput')?.value || '').trim();
+      const password = $c('cloudPassInput')?.value || '';
       if (!email || !password) {
-        setMsg("Въведи имейл и парола.", "err");
+        setCloudMsg('Въведи имейл и парола.', true);
         return;
       }
-      const client = sb || await initClient();
-      if (!client) return;
-
-      setBadge("sync", "Влизане...");
-      setMsg("Извършва се вход...", "info");
-      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      setCloudMsg('Влизане...');
+      const { error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        setBadge("err", "Грешка при вход");
-        setMsg(`Грешка при вход: ${formatError(error)}`, "err");
-        return;
+        setCloudMsg('Грешка при вход: ' + error.message, true);
+      } else {
+        setCloudMsg('Успешен вход!');
       }
-      currentUser = data?.user || null;
-      updateAuthUI();
-      setMsg("Успешен вход!", "ok");
-      await pullFromCloud(true);
     });
 
-    el.signUp?.addEventListener("click", async () => {
-      const email = (el.email?.value || "").trim();
-      const password = el.pass?.value || "";
-      if (!email || !password) {
-        setMsg("Въведи имейл и парола за регистрация.", "err");
+    $c('cloudSignUpBtn')?.addEventListener('click', async () => {
+      if (!sb) return;
+      const email = ($c('cloudEmailInput')?.value || '').trim();
+      const password = $c('cloudPassInput')?.value || '';
+      if (!email || password.length < 6) {
+        setCloudMsg('Въведи валиден имейл и парола (поне 6 символа).', true);
         return;
       }
-      const client = sb || await initClient();
-      if (!client) return;
-
-      setBadge("sync", "Регистрация...");
-      const { error } = await client.auth.signUp({ email, password });
+      setCloudMsg('Регистрация...');
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) {
-        setBadge("err", "Грешка при регистрация");
-        setMsg(`Грешка при регистрация: ${formatError(error)}`, "err");
-        return;
+        setCloudMsg('Грешка при регистрация: ' + error.message, true);
+      } else if (data?.session) {
+        setCloudMsg('Профилът е създаден и свързан!');
+      } else {
+        setCloudMsg('Провери пощата си за линк за потвърждение, след което влез.');
       }
-      setMsg("Регистрацията е изпратена. Провери имейла си за потвърждение (ако е активно).", "ok");
     });
 
-    el.signOut?.addEventListener("click", async () => {
+    $c('cloudResetPassBtn')?.addEventListener('click', async () => {
+      if (!sb) return;
+      const email = ($c('cloudEmailInput')?.value || '').trim();
+      if (!email) {
+        setCloudMsg('Въведи имейла си в полето по-горе.', true);
+        return;
+      }
+      const { error } = await sb.auth.resetPasswordForEmail(email);
+      if (error) {
+        setCloudMsg('Грешка: ' + error.message, true);
+      } else {
+        setCloudMsg('Изпратен е имейл за смяна на паролата.');
+      }
+    });
+
+    $c('cloudSignOutBtn')?.addEventListener('click', async () => {
       if (!sb) return;
       await sb.auth.signOut();
-      currentUser = null;
-      updateAuthUI();
-      setMsg("Излязохте от акаунта.", "info");
+      renderAuthState(null);
+      setCloudMsg('Излезе от облачния профил.');
     });
 
-    el.syncNow?.addEventListener("click", async () => {
-      await pushToCloud(false);
+    $c('cloudSyncNowBtn')?.addEventListener('click', () => syncWithCloud('auto'));
+    $c('cloudPullBtn')?.addEventListener('click', () => syncWithCloud('pull'));
+
+    $c('cloudSaveConfigBtn')?.addEventListener('click', async () => {
+      const url = ($c('cloudUrlInput')?.value || '').trim();
+      const key = ($c('cloudKeyInput')?.value || '').trim();
+      if (!url || !key) {
+        setCloudMsg('Попълни и URL, и Anon Key.', true);
+        return;
+      }
+      localStorage.setItem(LS.url, url);
+      localStorage.setItem(LS.key, key);
+      setCloudMsg('Конфигурацията е запазена. Свързване...');
+      await initClient();
     });
 
-    window.addEventListener("storage", (e) => {
-      if (e.key && e.key !== STORAGE_CFG_KEY) scheduleAutoSync();
+    $c('cloudResetConfigBtn')?.addEventListener('click', async () => {
+      localStorage.removeItem(LS.url);
+      localStorage.removeItem(LS.key);
+      setCloudMsg('Възстановени настройки по подразбиране.');
+      await initClient();
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (!e.key || e.key.startsWith('sb-')) return;
+      if (e.key === 'mgu_cars' || e.key === 'mgu_active' || e.key === 'mgu_theme' || e.key === 'mgu_photo_pos') {
+        schedulePush();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentUser) {
+        syncWithCloud('auto');
+      }
     });
   }
 
-  bindEvents();
-  initClient();
+  function boot() {
+    if (bootStarted) return;
+    bootStarted = true;
+    mountCloudUi();
+    bindEvents();
+    const savedLast = localStorage.getItem(LS.lastSync);
+    if (savedLast) updateLastSyncLabel(savedLast);
+    initClient();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>
 </body>
