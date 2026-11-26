@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
+<link id="pwaManifestLink" rel="manifest">
 <title>M-GARAGE PRO 4.2</title>
 
 <style>
@@ -1341,7 +1342,8 @@ details[open] > summary{
 
     <div class="progress-track"><div class="progress-fill" id="stepsProgress"></div></div>
     <div class="muted num-tabular" id="stepsProgressText"></div>
-    <div class="chip-filter-row" style="margin-top:10px">
+    <input class="search-input" id="mguSearch" type="search" placeholder="Търси в MGU стъпките (напр. SSH, flash, BimmerCode, Waze, VIN)..." style="margin-top:10px">
+    <div class="chip-filter-row" style="margin-top:8px">
      <button class="filter-chip active" id="mguFilterAll" type="button">Всички стъпки</button>
      <button class="filter-chip" id="mguFilterTodo" type="button">Само неизпълнени</button>
     </div>
@@ -1354,6 +1356,21 @@ details[open] > summary{
   </section>
 
   <section class="screen" id="screen-more">
+   <details class="drop-panel" open>
+    <summary>
+     <div>
+      <div>PWA ПРИЛОЖЕНИЕ И ОФЛАЙН РЕЖИМ</div>
+      <div class="drop-sub">Инсталиране на началния екран и кеширане за работа без връзка</div>
+     </div>
+     <span class="chev">▾</span>
+    </summary>
+    <div class="muted" id="pwaStatusText">Проверка на PWA и Service Worker...</div>
+    <div class="btn-row">
+     <button class="btn small hidden" id="pwaInstallBtn" type="button">＋ Инсталирай приложението</button>
+     <button class="btn secondary small" id="pwaRefreshCacheBtn" type="button">Обнови офлайн кеша</button>
+    </div>
+   </details>
+
    <details class="drop-panel" open>
     <summary>
      <div>
@@ -1728,12 +1745,14 @@ let activeVin="";
 let currentScreen="garage";
 let currentSeg="service";
 let searchQuery="";
+let mguSearchQuery="";
 let activeFilter="all";
 let timelineFilter="all";
 let mguOnlyTodo=false;
 let forcedCloudState="";
 let draftPhotoDataUrl="";
 let editingRecord=null;
+let deferredPwaPrompt=null;
 let toastTimer=null;
 const $=id=>document.getElementById(id);
 
@@ -1758,6 +1777,109 @@ function safePhotoDataUrl(value){
 }
 function makeId(){return crypto.randomUUID?crypto.randomUUID():"id-"+Date.now()+"-"+Math.random().toString(16).slice(2)}
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+
+function makeAppIconDataUrl(size){
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#080c12"/><rect x="10" y="10" width="108" height="108" rx="22" fill="#101722" stroke="#258bff" stroke-width="4"/><text x="64" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="900" fill="#f0f5fc">M<tspan fill="#258bff">G</tspan></text></svg>`;
+ return"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+
+function initPwaSupport(){
+ const statusEl=$("pwaStatusText");
+ const installBtn=$("pwaInstallBtn");
+ const refreshBtn=$("pwaRefreshCacheBtn");
+
+ try{
+  const manifestLink=$("pwaManifestLink");
+  const startUrl=getFullAppUrl()||"./";
+  const manifestObj={
+   name:"M-GARAGE PRO 4.2",
+   short_name:"M-GARAGE PRO",
+   description:"Управление на гараж, сервизи, модификации, разходи и BMW MGU процедура",
+   start_url:startUrl,
+   display:"standalone",
+   background_color:"#080c12",
+   theme_color:"#080c12",
+   icons:[
+    {src:makeAppIconDataUrl(192),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
+    {src:makeAppIconDataUrl(512),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
+   ]
+  };
+  const mBlob=new Blob([JSON.stringify(manifestObj)],{type:"application/manifest+json"});
+  if(manifestLink)manifestLink.href=URL.createObjectURL(mBlob);
+ }catch(err){
+  console.error("Manifest init error:",err);
+ }
+
+ const isStandalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+
+ const updatePwaStatus=()=>{
+  if(!statusEl)return;
+  if(isStandalone){
+   statusEl.textContent="✓ Приложението работи в самостоятелен (PWA) режим на началния екран.";
+  }else if("serviceWorker" in navigator){
+   statusEl.textContent="PWA манифестът и офлайн кешът са готови. Можеш да добавиш сайта към началния екран от менюто на браузъра.";
+  }else{
+   statusEl.textContent="Браузърът не поддържа Service Worker; данните се пазят локално в устройството.";
+  }
+ };
+ updatePwaStatus();
+
+ if("serviceWorker" in navigator&&(window.location.protocol==="https:"||window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")){
+  const swCode=`
+const CACHE_NAME="m-garage-pro-v4-2";
+self.addEventListener("install",event=>{
+ event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(["./"]).catch(()=>{})));
+ self.skipWaiting();
+});
+self.addEventListener("activate",event=>{
+ event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));
+ self.clients.claim();
+});
+self.addEventListener("fetch",event=>{
+ if(event.request.method!=="GET")return;
+ const url=new URL(event.request.url);
+ if(url.origin!==self.location.origin)return;
+ event.respondWith(
+  fetch(event.request).then(res=>{
+   const copy=res.clone();
+   caches.open(CACHE_NAME).then(c=>c.put(event.request,copy)).catch(()=>{});
+   return res;
+  }).catch(()=>caches.match(event.request))
+ );
+});`;
+  const swBlob=new Blob([swCode],{type:"application/javascript"});
+  const swUrl=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).then(()=>updatePwaStatus()).catch(()=>{});
+ }
+
+ window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredPwaPrompt=e;
+  if(installBtn)installBtn.classList.remove("hidden");
+  if(statusEl)statusEl.textContent="Налична е директна инсталация на устройството.";
+ });
+
+ installBtn?.addEventListener("click",async()=>{
+  if(!deferredPwaPrompt)return;
+  deferredPwaPrompt.prompt();
+  await deferredPwaPrompt.userChoice.catch(()=>{});
+  deferredPwaPrompt=null;
+  installBtn.classList.add("hidden");
+  updatePwaStatus();
+ });
+
+ refreshBtn?.addEventListener("click",async()=>{
+  try{
+   if("caches" in window){
+    const keys=await caches.keys();
+    await Promise.all(keys.map(k=>caches.delete(k)));
+   }
+   showToast("Офлайн кешът е обновен","good");
+  }catch{
+   showToast("Кешът е проверен");
+  }
+ });
+}
 
 function parseFlexibleDate(value){
  if(!value)return null;
@@ -2953,9 +3075,18 @@ function renderSteps(car){
  $("stepsProgressText").textContent=done+" от "+STEPS.length+" изпълнени · "+percent+"%";
  const container=$("stepsList");container.replaceChildren();
 
- const visibleSteps=mguOnlyTodo?STEPS.filter(s=>!car.done[s.id]):STEPS;
+ const q=mguSearchQuery.trim().toLowerCase();
+ const visibleSteps=STEPS.filter(s=>{
+  if(mguOnlyTodo&&car.done[s.id])return false;
+  if(q){
+   const hay=[s.title,s.description,s.explanation,s.warning,s.command,s.expected].filter(Boolean).join(" ").toLowerCase();
+   if(!hay.includes(q))return false;
+  }
+  return true;
+ });
+
  if(!visibleSteps.length){
-  container.innerHTML='<div class="empty">Всички MGU стъпки са отбелязани като изпълнени.</div>';
+  container.innerHTML='<div class="empty">Няма MGU стъпки, отговарящи на текущото търсене или филтър.</div>';
   return;
  }
 
@@ -2965,7 +3096,7 @@ function renderSteps(car){
   const card=document.createElement("details");
   card.className="step-card"+(isDone?" is-done":isRisk?" is-risk":"");
   card.dataset.stepId=step.id;
-  if(openIds.has(step.id))card.open=true;
+  if(openIds.has(step.id)||Boolean(q))card.open=openIds.has(step.id)||Boolean(q);
 
   const summary=document.createElement("summary");
 
@@ -3516,6 +3647,12 @@ $("recordSearch")?.addEventListener("input",e=>{
  if(car)renderRecordsForActiveSeg(car);
 });
 
+$("mguSearch")?.addEventListener("input",e=>{
+ mguSearchQuery=e.target.value||"";
+ const car=activeCar();
+ if(car)renderSteps(car);
+});
+
 $("servicePresets")?.addEventListener("click",e=>{
  const chip=e.target.closest(".preset-chip");
  if(!chip)return;
@@ -3704,6 +3841,7 @@ window.addEventListener("storage",e=>{
 const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"")||getFullAppUrl()||"";
 if($("shareUrlInput")&&savedShareUrl)$("shareUrlInput").value=savedShareUrl;
 
+initPwaSupport();
 loadCars();
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
 renderAll();
