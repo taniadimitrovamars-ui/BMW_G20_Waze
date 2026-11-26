@@ -111,6 +111,19 @@ a{color:var(--accent)}
  font-size:11px;font-weight:850;
  display:inline-flex;align-items:center;gap:6px;
  white-space:nowrap;
+ transition:border-color .15s ease,background .15s ease,color .15s ease;
+}
+.pill-btn.synced{
+ border-color:color-mix(in srgb,var(--good) 65%,var(--border));
+ color:var(--good);
+}
+.pill-btn.pending{
+ border-color:color-mix(in srgb,var(--warn) 65%,var(--border));
+ color:var(--warn);
+}
+.pill-btn.error{
+ border-color:color-mix(in srgb,var(--danger) 65%,var(--border));
+ color:var(--danger);
 }
 
 .screen{display:none}
@@ -317,13 +330,36 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{min-height:82px;resize:vertical}
 
+/* Бързи шаблони (чипове) във формите */
+.preset-row{
+ display:flex;
+ flex-wrap:wrap;
+ gap:6px;
+ margin-bottom:12px;
+}
+.preset-chip{
+ border:1px solid var(--border);
+ background:var(--surface-2);
+ color:var(--text);
+ border-radius:999px;
+ padding:6px 11px;
+ font-size:10.5px;
+ font-weight:800;
+ transition:border-color .14s ease,background .14s ease,color .14s ease;
+}
+.preset-chip:hover{
+ border-color:var(--accent);
+ background:var(--accent-soft);
+ color:var(--accent);
+}
+
 .btn{
  border:0;border-radius:13px;padding:12px 15px;
  background:var(--accent);color:#fff;font-weight:850;
  min-height:42px;transition:transform .14s,filter .14s;
  display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
-.btn:active,.icon-btn:active,.nav-btn:active,.fab:active{transform:scale(.97)}
+.btn:active,.icon-btn:active,.nav-btn:active,.fab:active,.preset-chip:active{transform:scale(.97)}
 .btn.secondary{
  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
 }
@@ -618,7 +654,7 @@ details[open] > summary{
    <div class="version">G20 · MGU · WAZE · 4.0</div>
   </div>
   <div class="top-actions">
-   <button class="pill-btn" id="quickAddCarBtn" type="button">＋ Кола</button>
+   <button class="pill-btn" id="topCloudBtn" type="button" title="CLOUD SYNC · M-GARAGE PRO 2.4">☁ Cloud</button>
    <button class="icon-btn" id="themeToggle" type="button" aria-label="Смени тема">◐</button>
    <button class="icon-btn" id="backupButton" type="button" aria-label="Експорт на архив">↓</button>
   </div>
@@ -628,7 +664,7 @@ details[open] > summary{
 
  <div id="garageEmpty" class="panel empty hidden">
   Все още няма добавени автомобили.<br>
-  Натисни <strong>„＋ Кола“</strong> горе вдясно, за да добавиш първия автомобил.
+  <button class="btn small" id="emptyAddCarBtn" type="button" style="margin-top:12px">＋ Добави автомобил</button>
  </div>
 
  <main id="mainContent" class="hidden">
@@ -913,6 +949,12 @@ details[open] > summary{
   </div>
 
   <div class="sheet-form hidden" id="form-service">
+   <div class="preset-row" id="servicePresets">
+    <button class="preset-chip" type="button" data-title="Масло и филтри" data-km="10000" data-months="12" data-next="Следваща смяна на масло и филтри">Масло + филтри (10k / 12м)</button>
+    <button class="preset-chip" type="button" data-title="Спирачни накладки и дискове" data-km="25000" data-months="24" data-next="Проверка на спирачки">Спирачки</button>
+    <button class="preset-chip" type="button" data-title="Смяна гуми и баланс" data-km="0" data-months="6" data-next="Сезонна смяна на гуми">Гуми / баланс</button>
+    <button class="preset-chip" type="button" data-title="Технически преглед / обслужване" data-km="0" data-months="12" data-next="Следващ преглед">Преглед / обслужване</button>
+   </div>
    <div class="form-grid">
     <div class="field"><label>ДАТА</label><input id="sDate" type="date"></div>
     <div class="field"><label>ПРОБЕГ (KM)</label><input id="sMileage" type="number" min="0"></div>
@@ -934,6 +976,13 @@ details[open] > summary{
   </div>
 
   <div class="sheet-form hidden" id="form-reminders">
+   <div class="preset-row" id="reminderPresets">
+    <button class="preset-chip" type="button" data-title="Смяна на масло и филтри" data-cat="Масло" data-km="10000" data-months="12">Масло (10k / 12м)</button>
+    <button class="preset-chip" type="button" data-title="Спирачна система" data-cat="Спирачки" data-km="20000" data-months="12">Спирачки</button>
+    <button class="preset-chip" type="button" data-title="Сезонни гуми" data-cat="Гуми" data-km="0" data-months="6">Гуми (6м)</button>
+    <button class="preset-chip" type="button" data-title="Технически преглед" data-cat="Технически преглед" data-km="0" data-months="12">Преглед (12м)</button>
+    <button class="preset-chip" type="button" data-title="Застраховка / Гражданска" data-cat="Застраховка" data-km="0" data-months="12">Застраховка (12м)</button>
+   </div>
    <div class="form-grid">
     <div class="field full"><label>НАПОМНЯНЕ</label><input id="rTitle" placeholder="Смяна на масло"></div>
     <div class="field"><label>КАТЕГОРИЯ</label><select id="rCategory"><option>Масло</option><option>Филтри</option><option>Спирачки</option><option>Гуми</option><option>Технически преглед</option><option>Застраховка</option><option>Друго</option></select></div>
@@ -957,6 +1006,13 @@ details[open] > summary{
   </div>
 
   <div class="sheet-form hidden" id="form-expenses">
+   <div class="preset-row" id="expensePresets">
+    <button class="preset-chip" type="button" data-title="Зареждане на гориво" data-cat="Гориво">Гориво</button>
+    <button class="preset-chip" type="button" data-title="Гражданска отговорност / Каско" data-cat="Застраховка">Застраховка</button>
+    <button class="preset-chip" type="button" data-title="Годишен данък МПС" data-cat="Данък">Данък</button>
+    <button class="preset-chip" type="button" data-title="Гуми / джанти" data-cat="Гуми">Гуми</button>
+    <button class="preset-chip" type="button" data-title="Автомивка / детайлинг" data-cat="Други">Автомивка</button>
+   </div>
    <div class="form-grid">
     <div class="field full"><label>РАЗХОД</label><input id="eTitle" placeholder="Гориво, данък, застраховка..."></div>
     <div class="field"><label>ДАТА</label><input id="eDate" type="date"></div>
@@ -1124,11 +1180,20 @@ function formatDate(value){
 }
 function message(id,text){if($(id))$(id).textContent=text}
 
+function openCloudPanel(){
+ showScreen("more");
+ const panel=$("cloudSyncPanel");
+ if(panel){
+  panel.open=true;
+  setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),120);
+ }
+}
+
 function refreshGarageCloudWidget(){
  const stateEl=$("gcwState");
  const badgeEl=$("gcwPendingBadge");
  const metaEl=$("gcwMeta");
- if(!stateEl||!badgeEl||!metaEl)return;
+ const topBtn=$("topCloudBtn");
 
  const cloudStateEl=$("dashboardCloud");
  const cloudUserEl=$("cloudUser");
@@ -1140,8 +1205,28 @@ function refreshGarageCloudWidget(){
  }catch{}
 
  const cloudText=cloudStateEl?.textContent?.trim()||"● Локален режим";
+ const stateColor=cloudStateEl?.style.color||"var(--warn)";
+
+ if(topBtn){
+  topBtn.classList.remove("synced","pending","error");
+  if(cloudText.includes("Синхронизиран")){
+   topBtn.classList.add("synced");
+   topBtn.textContent="☁ Синхр.";
+  }else if(cloudText.includes("проблем")||cloudText.includes("OFFLINE")){
+   topBtn.classList.add("error");
+   topBtn.textContent="☁ Грешка";
+  }else if(pendingCount>0){
+   topBtn.classList.add("pending");
+   topBtn.textContent="☁ ("+pendingCount+")";
+  }else{
+   topBtn.textContent="☁ Cloud";
+  }
+ }
+
+ if(!stateEl||!badgeEl||!metaEl)return;
+
  stateEl.textContent=cloudText;
- stateEl.style.color=cloudStateEl?.style.color||"var(--warn)";
+ stateEl.style.color=stateColor;
 
  badgeEl.textContent=pendingCount+" чакащи";
  badgeEl.style.color=pendingCount?"var(--warn)":"var(--good)";
@@ -1593,7 +1678,53 @@ async function importBackup(file){
  }catch(error){message("localMessage","Грешка: "+error.message)}
 }
 
-$("quickAddCarBtn").addEventListener("click",()=>openSheet("car","Нов автомобил"));
+/* Бързи шаблони (чипове) */
+$("servicePresets")?.addEventListener("click",e=>{
+ const chip=e.target.closest(".preset-chip");
+ if(!chip)return;
+ $("sTitle").value=chip.dataset.title||"";
+ const km=safeNumber(chip.dataset.km);
+ const months=safeNumber(chip.dataset.months);
+ const car=activeCar();
+ const baseKm=safeNumber($("sMileage").value)||safeNumber(car?.details?.mileage);
+ if(km)$("sIntervalKm").value=km;
+ if(months){
+  $("sIntervalMonths").value=months;
+  const baseDate=$("sDate").value||today();
+  if(!$("sDate").value)$("sDate").value=baseDate;
+ }
+ if(chip.dataset.next)$("sNextTitle").value=chip.dataset.next;
+ if(km&&baseKm&&!safeNumber($("sMileage").value))$("sMileage").value=baseKm;
+});
+
+$("reminderPresets")?.addEventListener("click",e=>{
+ const chip=e.target.closest(".preset-chip");
+ if(!chip)return;
+ $("rTitle").value=chip.dataset.title||"";
+ if(chip.dataset.cat)$("rCategory").value=chip.dataset.cat;
+ const km=safeNumber(chip.dataset.km);
+ const months=safeNumber(chip.dataset.months);
+ const car=activeCar();
+ if(km){
+  const baseKm=safeNumber(car?.details?.mileage);
+  if(baseKm)$("rMileage").value=baseKm+km;
+ }
+ if(months){
+  $("rDate").value=addMonths(today(),months);
+ }
+});
+
+$("expensePresets")?.addEventListener("click",e=>{
+ const chip=e.target.closest(".preset-chip");
+ if(!chip)return;
+ $("eTitle").value=chip.dataset.title||"";
+ if(chip.dataset.cat)$("eCategory").value=chip.dataset.cat;
+ if(!$("eDate").value)$("eDate").value=today();
+});
+
+$("topCloudBtn")?.addEventListener("click",openCloudPanel);
+$("emptyAddCarBtn")?.addEventListener("click",()=>openSheet("car","Нов автомобил"));
+
 $("fabAdd").addEventListener("click",()=>{
  if(currentScreen==="garage"){
   showScreen("service");
@@ -1616,20 +1747,11 @@ $("gcwSyncBtn").addEventListener("click",()=>{
  if(cloudBtn&&!cloudBtn.disabled){
   cloudBtn.click();
  }else{
-  showScreen("more");
-  const panel=$("cloudSyncPanel");
-  if(panel){panel.open=true;panel.scrollIntoView({behavior:"smooth",block:"start"})}
+  openCloudPanel();
  }
 });
 
-$("gcwOpenPanelBtn").addEventListener("click",()=>{
- showScreen("more");
- const panel=$("cloudSyncPanel");
- if(panel){
-  panel.open=true;
-  setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"start"}),120);
- }
-});
+$("gcwOpenPanelBtn").addEventListener("click",openCloudPanel);
 
 $("expandAllStepsBtn").addEventListener("click",()=>{
  document.querySelectorAll("#stepsList details.step-card").forEach(d=>d.open=true);
