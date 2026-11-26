@@ -9,7 +9,7 @@
 ========================================== */
 
 const CACHE_PREFIX = "m-garage-pro-";
-const CACHE_NAME = CACHE_PREFIX + "v7";
+const CACHE_NAME = CACHE_PREFIX + "v8";
 
 /* ОСНОВНИ ФАЙЛОВЕ */
 
