@@ -4383,7 +4383,9 @@ function compressImageToDataUrl(file){
 }
 
 function renderProfile(car){
- const d=car.details;
+  const d=car.details;
+ const profileFocus=document.activeElement;
+ if(profileFocus&&profileFocus.closest&&profileFocus.closest("#screen-more details.drop-panel")&&["INPUT","TEXTAREA","SELECT"].includes(profileFocus.tagName)&&profileFocus.id&&profileFocus.id.startsWith("p"))return;
  if($("pVehicleType"))$("pVehicleType").value=d.vehicleType==="atv"?"atv":"car";
  $("pMake").value=d.make;$("pModel").value=d.model;$("pYear").value=d.year||"";
  $("pEngine").value=d.engine;$("pTransmission").value=d.transmission;
