@@ -2474,12 +2474,15 @@ byId("cloudAssignPending")?.addEventListener(
 if (CLOUD_SYNC_SAFETY_LOCK) {
   const cloudPanel = byId("cloudSyncPanel");
 
-  cloudPanel?.querySelectorAll("button, input").forEach(control => {
+  cloudPanel?.querySelectorAll(
+    "button:not(#cloudLogin):not(#cloudRegister):not(#cloudLogout), " +
+    "input:not(#cloudEmail):not(#cloudPassword)"
+  ).forEach(control => {
     control.disabled = true;
     control.title = "Временно блокирано за защита на данните.";
   });
 
-  status("Cloud функциите са временно блокирани.");
+  status("Cloud операциите са временно блокирани. Входът остава достъпен.");
   restoreStatus("Cloud Restore е временно блокиран.");
 }
 
