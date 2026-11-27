@@ -2572,7 +2572,18 @@ async function syncNow() {
       const local = readLocalData();
       const legacy = await readLegacyData(userId);
 
-      const initial = createInitialEvents(events, local, legacy);
+            const initial = createInitialEvents(events, local, legacy);
+
+      const lastSyncMs = Date.parse(localStorage.getItem(LAST_SYNC_KEY) || "");
+
+      if (Number.isFinite(lastSyncMs)) {
+        ...
+      }
+
+      if (initial.length) {
+        await uploadEvents(userId, initial);
+        processedChanges += initial.length;
+      }
 
       if (initial.length) {
         await uploadEvents(userId, initial);
