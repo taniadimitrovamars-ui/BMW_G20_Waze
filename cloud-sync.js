@@ -2365,6 +2365,19 @@ byId("cloudAssignPending")?.addEventListener(
   assignPendingToCurrentUser
 );
 
+// GLOBAL CLOUD UI SAFETY LOCK
+if (CLOUD_SYNC_SAFETY_LOCK) {
+  const cloudPanel = byId("cloudSyncPanel");
+
+  cloudPanel?.querySelectorAll("button, input").forEach(control => {
+    control.disabled = true;
+    control.title = "Временно блокирано за защита на данните.";
+  });
+
+  status("Cloud функциите са временно блокирани.");
+  restoreStatus("Cloud Restore е временно блокиран.");
+}
+
 /* ==========================================
    AUTH STATE
 ========================================== */
