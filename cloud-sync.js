@@ -2576,8 +2576,38 @@ async function syncNow() {
 
       const lastSyncMs = Date.parse(localStorage.getItem(LAST_SYNC_KEY) || "");
 
-      if (Number.isFinite(lastSyncMs)) {
-        ...
+            if (Number.isFinite(lastSyncMs)) {
+        const cloudCars = new Map(
+          applyEvents(events).cars.map(car => [car.vin, car])
+        );
+
+        const pendingVins = new Set(
+          pendingForUser(userId)
+            .filter(event => event.entity_type === "car")
+            .map(event => event.entity_id)
+        );
+
+        local.cars.forEach(localCar => {
+          const cloudCar = cloudCars.get(localCar.vin);
+
+          if (!cloudCar || pendingVins.has(localCar.vin)) return;
+          if (stableJSON(cloudCar) === stableJSON(localCar)) return;
+
+          const changedInCloud = events.some(event =>
+            event.entity_type === "car" &&
+            event.entity_id === localCar.vin &&
+            Date.parse(event.created_at) > lastSyncMs
+          );
+
+          if (changedInCloud) return;
+
+          initial.push(
+            createEvent("car", localCar.vin, "upsert", {
+              car: localCar,
+              nick: localCar.nick
+            })
+          );
+        });
       }
 
       if (initial.length) {
