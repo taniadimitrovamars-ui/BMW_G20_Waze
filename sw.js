@@ -1,24 +1,18 @@
-
 "use strict";
 
 /* ==========================================
    M-GARAGE PRO
    Service Worker
-   Version: 1.2
-   CACHE UPDATE: v7
+   Version: 1.3 (Cache v8)
 ========================================== */
 
 const CACHE_PREFIX = "m-garage-pro-";
 const CACHE_NAME = CACHE_PREFIX + "v8";
 
-/* ОСНОВНИ ФАЙЛОВЕ */
-
 const CORE_ASSETS = [
   "./",
   "./index.html"
 ];
-
-/* ДОПЪЛНИТЕЛНИ ФАЙЛОВЕ */
 
 const OPTIONAL_ASSETS = [
   "./manifest.json",
@@ -29,22 +23,14 @@ const OPTIONAL_ASSETS = [
   "./icons/icon-512.png"
 ];
 
-/* ==========================================
-   CACHE RESPONSE
-========================================== */
-
 async function cacheResponse(request, response) {
   if (
     response &&
-    response.status === 200 &&
+    response.ok &&
     response.type === "basic"
   ) {
     const cache = await caches.open(CACHE_NAME);
-
-    await cache.put(
-      request,
-      response.clone()
-    );
+    await cache.put(request, response.clone());
   }
 
   return response;
@@ -100,7 +86,7 @@ self.addEventListener("activate", (event) => {
       await self.clients.claim();
 
       console.log(
-        "M-GARAGE PRO: Service Worker v1.2 activated."
+        "M-GARAGE PRO: Service Worker v1.3 (v8) activated."
       );
     })()
   );
@@ -123,65 +109,55 @@ self.addEventListener("fetch", (event) => {
 
   const isNavigation =
     request.mode === "navigate" ||
-    (request.headers.get("accept") || "")
-      .includes("text/html");
+    (request.headers.get("accept") || "").includes("text/html");
 
   const isJavaScript =
     request.destination === "script" ||
     url.pathname.endsWith(".js");
 
-  /* ========================================
-     HTML: NETWORK FIRST
-  ======================================== */
-
+  /* 1. HTML / NAVIGATION: NETWORK FIRST */
   if (isNavigation) {
     event.respondWith(
       (async () => {
         try {
           const response = await fetch(request);
 
-          return await cacheResponse(
-            "./index.html",
-            response
-          );
+          if (response && response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
+            await cache.put("./index.html", response.clone());
+          }
 
+          return response;
         } catch (error) {
-          const cached = await caches.match("./index.html");
+          const cached =
+            (await caches.match(request)) ||
+            (await caches.match("./index.html"));
 
           if (cached) return cached;
 
           return new Response(
-            "M-GARAGE PRO не може да се зареди. Отвори приложението онлайн поне веднъж.",
+            "<!doctype html><html lang='bg'><meta charset='utf-8'><title>Офлайн</title><body><h3>M-GARAGE PRO не може да се зареди</h3><p>Отвори приложението онлайн поне веднъж, за да се кешира.</p></body></html>",
             {
               status: 503,
               headers: {
-                "Content-Type": "text/plain; charset=utf-8"
+                "Content-Type": "text/html; charset=utf-8"
               }
             }
           );
         }
       })()
     );
-
     return;
   }
 
-  /* ========================================
-     JAVASCRIPT: NETWORK FIRST
-     Винаги проверява за нова версия.
-  ======================================== */
-
+  /* 2. JAVASCRIPT: NETWORK FIRST */
   if (isJavaScript) {
     event.respondWith(
       (async () => {
         try {
           const response = await fetch(request);
-
-          return await cacheResponse(
-            request,
-            response
-          );
-
+          return await cacheResponse(request, response);
         } catch (error) {
           const cached = await caches.match(request);
 
@@ -199,28 +175,18 @@ self.addEventListener("fetch", (event) => {
         }
       })()
     );
-
     return;
   }
 
-  /* ========================================
-     ОСТАНАЛИ РЕСУРСИ: CACHE FIRST
-  ======================================== */
-
+  /* 3. ОСТАНАЛИ РЕСУРСИ: CACHE FIRST */
   event.respondWith(
     (async () => {
       const cached = await caches.match(request);
-
       if (cached) return cached;
 
       try {
         const response = await fetch(request);
-
-        return await cacheResponse(
-          request,
-          response
-        );
-
+        return await cacheResponse(request, response);
       } catch (error) {
         return new Response("", {
           status: 503,
