@@ -284,6 +284,11 @@ function cleanRecord(item, type) {
     result.dueDate = safeDate(source.dueDate);
     result.dueMileage = safeNumber(source.dueMileage);
     result.completed = source.completed === true;
+    result.sourceServiceId = safeId(source.sourceServiceId);
+  }
+
+  if (type === "service") {
+    result.linkedReminderId = safeId(source.linkedReminderId);
   }
 
   if (type === "modification") {
