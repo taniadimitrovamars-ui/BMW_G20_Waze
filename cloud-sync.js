@@ -79,6 +79,9 @@ const DEVICE_KEY = "mgu_cloud_device";
 const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 const RESTORE_KEY = "mgu_cloud_restore_id";
 
+// TEMPORARY SAFETY LOCK — блокира всички Cloud Sync операции
+const CLOUD_SYNC_SAFETY_LOCK = true;
+
 const STEP_IDS = [
   "prep0", "prep", "status0", "flash", "keys", "persist",
   "ssh_fix", "store_key", "store", "waze", "recode", "after"
@@ -2052,6 +2055,12 @@ async function logout() {
 ========================================== */
 
 async function syncNow() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    status("Cloud Sync е временно блокиран за защита на локалните данни.");
+    refreshDashboard();
+    return;
+  }
+
   if (syncRunning) return;
 
   if (!navigator.onLine) {
