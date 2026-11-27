@@ -1316,6 +1316,10 @@ async function fetchAllEvents(userId) {
 }
 
 async function uploadEvents(userId, events) {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    throw new Error("Cloud записът е временно блокиран за защита на данните.");
+  }
+
   if (!events.length) return;
 
   const invalid = events.filter(event =>
@@ -1350,6 +1354,10 @@ async function uploadEvents(userId, events) {
 }
 
 async function uploadPending(userId) {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    throw new Error("Изпращането на чакащи Cloud промени е временно блокирано.");
+  }
+
   const pending = readPending();
 
   if (!pending.length) return 0;
@@ -1574,6 +1582,10 @@ async function writeHistory(
   changesCount,
   errorMessage = ""
 ) {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    throw new Error("Cloud историята е временно блокирана за защита на данните.");
+  }
+
   const { error } = await supabase
     .from("sync_history")
     .insert({
