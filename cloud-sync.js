@@ -1748,6 +1748,13 @@ async function loadDevices() {
 ========================================== */
 
 async function restoreBackup() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    restoreStatus("Cloud Restore е временно блокиран за защита на данните.");
+    status("Cloud Restore е временно блокиран.");
+    refreshDashboard();
+    return;
+  }
+
   if (syncRunning) {
     restoreStatus("Изчакай текущата синхронизация.");
     return;
