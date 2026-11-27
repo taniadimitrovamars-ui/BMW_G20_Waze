@@ -805,7 +805,13 @@ function refreshPendingDiagnostics() {
   let unassigned = 0;
   let foreign = 0;
 
-  pending.forEach(event => {
+  const lines = [
+    "ОБЩО ЧАКАЩИ: " + pending.length,
+    "",
+    "ПРОФИЛНА ПРИНАДЛЕЖНОСТ:"
+  ];
+
+  pending.forEach((event, index) => {
     const key = event.entity_type + " / " + event.operation;
     counts[key] = (counts[key] || 0) + 1;
 
@@ -819,18 +825,31 @@ function refreshPendingDiagnostics() {
     } else {
       foreign++;
     }
+
+    const data = safeObject(event.data);
+
+    lines.push(
+      "",
+      "СЪБИТИЕ " + (index + 1),
+      "Тип: " + event.entity_type,
+      "Операция: " + event.operation,
+      "ID: " + event.entity_id,
+      "Цяла снимка (data.car): " + Boolean(data.car),
+      "Отделен запис: " + Boolean(data.record),
+      "Тип запис: " + safeString(data.recordType, 50),
+      "ID запис: " + safeString(data.recordId, 100),
+      "Частична промяна (patch): " + Boolean(data.patch)
+    );
   });
 
-  const lines = [
-    "ОБЩО ЧАКАЩИ: " + pending.length,
-    "",
-    "ПРОФИЛНА ПРИНАДЛЕЖНОСТ:",
+  lines.splice(
+    3, 0,
     "Свързани с текущия профил: " + assigned,
     "Без профил: " + unassigned,
     "Друг профил или неустановен: " + foreign,
     "",
     "ТИП И ОПЕРАЦИЯ:"
-  ];
+  );
 
   Object.keys(counts).sort().forEach(key => {
     lines.push(key + ": " + counts[key]);
