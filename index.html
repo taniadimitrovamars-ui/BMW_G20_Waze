@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="M-GARAGE PRO">
-<link id="pwaManifestLink" rel="manifest">
+<link id="pwaManifestLink" rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>M-GARAGE PRO 4.3 · M-LOG LAB</title>
 
 <style>
@@ -2837,27 +2838,7 @@ function initPwaSupport(){
  const installBtn=$("pwaInstallBtn");
  const refreshBtn=$("pwaRefreshCacheBtn");
 
- try{
-  const manifestLink=$("pwaManifestLink");
-  const startUrl=getFullAppUrl()||"./";
-  const manifestObj={
-   name:"M-GARAGE PRO 4.3",
-   short_name:"M-GARAGE PRO",
-   description:"Управление на гараж, сервизи, модификации, разходи, M-LOG LAB и BMW MGU процедура",
-   start_url:startUrl,
-   display:"standalone",
-   background_color:"#080c12",
-   theme_color:"#080c12",
-   icons:[
-    {src:makeAppIconDataUrl(192),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
-    {src:makeAppIconDataUrl(512),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
-   ]
-  };
-  const mBlob=new Blob([JSON.stringify(manifestObj)],{type:"application/manifest+json"});
-  if(manifestLink)manifestLink.href=URL.createObjectURL(mBlob);
- }catch(err){
-  console.error("Manifest init error:",err);
- }
+ 
 
  const isStandalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
 
@@ -2873,32 +2854,10 @@ function initPwaSupport(){
  };
  updatePwaStatus();
 
- if("serviceWorker" in navigator&&(window.location.protocol==="https:"||window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")){
-  const swCode=`
-const CACHE_NAME="m-garage-pro-v4-3";
-self.addEventListener("install",event=>{
- event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(["./"]).catch(()=>{})));
- self.skipWaiting();
-});
-self.addEventListener("activate",event=>{
- event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));
- self.clients.claim();
-});
-self.addEventListener("fetch",event=>{
- if(event.request.method!=="GET")return;
- const url=new URL(event.request.url);
- if(url.origin!==self.location.origin)return;
- event.respondWith(
-  fetch(event.request).then(res=>{
-   const copy=res.clone();
-   caches.open(CACHE_NAME).then(c=>c.put(event.request,copy)).catch(()=>{});
-   return res;
-  }).catch(()=>caches.match(event.request))
- );
-});`;
-  const swBlob=new Blob([swCode],{type:"application/javascript"});
-  const swUrl=URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl).then(()=>updatePwaStatus()).catch(()=>{});
+  if("serviceWorker" in navigator&&(window.location.protocol==="https:"||window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")){
+  navigator.serviceWorker.register("./sw.js").then(()=>updatePwaStatus()).catch(err=>{
+   console.error("Service Worker error:",err);
+  });
  }
 
  window.addEventListener("beforeinstallprompt",e=>{
