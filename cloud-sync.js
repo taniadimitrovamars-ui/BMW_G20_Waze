@@ -443,10 +443,13 @@ function createInterface() {
   panel.className = "drop-panel";
 
   panel.innerHTML = `
-    <summary>
-     <div>
-      <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
-      <div class="drop-sub">Акаунт, синхронизация, облачен архив, устройства и история</div>
+        <summary>
+     <div class="panel-lead">
+      <span class="panel-icon">☁️</span>
+      <div>
+       <div>CLOUD SYNC · M-GARAGE PRO 2.4</div>
+       <div class="drop-sub">Акаунт, синхронизация, облачен архив, устройства и история</div>
+      </div>
      </div>
      <span class="chev">▾</span>
     </summary>
