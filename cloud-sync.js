@@ -2508,6 +2508,10 @@ async function syncNow() {
       );
     }
 
+        if (unassignedPending().length) {
+      assignPendingToCurrentUser();
+    }
+
     if (unassignedPending().length) {
       throw new Error(
         "Има стари чакащи промени без собственик. " +
