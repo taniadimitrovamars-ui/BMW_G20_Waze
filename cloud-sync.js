@@ -3,7 +3,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4.5 (Auto Auth Prompt + Clean Auto Sync + Restore)
+   Version: 2.4.6 (Safe Render & Theme Guard + Auto Auth Prompt)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -100,6 +100,33 @@ let currentUser = null;
 let lastSyncError = false;
 let authInitialized = false;
 let initialSyncTriggered = false;
+
+/* ==========================================
+   SAFE UI / THEME / RENDER GUARDS
+========================================== */
+
+function safeInvokeRenderAll() {
+  try {
+    if (typeof window.renderAll === "function") {
+      window.renderAll();
+      return true;
+    }
+  } catch (renderError) {
+    console.warn("M-GARAGE RENDER WARNING:", renderError);
+  }
+  return false;
+}
+
+function safeApplyTheme(themeValue) {
+  if (themeValue !== "light" && themeValue !== "dark") return;
+  try {
+    if (typeof window.setTheme === "function") {
+      window.setTheme(themeValue);
+    }
+  } catch (themeError) {
+    console.warn("M-GARAGE THEME WARNING:", themeError);
+  }
+}
 
 /* ==========================================
    DIAGNOSTICS HELPER
@@ -1284,12 +1311,7 @@ function saveLocalData(data) {
     suppressLocalEvents = false;
   }
 
-  if (
-    (data.theme === "light" || data.theme === "dark") &&
-    typeof window.setTheme === "function"
-  ) {
-    window.setTheme(data.theme);
-  }
+  safeApplyTheme(data.theme);
 }
 
 /* ==========================================
@@ -1828,18 +1850,9 @@ async function restoreLocalFromCloud() {
         suppressLocalEvents = false;
       }
 
-      try {
-        const previousTheme =
-          previousStorage.get(THEME_KEY) || "dark";
-
-        if (typeof window.setTheme === "function") {
-          window.setTheme(previousTheme);
-        }
-      } catch (themeError) {
-        rollbackErrors.push(
-          "Тема: " + (themeError?.message || themeError)
-        );
-      }
+      const previousTheme =
+        previousStorage.get(THEME_KEY) || "dark";
+      safeApplyTheme(previousTheme);
 
       if (rollbackErrors.length) {
         throw new Error(
@@ -1858,7 +1871,7 @@ async function restoreLocalFromCloud() {
       );
     }
 
-    window.renderAll?.();
+    safeInvokeRenderAll();
 
     status(
       "Локалното възстановяване е успешно. " +
@@ -2246,7 +2259,7 @@ async function restoreBackup() {
     localStorage.setItem(RESTORE_KEY, restoreEvent.event_id);
     localStorage.setItem(LAST_SYNC_KEY, finishedIso);
 
-    window.renderAll?.();
+    safeInvokeRenderAll();
     window.setCloudSyncStatus?.("synced", finishedIso);
 
     try {
@@ -2549,7 +2562,7 @@ async function syncNow() {
       saveLocalData(merged);
       mergedCarsCount = merged.cars.length;
 
-      window.renderAll?.();
+      safeInvokeRenderAll();
 
     } else {
       const local = readLocalData();
@@ -2578,9 +2591,7 @@ async function syncNow() {
         localStorage.setItem(RESTORE_KEY, finalRestore.event_id);
       }
 
-      if (typeof window.renderAll === "function") {
-        window.renderAll();
-      } else {
+      if (!safeInvokeRenderAll()) {
         window.location.reload();
         return;
       }
