@@ -573,12 +573,18 @@ function createInterface() {
     </div>
   `;
 
-  const rules = document.querySelector(".rules");
+  const slot = document.getElementById("cloudSyncSlot");
 
-  if (rules) {
-    rules.after(panel);
+  if (slot) {
+    slot.append(panel);
   } else {
-    document.querySelector(".app")?.append(panel);
+    const rules = document.querySelector(".rules");
+
+    if (rules) {
+      rules.after(panel);
+    } else {
+      document.querySelector(".app")?.append(panel);
+    }
   }
 
   const style = document.createElement("style");
