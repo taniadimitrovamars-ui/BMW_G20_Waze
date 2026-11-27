@@ -828,13 +828,19 @@ function refreshDashboard() {
   window.refreshGarageCloudWidget?.();
 }
 
-function status(message, type = "") {
-  const element = byId("cloudStatus");
+// Съвместимост с основното приложение
+window.setCloudSyncStatus = function(state, timestamp) {
+  refreshDashboard();
+  window.refreshTopCloudButton?.();
+};
 
-  if (element) {
-    element.textContent = message;
-    element.className = "form-msg" + (type ? " " + type : "");
+window.notifyCloudLocalChange = function() {
+  refreshDashboard();
+
+  if (readPending().length > 0) {
+    scheduleAutomaticSync();
   }
+};
 
   refreshDashboard();
 }
