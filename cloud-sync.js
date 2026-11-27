@@ -1141,6 +1141,12 @@ function createBackup() {
 }
 
 function downloadBackup() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    status("Cloud Export е временно блокиран за защита на данните.");
+    refreshDashboard();
+    return;
+  }
+
   try {
     const backup = createBackup();
 
