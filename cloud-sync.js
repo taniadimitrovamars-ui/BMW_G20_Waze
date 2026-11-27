@@ -311,19 +311,8 @@ function cleanCar(item) {
   const vin = safeString(item.vin, 17)
     .toUpperCase();
 
-  // Автомобил: стандартен 17-символен VIN
-  if (
-    vehicleType === "car" &&
-    !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)
-  ) {
-    return null;
-  }
-
-  // ATV: идентификатор от 5 до 17 символа
-  if (
-    vehicleType === "atv" &&
-    !/^[A-Z0-9-]{5,17}$/.test(vin)
-  ) {
+  // Съвместимост с локалната проверка на приложението
+  if (!/^[A-Z0-9-]{5,17}$/.test(vin)) {
     return null;
   }
 
