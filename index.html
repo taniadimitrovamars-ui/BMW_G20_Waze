@@ -1682,7 +1682,7 @@ dialog.mlog-dlg::backdrop{background:rgba(3,7,13,.72);backdrop-filter:blur(4px)}
   <div>
    <div class="brand">M-<span>GARAGE</span> PRO</div>
    <div class="version">G20 · MGU · M-LOG LAB · 4.3</div>
-   <button class="pill-btn" type="button" onclick="window.MGARAGE_DIAG()">Локална диагностика</button>
+   <button class="pill-btn" id="diagBtn" type="button">Локална диагностика</button>
   </div>
   <div class="top-actions">
    <button class="pill-btn" id="topCloudBtn" type="button" title="Облачна синхронизация">☁ Cloud</button>
@@ -2585,7 +2585,7 @@ const STEPS=[
 {id:"prep0",title:"0. Преди да включиш компютъра",description:"Хардуер, риск и BimmerCode backup на ДВЕ места — преди каквото и да е друго.",explanation:"Приеми риска (изтрито кодиране, малка вероятност за boot loop). Приготви ENET кабел, USB-C към Ethernet адаптер, зарядно за акумулатора (13V+) и лаптопа на зарядно. В BimmerCode: Connect → Headunit → Главно меню → Backup files → Export. Копирай папката BimmerCode на ДВЕ места (Google Drive и Mac). При диалог „файлът вече съществува“ избери „Запазване на двете“. Остави отворен issue #63 в idrive-apps (план за boot loop). Wi-Fi на Mac-а: изключен при флаша, включен при инсталацията на Store-а.",warning:"Запази си 2–3 часа, без да бързаш за колата. Не изтривай и не преинсталирай BimmerCode.",command:"",expected:"ОЧАКВАН РЕЗУЛТАТ: във файловия мениджър има файлове FSC_AJ84645_….FSC и WBA5R7C51KAJ84645_….dat с днешна дата и час."},
 {id:"prep",title:"1. Подготовка на Mac-а (инструментът за root)",description:"Свали idrive7-8-ssh-root, разархивирай на Desktop, инсталирай Python зависимостите.",explanation:"Code → Download ZIP на github.com/cauliflowermossgrape/idrive7-8-ssh-root, разархивирай на Desktop. В Terminal: напиши „cd “ (с интервал), плъзни папката, Enter.",warning:"Осигури стабилно захранване на автомобила. Не започвай при нестабилна връзка или ниско напрежение.",command:"python3 -m pip install -r requirements.txt",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Successfully installed cffi… cryptography… pycparser…“. Редът за нова версия на pip е безобиден."},
 {id:"status0",title:"2. Проверка преди флаш (само четене)",description:"Паркирай, зарядно на акумулатора, запалване ВКЛЮЧЕНО, двигател ИЗКЛЮЧЕН, ENET свързан.",explanation:"Тази команда не променя нищо в колата — само проверява VIN и текущото състояние на SSH/debug режима.",warning:"Ако пише „No route to host“ — изключи Wi-Fi на Mac-а и опитай пак. Ако изобщо не намира колата — спри, не флашвай.",command:"python3 ssh_enable.py status",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: „Found 1 ENET gateway | VIN: …“, „DTC B7F8E5 … absent“, „MGU SSH port 22 is not open“, „Status: debug/SSH-open state is OFF“. VIN-ът трябва да съвпада с колата."},
-{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднЪж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
+{id:"flash",title:"3. Flash на MGU (САМО ВЕДНЪЖ)",description:"Изпълнение на Flash процедурата за точния VIN. Златно правило: пуска се само веднъж, никога повторно „за всеки случай“.",explanation:"Преди Enter: бекъпът е готов, зарядното е закачено, лаптопът е на зарядно, ENET е стабилен, имаш поне 2 часа. На въпроса за потвърждение пиши „y“ само ако си готов — всичко друго отказва без промяна. НЕ пипай кабела, колата или Terminal, докато тече — head unit-ът се рестартира сам.",warning:"КРИТИЧНО: не прекъсвай захранването, ENET връзката или Terminal по време на Flash. При „Permission denied (publickey)“ — спри, не пускай втори флаш (има команда fix-key, но тя Е втори флаш — пиши преди това). Флашът трие кодирането на head unit-а (вкл. Sport+) и настройките на iDrive.",command:"python3 ssh_enable.py flash --vin {VIN}",expected:"ОЧАКВАН РЕЗУЛТАТ [ВИДЯНО]: накрая „SSH OK as root: uid=0(root)…“ и „DONE: MGU flashed + SSH enabled“. На колата: iDrive стартира нормално, без цикъл от рестарти."},
 {id:"keys",title:"4. Копирай ключовете (веднага след флаша)",description:"Инструментът записва ключовете в data/enrollments/VIN/. Копирай ЦЯЛАТА папка на две места.",explanation:"В Terminal: отвори папката с „open data/enrollments“ и копирай папката с VIN-а (Google Drive + друго място на Mac-а). За следващите стъпки се ползва id_rsa.pkcs1.pem, не id_rsa.",warning:"Ключът дава root достъп до колата — не го публикувай никъде, не го изпращай в чатове, не го качвай в публичен GitHub repository.",command:"open data/enrollments",expected:"ОЧАКВАН РЕЗУЛТАТ: Finder отваря папката с id_rsa, id_rsa.pkcs1.pem, id_rsa.pkcs8.pem, id_rsa.ppk, id_rsa.pub, id_rsa.pub.pem, fingerprints.txt."},
 {id:"persist",title:"5. Persist — изключване на debug режима",description:"Прави SSH достъпа постоянен, но при ИЗКЛЮЧЕН debug режим (без грешка B7F8E5).",explanation:"Колата на зарядно, запалване включено, двигател изключено, ENET свързан. Докато debug режимът е включен, грешка B7F8E5 ('Debugging active') се записва наново и не се трие. Проверка преди и след чрез „status“. Едва след status без грешка и DTC B7F8E5 „absent“ — изтрий грешките в BimmerCode или с диагностичен инструмент.",warning:"Не пипай кабела, докато командата върви. Ако пише грешка или не приключва за дълго — снимка, не повтаряй.",command:"python3 ssh_enable.py persist",expected:"ОЧАКВАН РЕЗУЛТАТ [НЕ ЗНАМ точния текст]: команда без грешка/Traceback, приключва сама. След нея „status“ трябва да показва порт 22 отворен и DTC B7F8E5 „absent“."},
 {id:"ssh_fix",title:"5б. Поправка на root достъпа без нов флаш (при нужда)",description:"Ако SSH спре да отговаря по-късно, тази команда поправя достъпа БЕЗ нов Flash.",explanation:"Използвай само ако връзката по-рано е работела и внезапно спре. Никога не пускай нов Flash за това.",warning:"Никога нов флаш заради проблем със SSH — първо опитай тази команда.",command:"python3 ssh_enable.py enable",expected:"ОЧАКВАН РЕЗУЛТАТ [частично видян]: ред „SSH OK as root: uid=0(root) …“."},
@@ -2612,6 +2612,189 @@ let deferredPwaPrompt=null;
 let toastTimer=null;
 let garageMenuOpen=false;
 const $=id=>document.getElementById(id);
+
+function activeCar(){
+ return cars.find(c=>c.vin===activeVin)||cars[0]||null;
+}
+
+function save(){
+ try{
+  const cleaned=cars.map(cleanCar).filter(Boolean);
+  cars=cleaned;
+  if(!cars.some(c=>c.vin===activeVin))activeVin=cars[0]?.vin||"";
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(cars));
+  localStorage.setItem(ACTIVE_KEY,activeVin);
+ }catch(err){
+  console.error("Save garage error:",err);
+  showToast("Грешка при запазване в паметта","danger");
+ }
+}
+
+function message(id,text){
+ const el=$(id);
+ if(el)el.textContent=text||"";
+}
+
+function formatDate(value){
+ const d=parseFlexibleDate(value);
+ if(!d)return value?String(value):"—";
+ return d.toLocaleDateString("bg-BG");
+}
+
+function formatMoney(amount){
+ const val=Number(amount)||0;
+ return val.toLocaleString("bg-BG",{minimumFractionDigits:Number.isInteger(val)?0:2,maximumFractionDigits:2})+" €";
+}
+
+function setTheme(theme){
+ const next=theme==="light"?"light":"dark";
+ document.documentElement.dataset.theme=next;
+ try{localStorage.setItem(THEME_KEY,next)}catch{}
+ const metaTheme=document.querySelector('meta[name="theme-color"]');
+ if(metaTheme)metaTheme.setAttribute("content",next==="light"?"#eef3f8":"#080c12");
+ if(typeof window.mlogRedraw==="function")window.mlogRedraw();
+}
+window.setTheme=setTheme;
+
+function updateFab(){
+ const fab=$("fabAdd");
+ if(!fab)return;
+ const hasCar=Boolean(activeCar());
+ const showOnScreen=hasCar&&(currentScreen==="garage"||currentScreen==="service");
+ fab.classList.toggle("hidden",!showOnScreen);
+}
+
+function showScreen(screenName){
+ const valid=["garage","service","logs","mgu","more"];
+ if(!valid.includes(screenName))screenName="garage";
+ currentScreen=screenName;
+
+ document.querySelectorAll("main .screen").forEach(sec=>{
+  sec.classList.toggle("active",sec.id==="screen-"+screenName);
+ });
+ document.querySelectorAll("#bottomNav .nav-btn").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.screen===screenName);
+ });
+
+ updateFab();
+ if(screenName==="logs"&&typeof window.mlogRedraw==="function"){
+  requestAnimationFrame(()=>window.mlogRedraw());
+ }
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function showSeg(segName){
+ const valid=["service","reminders","mods","expenses","documents"];
+ if(!valid.includes(segName))segName="service";
+ currentSeg=segName;
+ activeFilter="all";
+
+ document.querySelectorAll("#serviceSegs .seg-btn").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.seg===segName);
+ });
+ document.querySelectorAll("#screen-service .seg-view").forEach(view=>{
+  view.classList.toggle("active",view.id==="seg-"+segName);
+ });
+
+ const car=activeCar();
+ if(car){
+  renderFilterChips(car);
+  renderRecordsForActiveSeg(car);
+ }
+}
+
+function renderFilterChips(car){
+ const chipsEl=$("recordFilterChips");
+ if(!chipsEl||!car)return;
+ chipsEl.replaceChildren();
+
+ let options=[{id:"all",label:"Всички"}];
+ if(currentSeg==="reminders"){
+  options=[
+   {id:"all",label:"Всички"},
+   {id:"active",label:"Активни"},
+   {id:"overdue",label:"Просрочени"},
+   {id:"done",label:"Изпълнени"}
+  ];
+ }else if(currentSeg==="mods"){
+  const statuses=Array.from(new Set((car.modifications||[]).map(m=>m.status||"Монтирано").filter(Boolean)));
+  const cats=Array.from(new Set((car.modifications||[]).map(m=>m.category).filter(Boolean)));
+  options=[
+   {id:"all",label:"Всички"},
+   ...statuses.map(s=>({id:"status:"+s,label:s})),
+   ...cats.map(c=>({id:"cat:"+c,label:c}))
+  ];
+ }else if(currentSeg==="expenses"){
+  const cats=Array.from(new Set((car.expenses||[]).map(e=>e.category).filter(Boolean)));
+  options=[{id:"all",label:"Всички"},...cats.map(c=>({id:c,label:c}))];
+ }else if(currentSeg==="documents"){
+  const types=Array.from(new Set((car.documents||[]).map(d=>d.documentType).filter(Boolean)));
+  options=[{id:"all",label:"Всички"},...types.map(t=>({id:t,label:t}))];
+ }
+
+ options.forEach(opt=>{
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.className="filter-chip"+(activeFilter===opt.id?" active":"");
+  btn.textContent=opt.label;
+  btn.addEventListener("click",()=>{
+   activeFilter=opt.id;
+   renderFilterChips(car);
+   renderRecordsForActiveSeg(car);
+  });
+  chipsEl.append(btn);
+ });
+}
+
+function renderModSummary(car){
+ const strip=$("modSummaryStrip");
+ if(!strip||!car)return;
+ const mods=car.modifications||[];
+ const installed=mods.filter(m=>m.status==="Монтирано").length;
+ const totalCost=mods.reduce((sum,m)=>sum+safeNumber(m.cost),0);
+ strip.innerHTML=`
+  <div class="mod-sum-box"><div class="mod-sum-num">${mods.length}</div><div class="mod-sum-lbl">ОБЩО</div></div>
+  <div class="mod-sum-box"><div class="mod-sum-num" style="color:var(--good)">${installed}</div><div class="mod-sum-lbl">МОНТИРАНИ</div></div>
+  <div class="mod-sum-box"><div class="mod-sum-num" style="color:var(--accent)">${formatMoney(totalCost)}</div><div class="mod-sum-lbl">СУМА</div></div>
+ `;
+}
+
+function renderRecordsForActiveSeg(car){
+ if(!car)return;
+ renderRecords("serviceList",car.serviceRecords,"service",car);
+ renderRecords("reminderList",car.reminders,"reminder",car);
+ renderModSummary(car);
+ renderRecords("modificationList",car.modifications,"modification",car);
+ renderRecords("expenseList",car.expenses,"expense",car);
+ renderRecords("documentList",car.documents,"document",car);
+}
+
+function refreshTopCloudButton(){
+ const btn=$("topCloudBtn");
+ if(!btn)return;
+ let pendingCount=0;
+ try{
+  const p=JSON.parse(localStorage.getItem(PENDING_KEY)||"[]");
+  if(Array.isArray(p))pendingCount=p.length;
+ }catch{}
+ btn.classList.remove("synced","pending","error");
+ if(pendingCount>0){
+  btn.classList.add("pending");
+  btn.textContent="☁ "+pendingCount;
+ }else{
+  btn.textContent="☁ Cloud";
+ }
+}
+window.refreshTopCloudButton=refreshTopCloudButton;
+
+function openCloudPanel(){
+ showScreen("more");
+ const panel=document.getElementById("cloudSyncPanel");
+ if(panel){
+  panel.open=true;
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+ }
+}
 
 function showToast(text,tone=""){
  const el=$("toast");
@@ -2891,32 +3074,27 @@ function loadCars(){
  }catch(error){console.error("Load garage:",error);cars=[];activeVin=""}
 }
 window.loadCars=loadCars;
- window.MGARAGE_DIAG = function(){
-  const raw = JSON.parse(
-    localStorage.getItem(STORAGE_KEY) || "[]"
-  );
 
-  const localCar = Array.isArray(raw)
-    ? raw.find(c => c && c.vin === activeVin)
-    : null;
-
-  const currentCar = cars.find(c => c.vin === activeVin);
-
-  const result = {
-    origin: location.origin,
-    activeVin,
-    storedCars: Array.isArray(raw) ? raw.length : "invalid",
-    storedDocuments: localCar?.documents?.length ?? "missing",
-    loadedDocuments: currentCar?.documents?.length ?? "missing",
-    storedDocumentTitles: (localCar?.documents || [])
-      .map(d => d.title || d.fileName),
-    loadedDocumentTitles: (currentCar?.documents || [])
-      .map(d => d.title || d.fileName)
-  };
-
-  document.getElementById("garageDiagOutput")?.remove();
-const box = document.createElement("pre");
-box.id = "garageDiagOutput";
+window.MGARAGE_DIAG=function(){
+ const raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+ const localCar=Array.isArray(raw)?raw.find(c=>c&&c.vin===activeVin):null;
+ const currentCar=activeCar();
+ const result={
+  origin:window.location.origin,
+  activeVin,
+  storedCars:Array.isArray(raw)?raw.length:"invalid",
+  storedDocuments:localCar?.documents?.length??"missing",
+  loadedDocuments:currentCar?.documents?.length??"missing",
+  storedDocumentTitles:(localCar?.documents||[]).map(d=>d.title||d.fileName),
+  loadedDocumentTitles:(currentCar?.documents||[]).map(d=>d.title||d.fileName)
+ };
+ document.getElementById("garageDiagOutput")?.remove();
+ const box=document.createElement("pre");
+ box.id="garageDiagOutput";
+ box.style.cssText="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;margin:8px 0;font-size:11px;overflow:auto;white-space:pre-wrap";
+ box.textContent=JSON.stringify(result,null,2);
+ document.querySelector(".app")?.prepend(box);
+};
 
 function resetFormFields(formKey){
  editingRecord=null;
@@ -4984,6 +5162,7 @@ $("dwOpenAllBtn")?.addEventListener("click",()=>{
  showSeg("documents");
 });
 
+$("diagBtn")?.addEventListener("click",()=>window.MGARAGE_DIAG());
 $("topCloudBtn")?.addEventListener("click",openCloudPanel);
 $("emptyAddCarBtn")?.addEventListener("click",()=>openSheet("car","Ново превозно средство"));
 
@@ -5050,984 +5229,700 @@ $("addExpenseButton").addEventListener("click",addExpense);
 $("addDocumentButton").addEventListener("click",addDocument);
 $("exportLocalButton").addEventListener("click",exportBackup);
 $("importLocalButton").addEventListener("click",()=>$("localImportFile").click());
-$("localImportFile").addEventListener("change",async event=>{await importBackup(event.target.files[0]);event.target.value=""});
+$("localImportFile").addEventListener("change",e=>importBackup(e.target.files?.[0]));
+
 $("renameCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
  const next=prompt("Ново име в гаража:",car.nick);
- if(next!==null&&next.trim()){car.nick=safeText(next,30);save();renderAll();showToast("Името е обновено","good")}
+ if(next!==null&&next.trim()){
+  car.nick=safeText(next,30);save();renderAll();
+  showToast("Името е обновено","good");
+ }
 });
 $("resetStepsButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да нулирам ли отметките на всички MGU стъпки за това превозно средство?"))return;
- car.done={};save();renderAll();showToast("MGU стъпките са нулирани");
+ if(confirm("Да нулирам ли отметките на MGU стъпките?")){
+  car.done={};save();renderSteps(car);renderOverview(car);
+  showToast("MGU стъпките са нулирани");
+ }
 });
 $("deleteCarButton").addEventListener("click",()=>{
  const car=activeCar();if(!car)return;
- if(!confirm("Да изтрия ли "+car.nick+" ("+car.vin+") от гаража?"))return;
- cars=cars.filter(c=>c.vin!==car.vin);activeVin=cars[0]?.vin||"";save();renderAll();
- showToast("Превозното средство е изтрито");
+ if(confirm("Да изтрия ли "+car.nick+" ("+car.vin+") от гаража?")){
+  cars=cars.filter(c=>c.vin!==car.vin);
+  activeVin=cars[0]?.vin||"";save();renderAll();
+  showToast("Превозното средство е изтрито");
+ }
 });
 
+/* ============================================================================
+   M-LOG LAB · BM3 B48 ТЕЛЕМЕТРИЯ (ИНТЕГРИРАН МОДУЛ)
+   ============================================================================ */
+(()=>{
+const mlog={
+ tab:"one",
+ slots:{A:null,B:null},
+ mode:"overview",
+ sel:"A",
+ win:{A:[0,1],B:[0,1]},
+ pick:null,
+ dlgMode:null,
+ dlgSlot:null,
+ lastSummaryText:""
+};
+const mlogS=id=>document.getElementById(id);
+
+function mlogCleanName(n){
+ return String(n||"").replace(/\.(csv|txt)$/i,"").replace(/[^a-zA-Z0-9._-]+/g,"_").slice(0,48)||"log";
+}
+function mlogEsc(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function mlogNum(v){
+ if(v==null)return NaN;
+ const s=String(v).trim().replace(",",".");
+ if(!s)return NaN;
+ const n=Number(s);
+ return Number.isFinite(n)?n:NaN;
+}
+function mlogFmt(v,d=1){
+ return Number.isFinite(v)?v.toFixed(d):"—";
+}
+function mlogDetectDelim(line){
+ const counts={",":0,";":0,"\t":0};
+ let q=false;
+ for(const c of line){
+  if(c==='"')q=!q;
+  else if(!q&&counts[c]!==undefined)counts[c]++;
+ }
+ return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function mlogSplitRow(line,delim){
+ const out=[];let cur="";let q=false;
+ for(let i=0;i<line.length;i++){
+  const c=line[i];
+  if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}
+  else if(c===delim&&!q){out.push(cur);cur="";}
+  else cur+=c;
+ }
+ out.push(cur);
+ return out;
+}
+function mlogNorm(h){
+ return String(h||"").toLowerCase().replace(/\s*\([^)]*\)/g,"").replace(/[^a-z0-9]+/g," ").trim();
+}
+function mlogMapCols(headers){
+ const n=headers.map(mlogNorm);
+ const find=patterns=>{
+  for(const p of patterns){
+   const i=n.findIndex(x=>x===p||x.startsWith(p+" "));
+   if(i>=0)return i;
+  }
+  for(const p of patterns){
+   const i=n.findIndex(x=>x.includes(p));
+   if(i>=0)return i;
+  }
+  return -1;
+ };
+ return{
+  time:find(["time","time s","seconds","elapsed"]),
+  rpm:find(["rpm","engine speed"]),
+  boost:find(["boost","manifold","charge air","map","boost pressure"]),
+  boostT:find(["boost target","target boost","boost req","load target"]),
+  wgdc:find(["wastegate","wgdc","wastegate duty","duty cycle"]),
+  afr:find(["afr","lambda","air fuel","air fuel ratio"]),
+  afrT:find(["afr target","target afr","lambda target"]),
+  timing:find(["ignition timing","ign timing","timing","advance","ign adv"]),
+  knock:[0,1,2,3,4,5].map(c=>find([`knock cyl ${c}`,`knock cyl${c}`,`ign corr cyl ${c}`,`timing corr cyl ${c}`,`knock retard cyl ${c}`,`knock ${c}`])).filter(i=>i>=0),
+  knockAny:find(["knock retard","ign corr","timing corr","knock"]),
+  iat:find(["iat","intake air","intake temp","charge temp"]),
+  ect:find(["ect","coolant","coolant temp","engine temp"]),
+  load:find(["load","engine load","actual load"]),
+  pedal:find(["accel pedal","accelerator","throttle","pedal pos","app"]),
+  gear:find(["gear","current gear","trans gear"]),
+  speed:find(["speed","vehicle speed","mph","km h","kph"]),
+  stft:find(["stft","short term","fuel trim short"]),
+  ltft:find(["ltft","long term","fuel trim long"]),
+  rail:find(["rail pressure","fuel pressure","hpfp","rail press"])
+ };
+}
+function mlogParseCsv(text,name){
+ const lines=String(text||"").replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l=>l.trim().length);
+ if(lines.length<2)throw new Error("CSV файлът няма достатъчно редове.");
+ const delim=mlogDetectDelim(lines[0]);
+ const headers=mlogSplitRow(lines[0],delim).map(h=>h.trim());
+ const cols=mlogMapCols(headers);
+ const rows=[];
+ let t0=null;
+ for(let i=1;i<lines.length;i++){
+  const cells=mlogSplitRow(lines[i],delim);
+  if(cells.length<2)continue;
+  let t=cols.time>=0?mlogNum(cells[cols.time]):NaN;
+  if(!Number.isFinite(t))t=i-1;
+  if(t0===null)t0=t;
+  const elapsed=t-t0;
+  const kArr=cols.knock.map(idx=>mlogNum(cells[idx])).filter(Number.isFinite);
+  if(!kArr.length&&cols.knockAny>=0){
+   const ka=mlogNum(cells[cols.knockAny]);
+   if(Number.isFinite(ka))kArr.push(ka);
+  }
+  const knock=kArr.length?Math.min(...kArr):0;
+  const row={
+   t:elapsed,
+   rpm:cols.rpm>=0?mlogNum(cells[cols.rpm]):NaN,
+   boost:cols.boost>=0?mlogNum(cells[cols.boost]):NaN,
+   boostT:cols.boostT>=0?mlogNum(cells[cols.boostT]):NaN,
+   wgdc:cols.wgdc>=0?mlogNum(cells[cols.wgdc]):NaN,
+   afr:cols.afr>=0?mlogNum(cells[cols.afr]):NaN,
+   afrT:cols.afrT>=0?mlogNum(cells[cols.afrT]):NaN,
+   timing:cols.timing>=0?mlogNum(cells[cols.timing]):NaN,
+   knock,
+   iat:cols.iat>=0?mlogNum(cells[cols.iat]):NaN,
+   ect:cols.ect>=0?mlogNum(cells[cols.ect]):NaN,
+   load:cols.load>=0?mlogNum(cells[cols.load]):NaN,
+   pedal:cols.pedal>=0?mlogNum(cells[cols.pedal]):NaN,
+   gear:cols.gear>=0?mlogNum(cells[cols.gear]):NaN,
+   speed:cols.speed>=0?mlogNum(cells[cols.speed]):NaN,
+   stft:cols.stft>=0?mlogNum(cells[cols.stft]):NaN,
+   ltft:cols.ltft>=0?mlogNum(cells[cols.ltft]):NaN,
+   rail:cols.rail>=0?mlogNum(cells[cols.rail]):NaN
+  };
+  if(Number.isFinite(row.t))rows.push(row);
+ }
+ if(!rows.length)throw new Error("Не са намерени числови редове.");
+ const boosts=rows.map(r=>r.boost).filter(Number.isFinite);
+ if(boosts.length&&Math.max(...boosts)>60){
+  const toPsi=v=>Number.isFinite(v)?(v>120?(v-101.325)*0.0145038:v*0.0145038):NaN;
+  for(const r of rows){r.boost=toPsi(r.boost);r.boostT=toPsi(r.boostT);}
+ }
+ const speeds=rows.map(r=>r.speed).filter(Number.isFinite);
+ if(speeds.length&&Math.max(...speeds)<95&&rows.some(r=>Number.isFinite(r.rpm)&&r.rpm>4500&&r.speed>50)){
+  for(const r of rows)if(Number.isFinite(r.speed))r.speed*=1.60934;
+ }
+ const iats=rows.map(r=>r.iat).filter(Number.isFinite);
+ if(iats.length&&Math.max(...iats)>130){
+  for(const r of rows)if(Number.isFinite(r.iat))r.iat=(r.iat-32)*5/9;
+ }
+ const ects=rows.map(r=>r.ect).filter(Number.isFinite);
+ if(ects.length&&Math.max(...ects)>140){
+  for(const r of rows)if(Number.isFinite(r.ect))r.ect=(r.ect-32)*5/9;
+ }
+ const afrs=rows.map(r=>r.afr).filter(Number.isFinite);
+ if(afrs.length&&Math.max(...afrs)<2.5&&Math.min(...afrs)>0.4){
+  for(const r of rows){
+   if(Number.isFinite(r.afr))r.afr*=14.7;
+   if(Number.isFinite(r.afrT))r.afrT*=14.7;
+  }
+ }
+ return{name:mlogCleanName(name),rows,cols,headers};
+}
+
+function mlogDetectPulls(rows){
+ const pulls=[];
+ let start=null;
+ const isWot=(r)=>(Number.isFinite(r.pedal)&&r.pedal>75)||(Number.isFinite(r.load)&&r.load>120);
+ for(let i=0;i<rows.length;i++){
+  const r=rows[i];
+  const wot=isWot(r)&&Number.isFinite(r.rpm)&&r.rpm>=2200;
+  if(wot&&start===null)start=i;
+  else if((!wot||i===rows.length-1)&&start!==null){
+   const end=wot?i:i-1;
+   const slice=rows.slice(start,end+1);
+   const dur=slice[slice.length-1].t-slice[0].t;
+   const rpms=slice.map(x=>x.rpm).filter(Number.isFinite);
+   const minRpm=rpms.length?Math.min(...rpms):0;
+   const maxRpm=rpms.length?Math.max(...rpms):0;
+   if(dur>=1.2&&(maxRpm-minRpm)>=1200){
+    const boosts=slice.map(x=>x.boost).filter(Number.isFinite);
+    const knocks=slice.map(x=>x.knock).filter(Number.isFinite);
+    const afrs=slice.map(x=>x.afr).filter(Number.isFinite);
+    const iats=slice.map(x=>x.iat).filter(Number.isFinite);
+    const wgdcs=slice.map(x=>x.wgdc).filter(Number.isFinite);
+    pulls.push({
+     idx:pulls.length+1,start,end,
+     tStart:slice[0].t,tEnd:slice[slice.length-1].t,dur,
+     minRpm,maxRpm,
+     peakBoost:boosts.length?Math.max(...boosts):NaN,
+     minKnock:knocks.length?Math.min(...knocks):0,
+     minAfr:afrs.length?Math.min(...afrs):NaN,
+     maxIat:iats.length?Math.max(...iats):NaN,
+     maxWgdc:wgdcs.length?Math.max(...wgdcs):NaN
+    });
+   }
+   start=null;
+  }
+ }
+ return pulls;
+}
+
+function mlogAnalyze(rows){
+ const pulls=mlogDetectPulls(rows);
+ const wotRows=rows.filter(r=>((Number.isFinite(r.pedal)&&r.pedal>75)||(Number.isFinite(r.load)&&r.load>120))&&Number.isFinite(r.rpm)&&r.rpm>=2500);
+ const scope=wotRows.length>=5?wotRows:rows;
+ const maxVal=(k)=>{const a=scope.map(r=>r[k]).filter(Number.isFinite);return a.length?Math.max(...a):NaN;};
+ const minVal=(k)=>{const a=scope.map(r=>r[k]).filter(Number.isFinite);return a.length?Math.min(...a):NaN;};
+ const maxRpm=maxVal("rpm");
+ const peakBoost=maxVal("boost");
+ const minKnock=minVal("knock");
+ const leanAfr=maxVal("afr");
+ const maxIat=maxVal("iat");
+ const maxWgdc=maxVal("wgdc");
+
+ const events=[];
+ const knockRows=scope.filter(r=>Number.isFinite(r.knock)&&r.knock<-2.5);
+ if(knockRows.length){
+  const worst=Math.min(...knockRows.map(r=>r.knock));
+  const atRpm=knockRows.reduce((a,b)=>b.knock<a.knock?b:a,knockRows[0]).rpm;
+  events.push({
+   sev:worst<-5?"crit":"warn",
+   title:`Корекция на аванса (Knock): ${mlogFmt(worst,1)}° при ~${Math.round(atRpm)} RPM`,
+   bullets:[
+    "Възможно по-ниско октаново число на горивото, висока температура на всмукаемия въздух (IAT) или агресивен аванс.",
+    "Провери качеството на бензина и състоянието на запалителните свещи."
+   ]
+  });
+ }
+ const leanRows=scope.filter(r=>Number.isFinite(r.afr)&&r.afr>13.2);
+ if(leanRows.length){
+  const maxA=Math.max(...leanRows.map(r=>r.afr));
+  events.push({
+   sev:maxA>14.0?"crit":"warn",
+   title:`Обедняване на сместа под товар: AFR до ${mlogFmt(maxA,1)}`,
+   bullets:[
+    "При пълен товар (WOT) сместа обикновено е по-богата (около 11.5–12.8 AFR при бензин).",
+    "Провери горивното налягане (HPFP / Rail), дебитомера/сензорите и евентуални течове след турбото."
+   ]
+  });
+ }
+ const iatRows=rows.filter(r=>Number.isFinite(r.iat)&&r.iat>55);
+ if(iatRows.length){
+  const topIat=Math.max(...iatRows.map(r=>r.iat));
+  events.push({
+   sev:topIat>65?"crit":"warn",
+   title:`Висока температура на всмукаемия въздух (IAT): ${mlogFmt(topIat,0)} °C`,
+   bullets:[
+    "Високите температури снижават безопасното ниво на аванс и намаляват мощността при последователни пулове.",
+    "Провери охлаждането на charge-cooler / интеркулера и нивото на охладителната течност на контура."
+   ]
+  });
+ }
+ const overboostRows=scope.filter(r=>Number.isFinite(r.boost)&&Number.isFinite(r.boostT)&&(r.boost-r.boostT)>3.0);
+ if(overboostRows.length){
+  const diff=Math.max(...overboostRows.map(r=>r.boost-r.boostT));
+  events.push({
+   sev:"warn",
+   title:`Превишаване на целевия буст (Overboost): +${mlogFmt(diff,1)} psi над таргета`,
+   bullets:[
+    "Провери управлението на wastegate актуатора и адаптациите на турбото."
+   ]
+  });
+ }
+ if(!events.length){
+  events.push({
+   sev:"info",
+   title:"Няма открити критични аномалии в избрания диапазон",
+   bullets:[
+    `Пиков буст: ${mlogFmt(peakBoost,1)} psi · Макс. обороти: ${Number.isFinite(maxRpm)?Math.round(maxRpm):"—"} RPM · Мин. knock: ${mlogFmt(minKnock,1)}°.`
+   ]
+  });
+ }
+ return{pulls,maxRpm,peakBoost,minKnock,leanAfr,maxIat,maxWgdc,events};
+}
+
+function mlogBuildSummary(slotKey){
+ const s=mlog.slots[slotKey];
+ if(!s)return"";
+ const [aIdx,bIdx]=mlog.win[slotKey]||[0,s.rows.length-1];
+ const sub=s.rows.slice(aIdx,bIdx+1);
+ const an=mlogAnalyze(sub);
+ return [
+  `Лог (${slotKey}): ${s.name}`,
+  `Диапазон: ${mlogFmt(sub[0]?.t,1)}s – ${mlogFmt(sub[sub.length-1]?.t,1)}s (${an.pulls.length} пула)`,
+  `Пик буст: ${mlogFmt(an.peakBoost,1)} psi | Макс RPM: ${Number.isFinite(an.maxRpm)?Math.round(an.maxRpm):"—"} | Мин knock: ${mlogFmt(an.minKnock,1)}° | Макс AFR: ${mlogFmt(an.leanAfr,1)} | Макс IAT: ${mlogFmt(an.maxIat,0)}°C`,
+  ...an.events.map(e=>`- [${e.sev.toUpperCase()}] ${e.title}`)
+ ].join("\n");
+}
+
+function mlogRenderSlots(){
+ const box=mlogS("mlogSlots");
+ if(!box)return;
+ box.innerHTML=["A","B"].map(k=>{
+  const s=mlog.slots[k];
+  const lbl=k==="A"?"ЛОГ А (ТЕКУЩ / ОСНОВЕН)":"ЛОГ Б (БАЗОВ / СРАВНЕНИЕ)";
+  return `
+   <div class="panel" style="margin:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px">
+     <div class="mlog-k">${lbl}</div>
+     <span class="status-pill">${s?s.rows.length+" ред.":"ПРАЗЕН"}</span>
+    </div>
+    <div style="font-weight:850;font-size:12.5px;margin-bottom:8px;overflow-wrap:anywhere">${s?mlogEsc(s.name):"Не е зареден CSV лог"}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+     <label class="btn small" style="margin:0;cursor:pointer">
+      📂 CSV ${k}
+      <input type="file" accept=".csv,.txt,text/csv" data-mlog-file="${k}" hidden>
+     </label>
+     <button type="button" class="btn secondary small" data-mlog-paste="${k}">📋 Постави</button>
+     ${s?`<button type="button" class="btn secondary small" data-mlog-clear="${k}">✕</button>`:""}
+    </div>
+   </div>`;
+ }).join("");
+
+ box.querySelectorAll("[data-mlog-file]").forEach(inp=>{
+  inp.addEventListener("change",async e=>{
+   const f=e.target.files?.[0];
+   if(!f)return;
+   const k=e.target.dataset.mlogFile;
+   try{
+    const parsed=mlogParseCsv(await f.text(),f.name);
+    mlog.slots[k]=parsed;
+    mlog.win[k]=[0,parsed.rows.length-1];
+    mlog.pick=null;
+    if(k==="A"&&!mlog.slots.B)mlog.tab="one";
+    mlogRenderAll();
+    showToast(`Зареден е ${parsed.name} в слот ${k}`,"good");
+   }catch(err){
+    showToast("Грешка при четене на CSV: "+err.message,"danger");
+   }
+   e.target.value="";
+  });
+ });
+
+ box.querySelectorAll("[data-mlog-paste]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+   const k=btn.dataset.mlogPaste;
+   mlog.dlgMode="paste";
+   mlog.dlgSlot=k;
+   mlogS("mlogDlgTitle").textContent=`M-LOG LAB · Постави CSV в слот ${k}`;
+   mlogS("mlogDlgName").value=`Log_${k}_${today()}.csv`;
+   mlogS("mlogDlgCsv").value="";
+   mlogS("mlogPasteDialog").showModal();
+  });
+ });
+
+ box.querySelectorAll("[data-mlog-clear]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+   const k=btn.dataset.mlogClear;
+   mlog.slots[k]=null;
+   mlog.win[k]=[0,1];
+   mlog.pick=null;
+   if(k==="B")mlog.tab="one";
+   mlogRenderAll();
+  });
+ });
+}
+
+function mlogDrawChart(canvasId,rows,w0,w1,pickIdx,mode){
+ const c=mlogS(canvasId);
+ if(!c||!rows||!rows.length)return;
+ const dpr=window.devicePixelRatio||1;
+ const rect=c.getBoundingClientRect();
+ const w=Math.max(260,rect.width||c.parentElement?.clientWidth||320);
+ const h=190;
+ if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){
+  c.width=Math.round(w*dpr);
+  c.height=Math.round(h*dpr);
+ }
+ const ctx=c.getContext("2d");
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ const cs=getComputedStyle(document.documentElement);
+ const bg=cs.getPropertyValue("--surface-2").trim()||"#172130";
+ const grid=cs.getPropertyValue("--border").trim()||"#253447";
+ const muted=cs.getPropertyValue("--muted").trim()||"#8c9cb0";
+
+ ctx.fillStyle=bg;
+ ctx.fillRect(0,0,w,h);
+
+ const pad={l:36,r:10,t:10,b:22};
+ const pw=Math.max(10,w-pad.l-pad.r);
+ const ph=Math.max(10,h-pad.t-pad.b);
+
+ ctx.strokeStyle=grid;
+ ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){
+  const y=pad.t+(ph*i)/4;
+  ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pw,y);ctx.stroke();
+ }
+
+ const a=Math.max(0,Math.min(rows.length-1,w0));
+ const b=Math.max(a+1,Math.min(rows.length-1,w1));
+ const span=b-a;
+
+ const seriesDefs=mode==="fuel"?[
+  {key:"afr",color:"#38bdf8",min:10,max:16},
+  {key:"afrT",color:"#f0b547",min:10,max:16},
+  {key:"rail",color:"#28c58a",min:0,max:3000}
+ ]:[
+  {key:"boost",color:"#258bff",min:-5,max:35},
+  {key:"timing",color:"#28c58a",min:-5,max:35},
+  {key:"knock",color:"#f06464",min:-12,max:2}
+ ];
+
+ seriesDefs.forEach(sd=>{
+  ctx.strokeStyle=sd.color;
+  ctx.lineWidth=1.7;
+  ctx.beginPath();
+  let started=false;
+  for(let idx=a;idx<=b;idx++){
+   const val=rows[idx]?.[sd.key];
+   if(!Number.isFinite(val)){started=false;continue;}
+   const x=pad.l+((idx-a)/span)*pw;
+   const norm=Math.max(0,Math.min(1,(val-sd.min)/(sd.max-sd.min)));
+   const y=pad.t+ph-(norm*ph);
+   if(!started){ctx.moveTo(x,y);started=true;}
+   else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+ });
+
+ if(Number.isFinite(pickIdx)&&pickIdx>=a&&pickIdx<=b){
+  const px=pad.l+((pickIdx-a)/span)*pw;
+  ctx.strokeStyle="#f0b547";
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(px,pad.t);ctx.lineTo(px,pad.t+ph);ctx.stroke();
+ }
+
+ ctx.fillStyle=muted;
+ ctx.font="10px ui-monospace,Menlo,monospace";
+ ctx.fillText(`${mlogFmt(rows[a]?.t,1)}s`,pad.l,h-6);
+ const midT=rows[Math.round((a+b)/2)]?.t;
+ if(Number.isFinite(midT))ctx.fillText(`${mlogFmt(midT,1)}s`,pad.l+pw*0.45,h-6);
+ ctx.fillText(`${mlogFmt(rows[b]?.t,1)}s`,pad.l+pw-28,h-6);
+}
+
+function mlogRenderSingle(){
+ const s=mlog.slots[mlog.sel];
+ const view=mlogS("mlogView");
+ if(!s){
+  view.innerHTML=`<div class="panel empty">Зареди CSV лог в слот А или Б, за да стартираш анализа на пуловете, аванса, буста и горивната смес.</div>`;
+  return;
+ }
+ const [w0,w1]=mlog.win[mlog.sel]||[0,s.rows.length-1];
+ const sub=s.rows.slice(w0,w1+1);
+ const an=mlogAnalyze(sub);
+ mlog.lastSummaryText=mlogBuildSummary(mlog.sel);
+
+ const picked=Number.isFinite(mlog.pick)&&s.rows[mlog.pick]?s.rows[mlog.pick]:sub[Math.floor(sub.length/2)];
+ const roText=picked
+  ?`t=${mlogFmt(picked.t,2)}s · RPM=${Number.isFinite(picked.rpm)?Math.round(picked.rpm):"—"} · Boost=${mlogFmt(picked.boost,1)}psi · Timing=${mlogFmt(picked.timing,1)}° · Knock=${mlogFmt(picked.knock,1)}° · AFR=${mlogFmt(picked.afr,1)}`
+  :"";
+
+ view.innerHTML=`
+  <div class="panel">
+   <div class="mlog-grid4">
+    <div class="mlog-k">ПИК БУСТ<div class="mlog-v mlog-A">${mlogFmt(an.peakBoost,1)} <span style="font-size:11px">psi</span></div></div>
+    <div class="mlog-k">МИН. KNOCK<div class="mlog-v ${an.minKnock<-2.5?"mlog-bad":"mlog-good"}">${mlogFmt(an.minKnock,1)}°</div></div>
+    <div class="mlog-k">МАКС. AFR<div class="mlog-v ${an.leanAfr>13.2?"mlog-mid":"mlog-good"}">${mlogFmt(an.leanAfr,1)}</div></div>
+    <div class="mlog-k">МАКС. IAT<div class="mlog-v ${an.maxIat>55?"mlog-mid":""}">${mlogFmt(an.maxIat,0)}°C</div></div>
+   </div>
+  </div>
+
+  <div class="panel">
+   <div class="section-title">ГРАФИКА · ${mlogEsc(s.name)}</div>
+   <div class="mlog-ro" id="mlogReadout">${mlogEsc(roText)}</div>
+   <canvas id="mlogCanvasOne" class="mlog-canvas"></canvas>
+   <div class="muted" style="margin-top:6px">
+    <span style="color:#258bff;font-weight:800">■ Boost (psi)</span> ·
+    <span style="color:#28c58a;font-weight:800">■ Timing (°)</span> ·
+    <span style="color:#f06464;font-weight:800">■ Knock (°)</span>
+    ${mlog.mode==="fuel"?` · <span style="color:#38bdf8;font-weight:800">■ AFR</span> · <span style="color:#f0b547;font-weight:800">■ Target AFR</span>`:""}
+   </div>
+  </div>
+
+  <div class="panel">
+   <div class="section-title">WOT ПУЛОВЕ (${an.pulls.length})</div>
+   ${an.pulls.length?`
+    <div class="mlog-sc">
+     <table class="mlog-table">
+      <thead><tr><th>#</th><th>Време</th><th>RPM</th><th>Пик Boost</th><th>Мин. Knock</th><th>Мин. AFR</th><th>Макс. IAT</th></tr></thead>
+      <tbody>
+       ${an.pulls.map(p=>`
+        <tr class="mlog-pk" data-mlog-pull-start="${p.start}" data-mlog-pull-end="${p.end}">
+         <td>#${p.idx}</td>
+         <td>${mlogFmt(p.tStart,1)}–${mlogFmt(p.tEnd,1)}s</td>
+         <td>${Math.round(p.minRpm)}–${Math.round(p.maxRpm)}</td>
+         <td>${mlogFmt(p.peakBoost,1)}</td>
+         <td class="${p.minKnock<-2.5?"mlog-bad":"mlog-good"}">${mlogFmt(p.minKnock,1)}°</td>
+         <td>${mlogFmt(p.minAfr,1)}</td>
+         <td>${mlogFmt(p.maxIat,0)}°C</td>
+        </tr>`).join("")}
+      </tbody>
+     </table>
+    </div>`:`<div class="empty">Няма открити пълни WOT пулове в избрания интервал.</div>`}
+  </div>
+
+  <div class="panel">
+   <div class="section-title">ДИАГНОСТИКА И НАБЛЮДЕНИЯ</div>
+   ${an.events.map(ev=>`
+    <div class="mlog-ev ${ev.sev}">
+     <span class="mlog-tag">${ev.sev}</span>
+     <strong style="margin-left:8px;font-size:12.5px">${mlogEsc(ev.title)}</strong>
+     <ul>${ev.bullets.map(b=>`<li>${mlogEsc(b)}</li>`).join("")}</ul>
+    </div>`).join("")}
+  </div>
+ `;
+
+ mlogDrawChart("mlogCanvasOne",s.rows,w0,w1,mlog.pick,mlog.mode);
+
+ const canvas=mlogS("mlogCanvasOne");
+ canvas?.addEventListener("click",e=>{
+  const rect=canvas.getBoundingClientRect();
+  const ratio=Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)));
+  mlog.pick=Math.round(w0+ratio*(w1-w0));
+  mlogRenderSingle();
+ });
+
+ view.querySelectorAll("[data-mlog-pull-start]").forEach(tr=>{
+  tr.addEventListener("click",()=>{
+   const st=Number(tr.dataset.mlogPullStart);
+   const en=Number(tr.dataset.mlogPullEnd);
+   mlog.win[mlog.sel]=[Math.max(0,st-5),Math.min(s.rows.length-1,en+5)];
+   mlog.pick=st;
+   mlogRenderSingle();
+  });
+ });
+}
+
+function mlogRenderCompare(){
+ const a=mlog.slots.A,b=mlog.slots.B;
+ const view=mlogS("mlogView");
+ if(!a||!b){
+  view.innerHTML=`<div class="panel empty">Зареди и двата CSV лога (Слот А и Слот Б), за да сравниш пиков буст, аванс, корекции (knock) и AFR.</div>`;
+  return;
+ }
+ const anA=mlogAnalyze(a.rows),anB=mlogAnalyze(b.rows);
+ mlog.lastSummaryText=mlogBuildSummary("A")+"\n\n"+mlogBuildSummary("B");
+ view.innerHTML=`
+  <div class="panel">
+   <div class="section-title">СРАВНЕНИЕ А vs Б</div>
+   <div class="mlog-sc">
+    <table class="mlog-table">
+     <thead><tr><th>Показател</th><th class="mlog-A">А (${mlogEsc(a.name)})</th><th class="mlog-B">Б (${mlogEsc(b.name)})</th></tr></thead>
+     <tbody>
+      <tr><td>Пиков буст</td><td>${mlogFmt(anA.peakBoost,1)} psi</td><td>${mlogFmt(anB.peakBoost,1)} psi</td></tr>
+      <tr><td>Макс. обороти</td><td>${Number.isFinite(anA.maxRpm)?Math.round(anA.maxRpm):"—"} RPM</td><td>${Number.isFinite(anB.maxRpm)?Math.round(anB.maxRpm):"—"} RPM</td></tr>
+      <tr><td>Мин. Knock</td><td class="${anA.minKnock<-2.5?"mlog-bad":"mlog-good"}">${mlogFmt(anA.minKnock,1)}°</td><td class="${anB.minKnock<-2.5?"mlog-bad":"mlog-good"}">${mlogFmt(anB.minKnock,1)}°</td></tr>
+      <tr><td>Макс. AFR (най-бедно)</td><td>${mlogFmt(anA.leanAfr,1)}</td><td>${mlogFmt(anB.leanAfr,1)}</td></tr>
+      <tr><td>Макс. IAT</td><td>${mlogFmt(anA.maxIat,0)} °C</td><td>${mlogFmt(anB.maxIat,0)} °C</td></tr>
+      <tr><td>Открити WOT пулове</td><td>${anA.pulls.length}</td><td>${anB.pulls.length}</td></tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+  <div class="mlog-grid2">
+   <div class="panel" style="margin:0"><div class="section-title">ЛОГ А</div><canvas id="mlogCmpA" class="mlog-canvas"></canvas></div>
+   <div class="panel" style="margin:0"><div class="section-title">ЛОГ Б</div><canvas id="mlogCmpB" class="mlog-canvas"></canvas></div>
+  </div>
+ `;
+ mlogDrawChart("mlogCmpA",a.rows,0,a.rows.length-1,null,mlog.mode);
+ mlogDrawChart("mlogCmpB",b.rows,0,b.rows.length-1,null,mlog.mode);
+}
+
+function mlogRenderBar(){
+ const bar=mlogS("mlogBar");
+ const hasAny=Boolean(mlog.slots.A||mlog.slots.B);
+ if(!bar)return;
+ bar.style.display=hasAny?"block":"none";
+ if(!hasAny)return;
+ const modes=[
+  ["overview","Преглед (Boost/Timing/Knock)"],
+  ["fuel","Гориво (AFR & Rail)"]
+ ];
+ mlogS("mlogModes").innerHTML=modes.map(([id,lbl])=>
+  `<button type="button" class="filter-chip ${mlog.mode===id?"active":""}" data-mlog-mode="${id}">${lbl}</button>`
+ ).join("");
+ bar.querySelectorAll("[data-mlog-mode]").forEach(btn=>{
+  btn.addEventListener("click",()=>{mlog.mode=btn.dataset.mlogMode;mlogRenderAll();});
+ });
+}
+
+function mlogRenderAll(){
+ mlogS("mlogTabOne")?.classList.toggle("on",mlog.tab==="one");
+ mlogS("mlogTabCmp")?.classList.toggle("on",mlog.tab==="cmp");
+ mlogRenderSlots();
+ mlogRenderBar();
+ if(mlog.tab==="cmp")mlogRenderCompare();
+ else mlogRenderSingle();
+}
+
+mlogS("mlogTabOne")?.addEventListener("click",()=>{mlog.tab="one";mlogRenderAll();});
+mlogS("mlogTabCmp")?.addEventListener("click",()=>{mlog.tab="cmp";mlogRenderAll();});
+
+mlogS("mlogSaveToCar")?.addEventListener("click",()=>{
+ const txt=mlog.lastSummaryText||mlogBuildSummary(mlog.sel);
+ if(!txt){showToast("Няма активен анализ за запис","warn");return;}
+ appendLogNoteToActiveCar(txt);
+});
+
+mlogS("mlogCopyReport")?.addEventListener("click",async()=>{
+ const txt=mlog.lastSummaryText||mlogBuildSummary(mlog.sel);
+ if(!txt){showToast("Няма активен отчет за копиране","warn");return;}
+ try{
+  if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(txt);
+  else{
+   const ta=document.createElement("textarea");ta.value=txt;
+   ta.style.position="fixed";ta.style.opacity="0";document.body.append(ta);
+   ta.focus();ta.select();document.execCommand("copy");ta.remove();
+  }
+  showToast("Отчетът е копиран","good");
+ }catch{showToast("Неуспешно копиране","danger");}
+});
+
+mlogS("mlogOpenAi")?.addEventListener("click",async()=>{
+ const target=mlogS("mlogAiTarget")?.value||"https://claude.ai/new";
+ const txt=mlog.lastSummaryText||mlogBuildSummary(mlog.sel);
+ if(txt){
+  try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(txt);}catch{}
+ }
+ window.open(target,"_blank","noopener,noreferrer");
+ showToast("Отворен е AI асистентът (резюмето е в клипборда)");
+});
+
+mlogS("mlogDlgClose")?.addEventListener("click",()=>mlogS("mlogPasteDialog")?.close());
+mlogS("mlogDlgCancel")?.addEventListener("click",()=>mlogS("mlogPasteDialog")?.close());
+mlogS("mlogDlgOk")?.addEventListener("click",()=>{
+ const raw=mlogS("mlogDlgCsv")?.value||"";
+ const name=mlogS("mlogDlgName")?.value||"Pasted_Log.csv";
+ const slot=mlog.dlgSlot||"A";
+ try{
+  const parsed=mlogParseCsv(raw,name);
+  mlog.slots[slot]=parsed;
+  mlog.win[slot]=[0,parsed.rows.length-1];
+  mlog.pick=null;
+  mlogS("mlogPasteDialog")?.close();
+  mlogRenderAll();
+  showToast(`Анализиран е ${parsed.name}`,"good");
+ }catch(err){
+  showToast("Невалиден CSV: "+err.message,"danger");
+ }
+});
+
+window.mlogRedraw=()=>{
+ if(currentScreen!=="logs")return;
+ const a=mlog.slots.A,b=mlog.slots.B;
+ if(mlog.tab==="cmp"&&a&&b){
+  mlogDrawChart("mlogCmpA",a.rows,0,a.rows.length-1,null,mlog.mode);
+  mlogDrawChart("mlogCmpB",b.rows,0,b.rows.length-1,null,mlog.mode);
+ }else if(a){
+  const [w0,w1]=mlog.win[mlog.sel]||[0,a.rows.length-1];
+  mlogDrawChart("mlogCanvasOne",a.rows,w0,w1,mlog.pick,mlog.mode);
+ }
+};
+
+mlogRenderSlots();
+})();
+
 setTheme(localStorage.getItem(THEME_KEY)||"dark");
+ensureDropPanelIcons();
+initPwaSupport();
 loadCars();
 if(shouldAutoLoadDemo()){
  loadDemoCar(true);
+}else{
+ renderAll();
 }
-if($("shareUrlInput")){
- const savedShareUrl=safeHttpUrl(localStorage.getItem(SHARE_URL_KEY)||"");
- $("shareUrlInput").value=savedShareUrl||getQrShareUrl();
-}
-ensureDropPanelIcons();
-initPwaSupport();
-renderAll();
-renderShareQr();
+updateFab();
 refreshTopCloudButton();
 </script>
-
-<script>
-// ---------- M-LOG LAB · BM3 / B48 ЛОГ АНАЛИЗАТОР ----------
-(function(){
- "use strict";
-
- const T_MAP = {
-  rpm: ["rpm", "engine speed"],
-  boost: ["boost", "manifold", "map"],
-  boostT: ["boost target", "target boost", "boost set", "load target"],
-  throttle: ["throttle", "accel pedal", "pedal"],
-  ign: ["timing", "ign", "spark"],
-  ign1: ["cyl1", "cyl 1", "ign 1", "timing 1"],
-  ign2: ["cyl2", "cyl 2", "ign 2", "timing 2"],
-  ign3: ["cyl3", "cyl 3", "ign 3", "timing 3"],
-  ign4: ["cyl4", "cyl 4", "ign 4", "timing 4"],
-  afr: ["afr", "lambda", "air fuel"],
-  afrT: ["afr target", "target afr", "lambda target"],
-  iat: ["iat", "intake temp", "charge temp"],
-  ect: ["coolant", "ect"],
-  oilT: ["oil temp", "oil"],
-  stft: ["stft", "short term"],
-  ltft: ["ltft", "long term"],
-  wgdc: ["wgdc", "wastegate", "duty"],
-  knock: ["knock", "det", "octane"],
-  gear: ["gear"],
-  speed: ["speed", "veh speed", "vss"],
-  rail: ["fuel rail", "rail press", "hpfp"],
-  railT: ["rail target", "target rail", "hpfp target"],
-  torque: ["torque", "tq"]
- };
-
- const CH_META = {
-  rpm: ["Обороти", "RPM", "#ef4444"],
-  boost: ["Налягане (Boost)", "psi", "#258bff"],
-  boostT: ["Целеви Boost", "psi", "#38bdf8"],
-  throttle: ["Газ / Педал", "%", "#28c58a"],
-  ign: ["Аванс (Timing)", "°", "#f0b547"],
-  ign1: ["Корекция Цил. 1", "°", "#f87171"],
-  ign2: ["Корекция Цил. 2", "°", "#fb923c"],
-  ign3: ["Корекция Цил. 3", "°", "#a78bfa"],
-  ign4: ["Корекция Цил. 4", "°", "#34d399"],
-  afr: ["Смес (AFR)", "AFR", "#e879f9"],
-  afrT: ["Целева смес", "AFR", "#c084fc"],
-  iat: ["Темп. всмук (IAT)", "°C", "#fb7185"],
-  ect: ["Охладител (ECT)", "°C", "#22d3ee"],
-  oilT: ["Темп. масло", "°C", "#f59e0b"],
-  stft: ["STFT", "%", "#60a5fa"],
-  ltft: ["LTFT", "%", "#818cf8"],
-  wgdc: ["Wastegate (WGDC)", "%", "#a3e635"],
-  knock: ["Детонация / Knock", "°", "#f43f5e"],
-  gear: ["Предавка", "", "#94a3b8"],
-  speed: ["Скорост", "km/h", "#2dd4bf"],
-  rail: ["Гориво (HPFP)", "bar", "#fbbf24"],
-  railT: ["Целево гориво", "bar", "#fde047"],
-  torque: ["Въртящ момент", "Nm", "#fb923c"]
- };
-
- const PRESETS = [
-  ["Пълно натоварване", ["rpm", "boost", "boostT", "ign", "throttle"]],
-  ["Корекции по цилиндри", ["ign1", "ign2", "ign3", "ign4", "rpm"]],
-  ["Смес и гориво", ["afr", "afrT", "rail", "railT", "stft"]],
-  ["Температури", ["iat", "ect", "oilT", "boost"]]
- ];
-
- const MLOG_STORAGE_KEY = "m_garage_mlog_v1";
- const mlogState = {
-  tab: "one",
-  mode: "overview",
-  slots: { A: null, B: null },
-  sel: { A: null, B: null },
-  pull: { A: null, B: null },
-  ch: ["rpm", "boost", "boostT", "ign", "throttle"],
-  cmpCh: "boost",
-  zoom: { A: [0, 1], B: [0, 1] },
-  cursor: { A: null, B: null, C: null }
- };
-
- const mlog$ = id => document.getElementById(id);
- const mlogNum = v => {
-  if (v === null || v === undefined || v === "") return NaN;
-  const n = Number(String(v).replace(",", ".").trim());
-  return Number.isFinite(n) ? n : NaN;
- };
- const mlogFmt = (v, d = 1) => Number.isFinite(v) ? v.toFixed(d) : "—";
-
- function mlogSaveState() {
-  try {
-   localStorage.setItem(MLOG_STORAGE_KEY, JSON.stringify({
-    tab: mlogState.tab,
-    mode: mlogState.mode,
-    ch: mlogState.ch,
-    cmpCh: mlogState.cmpCh,
-    slots: mlogState.slots
-   }));
-  } catch {}
- }
-
- function mlogLoadState() {
-  try {
-   const raw = JSON.parse(localStorage.getItem(MLOG_STORAGE_KEY) || "null");
-   if (!raw) return;
-   if (raw.tab === "one" || raw.tab === "cmp") mlogState.tab = raw.tab;
-   if (raw.mode) mlogState.mode = raw.mode;
-   if (Array.isArray(raw.ch) && raw.ch.length) mlogState.ch = raw.ch;
-   if (raw.cmpCh) mlogState.cmpCh = raw.cmpCh;
-   if (raw.slots) {
-    ["A", "B"].forEach(k => {
-     if (raw.slots[k] && Array.isArray(raw.slots[k].rows)) {
-      mlogState.slots[k] = raw.slots[k];
-     }
-    });
-   }
-  } catch {}
- }
-
- function detectSep(line) {
-  const c = (line.match(/,/g) || []).length;
-  const s = (line.match(/;/g) || []).length;
-  const t = (line.match(/\t/g) || []).length;
-  if (t > c && t > s) return "\t";
-  if (s > c) return ";";
-  return ",";
- }
-
- function splitLine(line, sep) {
-  const out = [];
-  let cur = "";
-  let q = false;
-  for (let i = 0; i < line.length; i++) {
-   const ch = line[i];
-   if (ch === '"') {
-    if (q && line[i + 1] === '"') { cur += '"'; i++; }
-    else q = !q;
-   } else if (ch === sep && !q) {
-    out.push(cur.trim());
-    cur = "";
-   } else {
-    cur += ch;
-   }
-  }
-  out.push(cur.trim());
-  return out;
- }
-
- function mapHeaders(headers) {
-  const map = {};
-  const low = headers.map(h => h.toLowerCase().replace(/\s+/g, " ").trim());
-  for (const [k, pats] of Object.entries(T_MAP)) {
-   for (const p of pats) {
-    const idx = low.findIndex(h => h === p || h.startsWith(p + " ") || h.startsWith(p + "(") || h.includes(" " + p));
-    if (idx !== -1 && map[k] === undefined) { map[k] = idx; break; }
-   }
-  }
-  if (map.ign === undefined) {
-   const idx = low.findIndex(h => h.includes("timing") || h.includes("ign"));
-   if (idx !== -1) map.ign = idx;
-  }
-  let tIdx = low.findIndex(h => h === "time" || h === "timestamp" || h.startsWith("time (") || h.includes("elapsed"));
-  if (tIdx === -1) tIdx = low.findIndex(h => h.includes("time"));
-  return { map, tIdx };
- }
-
- function parseLog(name, text) {
-  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim());
-  if (lines.length < 2) throw new Error("Файлът няма достатъчно редове.");
-  let hIdx = 0;
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-   const sep = detectSep(lines[i]);
-   const cells = splitLine(lines[i], sep);
-   const low = cells.join(" ").toLowerCase();
-   if (low.includes("rpm") || low.includes("boost") || low.includes("timing") || low.includes("time")) {
-    hIdx = i;
-    break;
-   }
-  }
-  const sep = detectSep(lines[hIdx]);
-  const headers = splitLine(lines[hIdx], sep);
-  const { map, tIdx } = mapHeaders(headers);
-
-  const rows = [];
-  let prevT = null, accT = 0;
-  for (let i = hIdx + 1; i < lines.length; i++) {
-   const cells = splitLine(lines[i], sep);
-   if (cells.length < 2) continue;
-   let t = NaN;
-   if (tIdx !== -1) {
-    const rawT = cells[tIdx];
-    const numT = mlogNum(rawT);
-    if (Number.isFinite(numT)) t = numT;
-    else {
-     const parts = rawT.split(":").map(Number);
-     if (parts.length >= 2 && parts.every(Number.isFinite)) {
-      t = parts.reduce((a, b) => a * 60 + b, 0);
-     }
-    }
-   }
-   if (!Number.isFinite(t)) {
-    t = prevT === null ? 0 : prevT + 0.05;
-   } else if (prevT !== null) {
-    const dt = t - prevT;
-    if (dt > 0 && dt < 3600) accT += dt;
-    else accT += 0.05;
-    t = accT;
-   } else {
-    t = 0;
-   }
-   prevT = t;
-
-   const r = { t };
-   for (const [k, idx] of Object.entries(map)) {
-    const val = mlogNum(cells[idx]);
-    if (Number.isFinite(val)) r[k] = val;
-   }
-   if (Object.keys(r).length > 1) rows.push(r);
-  }
-  if (rows.length < 3) throw new Error("Не са разпознати числени данни.");
-
-  const has = {};
-  for (const k of Object.keys(CH_META)) {
-   has[k] = rows.some(r => r[k] !== undefined);
-  }
-  if (has.iat) {
-   const maxI = Math.max(...rows.map(r => r.iat ?? -999));
-   if (maxI > 65) {
-    rows.forEach(r => { if (r.iat !== undefined) r.iat = (r.iat - 32) * 5 / 9; });
-   }
-  }
-  if (has.ect) {
-   const maxE = Math.max(...rows.map(r => r.ect ?? -999));
-   if (maxE > 130) {
-    rows.forEach(r => { if (r.ect !== undefined) r.ect = (r.ect - 32) * 5 / 9; });
-   }
-  }
-  if (has.oilT) {
-   const maxO = Math.max(...rows.map(r => r.oilT ?? -999));
-   if (maxO > 140) {
-    rows.forEach(r => { if (r.oilT !== undefined) r.oilT = (r.oilT - 32) * 5 / 9; });
-   }
-  }
-  if (has.boost) {
-   const maxB = Math.max(...rows.map(r => r.boost ?? -999));
-   if (maxB > 60 && maxB < 400) {
-    rows.forEach(r => { if (r.boost !== undefined) r.boost = (r.boost - 101.325) * 0.145038; });
-   } else if (maxB >= 400) {
-    rows.forEach(r => { if (r.boost !== undefined) r.boost = (r.boost - 101325) * 0.000145038; });
-   }
-  }
-  if (has.boostT) {
-   const maxBT = Math.max(...rows.map(r => r.boostT ?? -999));
-   if (maxBT > 60 && maxBT < 400) {
-    rows.forEach(r => { if (r.boostT !== undefined) r.boostT = (r.boostT - 101.325) * 0.145038; });
-   } else if (maxBT >= 400) {
-    rows.forEach(r => { if (r.boostT !== undefined) r.boostT = (r.boostT - 101325) * 0.000145038; });
-   }
-  }
-
-  const pulls = detectPulls(rows, has);
-  return { name, rows, has, pulls, duration: rows[rows.length - 1].t - rows[0].t };
- }
-
- function detectPulls(rows, has) {
-  if (!has.rpm) return [];
-  const pulls = [];
-  let start = null;
-  for (let i = 0; i < rows.length; i++) {
-   const r = rows[i];
-   const thr = r.throttle ?? 100;
-   const wot = (r.rpm >= 2400) && (thr >= 75 || !has.throttle);
-   if (wot && start === null) {
-    start = i;
-   } else if ((!wot || i === rows.length - 1) && start !== null) {
-    const end = wot ? i : i - 1;
-    const sub = rows.slice(start, end + 1);
-    const rpmMin = Math.min(...sub.map(x => x.rpm));
-    const rpmMax = Math.max(...sub.map(x => x.rpm));
-    const dt = sub[sub.length - 1].t - sub[0].t;
-    if (rpmMax - rpmMin >= 1400 && dt >= 1.2) {
-     pulls.push({
-      id: pulls.length + 1,
-      startIdx: start,
-      endIdx: end,
-      tStart: sub[0].t,
-      tEnd: sub[sub.length - 1].t,
-      dt,
-      rpmMin,
-      rpmMax,
-      peakBoost: has.boost ? Math.max(...sub.map(x => x.boost ?? -99)) : NaN,
-      minIgn: has.ign ? Math.min(...sub.map(x => x.ign ?? 99)) : NaN,
-      minAfr: has.afr ? Math.min(...sub.filter(x => x.afr > 5).map(x => x.afr)) : NaN
-     });
-    }
-    start = null;
-   }
-  }
-  return pulls;
- }
-
- function getSlice(log, k) {
-  const pIdx = mlogState.pull[k];
-  if (pIdx !== null && pIdx !== undefined && log.pulls[pIdx]) {
-   const p = log.pulls[pIdx];
-   return log.rows.slice(p.startIdx, p.endIdx + 1);
-  }
-  const [z0, z1] = mlogState.zoom[k];
-  const i0 = Math.max(0, Math.floor(z0 * log.rows.length));
-  const i1 = Math.min(log.rows.length, Math.max(i0 + 2, Math.ceil(z1 * log.rows.length)));
-  return log.rows.slice(i0, i1);
- }
-
- function analyze(log, k) {
-  const rows = getSlice(log, k);
-  const events = [];
-  const cylKeys = ["ign1", "ign2", "ign3", "ign4"].filter(c => log.has[c]);
-  let minCyl = 0, worstCyl = null;
-  const cylStats = {};
-
-  for (const c of cylKeys) {
-   const vals = rows.map(r => r[c]).filter(Number.isFinite);
-   if (!vals.length) continue;
-   const minV = Math.min(...vals);
-   const negs = vals.filter(v => v < -0.5).length;
-   cylStats[c] = { min: minV, negs };
-   if (minV < minCyl) { minCyl = minV; worstCyl = c; }
-  }
-
-  if (minCyl <= -4.5) {
-   events.push({
-    sev: "crit",
-    title: `Силна корекция на аванса (${mlogFmt(minCyl, 1)}°${worstCyl ? " · " + worstCyl.toUpperCase() : ""})`,
-    pts: [
-     "Наблюдава се значително сваляне на аванса (възможна детонация или лошо гориво).",
-     "Провери качеството на бензина, свещите и бобините."
-    ]
-   });
-  } else if (minCyl <= -2.5) {
-   events.push({
-    sev: "warn",
-    title: `Умерена корекция на аванса (${mlogFmt(minCyl, 1)}°${worstCyl ? " · " + worstCyl.toUpperCase() : ""})`,
-    pts: [
-     "ECU коригира аванса под натоварване.",
-     "Следи при висока температура на всмуквания въздух (IAT)."
-    ]
-   });
-  }
-
-  if (log.has.boost && log.has.boostT) {
-   const diffs = rows.filter(r => Number.isFinite(r.boost) && Number.isFinite(r.boostT) && (r.rpm ?? 0) > 2800 && (r.throttle ?? 100) > 80)
-    .map(r => r.boost - r.boostT);
-   if (diffs.length) {
-    const maxOver = Math.max(...diffs);
-    const minUnder = Math.min(...diffs);
-    if (maxOver > 3.5) {
-     events.push({
-      sev: "warn",
-      title: `Boost spike над целта (+${mlogFmt(maxOver, 1)} psi)`,
-      pts: ["Налягането превишава зададената стойност за кратко.", "Провери wastegate адаптация и управлението на турбото."]
-     });
-    }
-    if (minUnder < -3.5) {
-     events.push({
-      sev: "info",
-      title: `По-нисък boost от целта (${mlogFmt(minUnder, 1)} psi)`,
-      pts: ["Възможно е при пул да се достига целевият boost по-късно или да има загуба по тракта."]
-     });
-    }
-   }
-  }
-
-  if (log.has.iat) {
-   const iats = rows.map(r => r.iat).filter(Number.isFinite);
-   const maxIat = Math.max(...iats);
-   if (maxIat >= 60) {
-    events.push({
-     sev: "crit",
-     title: `Висока температура на всмуквания въздух (IAT ${mlogFmt(maxIat, 0)}°C)`,
-     pts: ["Висок IAT рязко повишава риска от детонация и сваляне на аванса.", "Избягвай поредица от тежки пулове в жега."]
-    });
-   } else if (maxIat >= 48) {
-    events.push({
-     sev: "warn",
-     title: `Повишен IAT (${mlogFmt(maxIat, 0)}°C)`,
-     pts: ["Интеркулерът започва да се насища при по-продължително натоварване."]
-    });
-   }
-  }
-
-  if (log.has.afr) {
-   const wotAfr = rows.filter(r => (r.rpm ?? 0) > 3000 && (r.throttle ?? 100) > 80 && Number.isFinite(r.afr) && r.afr > 6)
-    .map(r => r.afr);
-   if (wotAfr.length) {
-    const leanest = Math.max(...wotAfr);
-    if (leanest > 13.2) {
-     events.push({
-      sev: "crit",
-      title: `Бедна смес под пълно натоварване (AFR ${mlogFmt(leanest, 2)})`,
-      pts: ["Сместа е по-бедна от обичайното при високо натоварване.", "Провери налягането на горивото и подаването на гориво."]
-     });
-    }
-   }
-  }
-
-  if (!events.length) {
-   events.push({
-    sev: "info",
-    title: "Няма открити критични аномалии в избрания участък",
-    pts: ["Показанията изглеждат балансирани в анализирания интервал.", "За пълна оценка разгледай графиките и детайлните стойности."]
-   });
-  }
-
-  const maxRpm = log.has.rpm ? Math.max(...rows.map(r => r.rpm ?? 0)) : NaN;
-  const peakBoost = log.has.boost ? Math.max(...rows.map(r => r.boost ?? -99)) : NaN;
-  const maxIat = log.has.iat ? Math.max(...rows.map(r => r.iat ?? -99)) : NaN;
-  return { events, minCyl, cylStats, maxRpm, peakBoost, maxIat, count: rows.length };
- }
-
- function buildReportText() {
-  const log = mlogState.slots.A;
-  if (!log) return "";
-  const a = analyze(log, "A");
-  const lines = [
-   `M-LOG LAB ОТЧЕТ · ${log.name}`,
-   `Записи: ${a.count} · Продължителност: ${mlogFmt(log.duration, 1)} s · Пулове: ${log.pulls.length}`,
-   `Макс. обороти: ${Number.isFinite(a.maxRpm) ? Math.round(a.maxRpm) + " RPM" : "—"} · Пик Boost: ${Number.isFinite(a.peakBoost) ? mlogFmt(a.peakBoost, 1) + " psi" : "—"} · Макс. IAT: ${Number.isFinite(a.maxIat) ? mlogFmt(a.maxIat, 0) + "°C" : "—"}`,
-   `Най-ниска корекция аванс: ${a.minCyl < 0 ? mlogFmt(a.minCyl, 1) + "°" : "0.0°"}`,
-   "",
-   "Наблюдения:"
-  ];
-  a.events.forEach(ev => {
-   lines.push(`- [${ev.sev.toUpperCase()}] ${ev.title}`);
-   ev.pts.forEach(p => lines.push(`  • ${p}`));
-  });
-  return lines.join("\n");
- }
-
- function renderMlogSlots() {
-  const box = mlog$("mlogSlots");
-  if (!box) return;
-  const keys = mlogState.tab === "cmp" ? ["A", "B"] : ["A"];
-  box.style.gridTemplateColumns = keys.length === 1 ? "1fr" : "";
-  box.innerHTML = keys.map(k => {
-   const s = mlogState.slots[k];
-   const lbl = mlogState.tab === "cmp" ? `ЛОГ ${k}` : "CSV ЛОГ";
-   return `
-    <div class="panel" style="margin:0;padding:13px">
-     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <strong class="mlog-${k}">${lbl}</strong>
-      <span class="muted">${s ? s.rows.length + " реда · " + s.pulls.length + " пула" : "Няма зареден лог"}</span>
-     </div>
-     <div class="muted" style="margin:6px 0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s ? s.name : "Избери Bootmod3 CSV файл или постави текст"}</div>
-     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button type="button" class="btn small" data-mlog-pick="${k}">Файл</button>
-      <button type="button" class="btn secondary small" data-mlog-paste="${k}">Постави CSV</button>
-      ${s ? `<button type="button" class="btn danger small" data-mlog-clear="${k}">Изчисти</button>` : ""}
-     </div>
-     <input type="file" accept=".csv,.txt,text/csv" data-mlog-file="${k}" hidden>
-    </div>
-   `;
-  }).join("");
- }
-
- function renderMlogBar() {
-  const bar = mlog$("mlogBar");
-  const sA = mlogState.slots.A;
-  const sB = mlogState.slots.B;
-  const show = mlogState.tab === "one" ? Boolean(sA) : Boolean(sA && sB);
-  bar.style.display = show ? "block" : "none";
-  if (!show) return;
-
-  const modes = mlogState.tab === "one"
-   ? [["overview", "Преглед"], ["charts", "Графики"], ["events", "Аномалии"], ["data", "Таблица"]]
-   : [["compare", "Сравнение"], ["overlay", "Насложена графика"]];
-
-  if (!modes.some(m => m[0] === mlogState.mode)) {
-   mlogState.mode = modes[0][0];
-  }
-
-  mlog$("mlogModes").innerHTML = modes.map(([id, label]) =>
-   `<button type="button" class="preset-chip ${mlogState.mode === id ? "active" : ""}" data-mlog-mode="${id}" style="${mlogState.mode === id ? "border-color:var(--accent);background:var(--accent-soft);color:var(--accent)" : ""}">${label}</button>`
-  ).join("");
-
-  const isOne = mlogState.tab === "one";
-  mlog$("mlogSaveToCar").style.display = isOne ? "" : "none";
-  mlog$("mlogCopyReport").style.display = isOne ? "" : "none";
-  mlog$("mlogAiTarget").style.display = isOne ? "" : "none";
-  mlog$("mlogOpenAi").style.display = isOne ? "" : "none";
- }
-
- function renderPullSelector(log, k) {
-  if (!log || !log.pulls.length) return "";
-  const curPull = mlogState.pull[k];
-  return `
-   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-    <span class="muted">Пул:</span>
-    <button type="button" class="filter-chip ${curPull === null ? "active" : ""}" data-pull-k="${k}" data-pull-idx="">Цял лог</button>
-    ${log.pulls.map((p, idx) =>
-     `<button type="button" class="filter-chip ${curPull === idx ? "active" : ""}" data-pull-k="${k}" data-pull-idx="${idx}">#${p.id} (${Math.round(p.rpmMin)}–${Math.round(p.rpmMax)} rpm)</button>`
-    ).join("")}
-   </div>
-  `;
- }
-
- function drawSeries(canvas, log, k, keys) {
-  if (!canvas || !log) return;
-  const rows = getSlice(log, k);
-  if (!rows.length) return;
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  const w = Math.max(280, Math.floor(rect.width || 560));
-  const h = 190;
-  canvas.width = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-  const ctx = canvas.getContext("2d");
-  ctx.scale(dpr, dpr);
-
-  const isLight = document.documentElement.dataset.theme === "light";
-  ctx.fillStyle = isLight ? "#f4f7fb" : "#0b1018";
-  ctx.fillRect(0, 0, w, h);
-
-  const pad = { l: 10, r: 10, t: 10, b: 20 };
-  const pw = w - pad.l - pad.r;
-  const ph = h - pad.t - pad.b;
-
-  ctx.strokeStyle = isLight ? "rgba(19,32,48,.08)" : "rgba(255,255,255,.06)";
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-   const y = pad.t + (ph * i) / 4;
-   ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
-  }
-
-  const activeKeys = keys.filter(ch => log.has[ch]);
-  for (const ch of activeKeys) {
-   const meta = CH_META[ch] || [ch, "", "#258bff"];
-   const vals = rows.map(r => r[ch]).filter(Number.isFinite);
-   if (!vals.length) continue;
-   let minV = Math.min(...vals);
-   let maxV = Math.max(...vals);
-   if (minV === maxV) { minV -= 1; maxV += 1; }
-
-   ctx.strokeStyle = meta[2];
-   ctx.lineWidth = 1.75;
-   ctx.beginPath();
-   let started = false;
-   rows.forEach((r, idx) => {
-    const v = r[ch];
-    if (!Number.isFinite(v)) return;
-    const x = pad.l + (idx / Math.max(1, rows.length - 1)) * pw;
-    const norm = (v - minV) / (maxV - minV);
-    const y = pad.t + ph - norm * ph;
-    if (!started) { ctx.moveTo(x, y); started = true; }
-    else ctx.lineTo(x, y);
-   });
-   ctx.stroke();
-  }
-
-  const cIdx = mlogState.cursor[k];
-  if (cIdx !== null && cIdx >= 0 && cIdx < rows.length) {
-   const cx = pad.l + (cIdx / Math.max(1, rows.length - 1)) * pw;
-   ctx.strokeStyle = isLight ? "rgba(19,32,48,.45)" : "rgba(255,255,255,.45)";
-   ctx.setLineDash([3, 3]);
-   ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, pad.t + ph); ctx.stroke();
-   ctx.setLineDash([]);
-  }
-
-  ctx.fillStyle = isLight ? "#63758a" : "#8c9cb0";
-  ctx.font = "10px ui-monospace, Menlo, monospace";
-  ctx.fillText(`${mlogFmt(rows[0].t, 1)}s`, pad.l, h - 5);
-  const endTxt = `${mlogFmt(rows[rows.length - 1].t, 1)}s`;
-  ctx.fillText(endTxt, w - pad.r - ctx.measureText(endTxt).width, h - 5);
- }
-
- function bindCursor(canvas, roEl, log, k, keys) {
-  if (!canvas || !log) return;
-  const rows = getSlice(log, k);
-  const updateAt = clientX => {
-   const rect = canvas.getBoundingClientRect();
-   const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
-   const idx = Math.min(rows.length - 1, Math.floor(ratio * rows.length));
-   mlogState.cursor[k] = idx;
-   drawSeries(canvas, log, k, keys);
-   const r = rows[idx];
-   if (r && roEl) {
-    const parts = [`t=${mlogFmt(r.t, 2)}s`];
-    keys.filter(ch => log.has[ch] && Number.isFinite(r[ch])).forEach(ch => {
-     const m = CH_META[ch];
-     parts.push(`${m[0]}: ${mlogFmt(r[ch], 1)}${m[1]}`);
-    });
-    roEl.textContent = parts.join(" · ");
-   }
-  };
-  canvas.addEventListener("pointermove", e => updateAt(e.clientX));
-  canvas.addEventListener("pointerdown", e => updateAt(e.clientX));
- }
-
- function renderMlogView() {
-  const view = mlog$("mlogView");
-  if (!view) return;
-
-  if (mlogState.tab === "cmp") {
-   const sA = mlogState.slots.A;
-   const sB = mlogState.slots.B;
-   if (!sA || !sB) {
-    view.innerHTML = `<div class="panel"><div class="empty">Зареди ЛОГ А и ЛОГ Б, за да ги сравниш.</div></div>`;
-    return;
-   }
-   const aA = analyze(sA, "A");
-   const aB = analyze(sB, "B");
-   const avail = Object.keys(CH_META).filter(ch => sA.has[ch] && sB.has[ch]);
-   if (!avail.includes(mlogState.cmpCh)) mlogState.cmpCh = avail[0] || "boost";
-
-   if (mlogState.mode === "overlay") {
-    const ch = mlogState.cmpCh;
-    view.innerHTML = `
-     <div class="panel">
-      <div class="section-title">НАСЛОЖЕНА ГРАФИКА · ${CH_META[ch]?.[0] || ch}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-       ${avail.map(c => `<button type="button" class="filter-chip ${c === ch ? "active" : ""}" data-cmp-ch="${c}">${CH_META[c][0]}</button>`).join("")}
-      </div>
-      <div class="mlog-ro" id="mlogCmpRo"></div>
-      <div class="mlog-grid2">
-       <div><div class="muted mlog-A" style="margin-bottom:4px">ЛОГ А: ${sA.name}</div><canvas id="mlogCmpA" class="mlog-canvas"></canvas></div>
-       <div><div class="muted mlog-B" style="margin-bottom:4px">ЛОГ Б: ${sB.name}</div><canvas id="mlogCmpB" class="mlog-canvas"></canvas></div>
-      </div>
-     </div>
-    `;
-    const cA = mlog$("mlogCmpA");
-    const cB = mlog$("mlogCmpB");
-    drawSeries(cA, sA, "A", [ch]);
-    drawSeries(cB, sB, "B", [ch]);
-    bindCursor(cA, mlog$("mlogCmpRo"), sA, "A", [ch]);
-    bindCursor(cB, mlog$("mlogCmpRo"), sB, "B", [ch]);
-    return;
-   }
-
-   view.innerHTML = `
-    <div class="panel">
-     <div class="section-title">СРАВНЕНИЕ А vs Б</div>
-     <div class="mlog-sc">
-      <table class="mlog-table">
-       <thead><tr><th>МЕТРИКА</th><th class="mlog-A">ЛОГ А</th><th class="mlog-B">ЛОГ Б</th></tr></thead>
-       <tbody>
-        <tr><td>Макс. обороти</td><td>${Number.isFinite(aA.maxRpm) ? Math.round(aA.maxRpm) + " RPM" : "—"}</td><td>${Number.isFinite(aB.maxRpm) ? Math.round(aB.maxRpm) + " RPM" : "—"}</td></tr>
-        <tr><td>Пик Boost</td><td>${Number.isFinite(aA.peakBoost) ? mlogFmt(aA.peakBoost, 1) + " psi" : "—"}</td><td>${Number.isFinite(aB.peakBoost) ? mlogFmt(aB.peakBoost, 1) + " psi" : "—"}</td></tr>
-        <tr><td>Макс. IAT</td><td>${Number.isFinite(aA.maxIat) ? mlogFmt(aA.maxIat, 0) + "°C" : "—"}</td><td>${Number.isFinite(aB.maxIat) ? mlogFmt(aB.maxIat, 0) + "°C" : "—"}</td></tr>
-        <tr><td>Най-нисък аванс</td><td>${aA.minCyl < 0 ? mlogFmt(aA.minCyl, 1) + "°" : "0.0°"}</td><td>${aB.minCyl < 0 ? mlogFmt(aB.minCyl, 1) + "°" : "0.0°"}</td></tr>
-       </tbody>
-      </table>
-     </div>
-    </div>
-   `;
-   return;
-  }
-
-  const log = mlogState.slots.A;
-  if (!log) {
-   view.innerHTML = `
-    <div class="panel">
-     <div class="empty">
-      Няма зареден Bootmod3 CSV лог.<br>
-      Зареди файл или натисни „Постави CSV“, за да анализираш пулове, аванс, boost и температури.
-     </div>
-    </div>
-   `;
-   return;
-  }
-
-  const a = analyze(log, "A");
-
-  if (mlogState.mode === "charts") {
-   const avail = Object.keys(CH_META).filter(ch => log.has[ch]);
-   view.innerHTML = `
-    <div class="panel">
-     <div class="section-title">ИНТЕРАКТИВНИ ГРАФИКИ</div>
-     ${renderPullSelector(log, "A")}
-     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      ${PRESETS.map(([label, list]) => `<button type="button" class="preset-chip" data-mlog-preset="${list.join(",")}">${label}</button>`).join("")}
-     </div>
-     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-      ${avail.map(ch => {
-       const on = mlogState.ch.includes(ch);
-       const meta = CH_META[ch];
-       return `<button type="button" class="filter-chip ${on ? "active" : ""}" data-mlog-ch="${ch}" style="${on ? `border-color:${meta[2]};color:${meta[2]}` : ""}">${meta[0]}</button>`;
-      }).join("")}
-     </div>
-     <div class="mlog-ro" id="mlogChartRo">Премести курсора или докосни графиката за стойности в точка</div>
-     <canvas id="mlogMainCanvas" class="mlog-canvas"></canvas>
-    </div>
-   `;
-   const canvas = mlog$("mlogMainCanvas");
-   drawSeries(canvas, log, "A", mlogState.ch);
-   bindCursor(canvas, mlog$("mlogChartRo"), log, "A", mlogState.ch);
-   return;
-  }
-
-  if (mlogState.mode === "events") {
-   view.innerHTML = `
-    <div class="panel">
-     <div class="section-title">ОТКРИТИ АНОМАЛИИ И НАБЛЮДЕНИЯ</div>
-     ${renderPullSelector(log, "A")}
-     ${a.events.map(ev => `
-      <div class="mlog-ev ${ev.sev}">
-       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <strong>${ev.title}</strong>
-        <span class="mlog-tag">${ev.sev}</span>
-       </div>
-       <ul>${ev.pts.map(p => `<li>${p}</li>`).join("")}</ul>
-      </div>
-     `).join("")}
-    </div>
-   `;
-   return;
-  }
-
-  if (mlogState.mode === "data") {
-   const slice = getSlice(log, "A").slice(0, 120);
-   const cols = ["t", ...Object.keys(CH_META).filter(ch => log.has[ch]).slice(0, 8)];
-   view.innerHTML = `
-    <div class="panel">
-     <div class="section-title">ТАБЛИЧНИ ДАННИ (ПЪРВИ ${slice.length} РЕДА)</div>
-     <div class="mlog-sc">
-      <table class="mlog-table">
-       <thead><tr>${cols.map(c => `<th>${c === "t" ? "Време (s)" : CH_META[c][0]}</th>`).join("")}</tr></thead>
-       <tbody>
-        ${slice.map(r => `<tr>${cols.map(c => `<td>${c === "t" ? mlogFmt(r.t, 2) : mlogFmt(r[c], 1)}</td>`).join("")}</tr>`).join("")}
-       </tbody>
-      </table>
-     </div>
-    </div>
-   `;
-   return;
-  }
-
-  view.innerHTML = `
-   <div class="panel">
-    <div class="section-title">КЛЮЧОВИ МЕТРИКИ</div>
-    ${renderPullSelector(log, "A")}
-    <div class="mlog-grid4">
-     <div class="stat"><div class="stat-label">МАКС. ОБОРОТИ</div><div class="mlog-v">${Number.isFinite(a.maxRpm) ? Math.round(a.maxRpm) : "—"}</div></div>
-     <div class="stat"><div class="stat-label">ПИК BOOST</div><div class="mlog-v">${Number.isFinite(a.peakBoost) ? mlogFmt(a.peakBoost, 1) + " psi" : "—"}</div></div>
-     <div class="stat"><div class="stat-label">МАКС. IAT</div><div class="mlog-v">${Number.isFinite(a.maxIat) ? mlogFmt(a.maxIat, 0) + "°C" : "—"}</div></div>
-     <div class="stat"><div class="stat-label">АВАНС MIN</div><div class="mlog-v ${a.minCyl <= -3 ? "mlog-bad" : a.minCyl < 0 ? "mlog-mid" : "mlog-good"}">${a.minCyl < 0 ? mlogFmt(a.minCyl, 1) + "°" : "0.0°"}</div></div>
-    </div>
-   </div>
-
-   <div class="panel">
-    <div class="section-title">АВТОМАТИЧЕН АНАЛИЗ (${a.events.length})</div>
-    ${a.events.map(ev => `
-     <div class="mlog-ev ${ev.sev}">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-       <strong>${ev.title}</strong>
-       <span class="mlog-tag">${ev.sev}</span>
-      </div>
-      <ul>${ev.pts.map(p => `<li>${p}</li>`).join("")}</ul>
-     </div>
-    `).join("")}
-   </div>
-  `;
- }
-
- function renderMlogAll() {
-  renderMlogSlots();
-  renderMlogBar();
-  renderMlogView();
- }
-
- window.mlogRedraw = function() {
-  if (mlogState.mode === "charts") {
-   drawSeries(mlog$("mlogMainCanvas"), mlogState.slots.A, "A", mlogState.ch);
-  } else if (mlogState.mode === "overlay" && mlogState.slots.A && mlogState.slots.B) {
-   drawSeries(mlog$("mlogCmpA"), mlogState.slots.A, "A", [mlogState.cmpCh]);
-   drawSeries(mlog$("mlogCmpB"), mlogState.slots.B, "B", [mlogState.cmpCh]);
-  }
- };
-
- mlog$("mlogTabOne")?.addEventListener("click", () => {
-  mlogState.tab = "one";
-  mlog$("mlogTabOne").classList.add("on");
-  mlog$("mlogTabCmp").classList.remove("on");
-  mlogSaveState();
-  renderMlogAll();
- });
-
- mlog$("mlogTabCmp")?.addEventListener("click", () => {
-  mlogState.tab = "cmp";
-  mlog$("mlogTabCmp").classList.add("on");
-  mlog$("mlogTabOne").classList.remove("on");
-  mlogSaveState();
-  renderMlogAll();
- });
-
- let pasteTargetKey = "A";
- const dlg = mlog$("mlogPasteDialog");
-
- function openPasteDialog(k) {
-  pasteTargetKey = k;
-  mlog$("mlogDlgTitle").textContent = `M-LOG LAB · Постави CSV (${k})`;
-  mlog$("mlogDlgName").value = `BM3-Log-${k}-${new Date().toISOString().slice(0, 10)}.csv`;
-  mlog$("mlogDlgCsv").value = "";
-  if (dlg && typeof dlg.showModal === "function") dlg.showModal();
- }
-
- mlog$("mlogDlgClose")?.addEventListener("click", () => dlg?.close());
- mlog$("mlogDlgCancel")?.addEventListener("click", () => dlg?.close());
- mlog$("mlogDlgOk")?.addEventListener("click", () => {
-  const csv = mlog$("mlogDlgCsv").value.trim();
-  const name = mlog$("mlogDlgName").value.trim() || `Log-${pasteTargetKey}.csv`;
-  if (!csv) {
-   if (typeof showToast === "function") showToast("Постави CSV съдържание.", "warn");
-   return;
-  }
-  try {
-   const parsed = parseLog(name, csv);
-   mlogState.slots[pasteTargetKey] = parsed;
-   mlogState.pull[pasteTargetKey] = null;
-   mlogSaveState();
-   dlg?.close();
-   renderMlogAll();
-   if (typeof showToast === "function") showToast(`Зареден е ${name}`, "good");
-  } catch (err) {
-   if (typeof showToast === "function") showToast("Грешка в CSV: " + err.message, "danger");
-  }
- });
-
- mlog$("mlogSlots")?.addEventListener("click", e => {
-  const pickBtn = e.target.closest("[data-mlog-pick]");
-  if (pickBtn) {
-   const k = pickBtn.dataset.mlogPick;
-   const inp = mlog$("mlogSlots").querySelector(`[data-mlog-file="${k}"]`);
-   inp?.click();
-   return;
-  }
-  const pasteBtn = e.target.closest("[data-mlog-paste]");
-  if (pasteBtn) {
-   openPasteDialog(pasteBtn.dataset.mlogPaste);
-   return;
-  }
-  const clearBtn = e.target.closest("[data-mlog-clear]");
-  if (clearBtn) {
-   const k = clearBtn.dataset.mlogClear;
-   mlogState.slots[k] = null;
-   mlogState.pull[k] = null;
-   mlogSaveState();
-   renderMlogAll();
-  }
- });
-
- mlog$("mlogSlots")?.addEventListener("change", async e => {
-  const inp = e.target.closest("[data-mlog-file]");
-  if (!inp || !inp.files?.[0]) return;
-  const k = inp.dataset.mlogFile;
-  const file = inp.files[0];
-  try {
-   const txt = await file.text();
-   const parsed = parseLog(file.name, txt);
-   mlogState.slots[k] = parsed;
-   mlogState.pull[k] = null;
-   mlogSaveState();
-   renderMlogAll();
-   if (typeof showToast === "function") showToast(`Зареден е ${file.name}`, "good");
-  } catch (err) {
-   if (typeof showToast === "function") showToast("Грешка при четене на лог: " + err.message, "danger");
-  }
-  inp.value = "";
- });
-
- mlog$("mlogModes")?.addEventListener("click", e => {
-  const btn = e.target.closest("[data-mlog-mode]");
-  if (!btn) return;
-  mlogState.mode = btn.dataset.mlogMode;
-  mlogSaveState();
-  renderMlogBar();
-  renderMlogView();
- });
-
- mlog$("mlogView")?.addEventListener("click", e => {
-  const pullBtn = e.target.closest("[data-pull-k]");
-  if (pullBtn) {
-   const k = pullBtn.dataset.pullK;
-   const raw = pullBtn.dataset.pullIdx;
-   mlogState.pull[k] = raw === "" ? null : Number(raw);
-   renderMlogView();
-   return;
-  }
-  const presetBtn = e.target.closest("[data-mlog-preset]");
-  if (presetBtn) {
-   mlogState.ch = presetBtn.dataset.mlogPreset.split(",").filter(Boolean);
-   mlogSaveState();
-   renderMlogView();
-   return;
-  }
-  const chBtn = e.target.closest("[data-mlog-ch]");
-  if (chBtn) {
-   const ch = chBtn.dataset.mlogCh;
-   if (mlogState.ch.includes(ch)) {
-    if (mlogState.ch.length > 1) mlogState.ch = mlogState.ch.filter(x => x !== ch);
-   } else {
-    mlogState.ch = [...mlogState.ch, ch];
-   }
-   mlogSaveState();
-   renderMlogView();
-   return;
-  }
-  const cmpBtn = e.target.closest("[data-cmp-ch]");
-  if (cmpBtn) {
-   mlogState.cmpCh = cmpBtn.dataset.cmpCh;
-   mlogSaveState();
-   renderMlogView();
-  }
- });
-
- mlog$("mlogSaveToCar")?.addEventListener("click", () => {
-  const rep = buildReportText();
-  if (!rep) return;
-  if (typeof window.appendLogNoteToActiveCar === "function") {
-   window.appendLogNoteToActiveCar(rep);
-  }
- });
-
- mlog$("mlogCopyReport")?.addEventListener("click", async () => {
-  const rep = buildReportText();
-  if (!rep) return;
-  try {
-   if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(rep);
-   if (typeof showToast === "function") showToast("Отчетът е копиран", "good");
-  } catch {
-   if (typeof showToast === "function") showToast("Неуспешно копиране", "danger");
-  }
- });
-
- mlog$("mlogOpenAi")?.addEventListener("click", async () => {
-  const rep = buildReportText();
-  if (!rep) return;
-  try {
-   if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(rep);
-  } catch {}
-  const url = mlog$("mlogAiTarget")?.value || "https://claude.ai/new";
-  window.open(url, "_blank", "noopener,noreferrer");
-  if (typeof showToast === "function") showToast("Отчетът е копиран — постави го в чата", "good");
- });
-
- mlogLoadState();
- renderMlogAll();
-})();
-</script>
-
 <script type="module" src="./cloud-sync.js"></script>
 </body>
 </html>
