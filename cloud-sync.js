@@ -296,7 +296,7 @@ function cleanRecord(item, type) {
 
   if (type === "modification") {
     result.partNumber = safeString(source.partNumber, 100);
-    result.status = safeString(source.status, 50);
+    result.status = safeString(source.status || "Монтирано", 40) || "Монтирано";
   }
 
   if (type === "document") {
@@ -364,7 +364,7 @@ function cleanCar(item) {
     modifications: safeArray(item.modifications)
       .map(record => cleanRecord(record, "modification")),
 
-    expenses: safeArray(item.expenses)
+    expenses: safeArray(item.expenses, 1000)
       .map(record => cleanRecord(record, "expense")),
 
     reminders: safeArray(item.reminders)
@@ -907,6 +907,17 @@ window.notifyCloudLocalChange = function() {
     scheduleAutomaticSync();
   }
 };
+
+function status(message, type = "") {
+  const element = byId("cloudStatus");
+
+  if (element) {
+    element.textContent = message;
+    element.className = "form-msg" + (type ? " " + type : "");
+  }
+
+  refreshDashboard();
+}
 
 function userStatus(message, type = "") {
   const element = byId("cloudUser");
