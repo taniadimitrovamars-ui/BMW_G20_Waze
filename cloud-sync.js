@@ -288,6 +288,7 @@ function cleanRecord(item, type) {
 
   if (type === "modification") {
     result.partNumber = safeString(source.partNumber, 100);
+    result.status = safeString(source.status, 50);
   }
 
   if (type === "document") {
