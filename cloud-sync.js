@@ -1580,7 +1580,7 @@ function createInitialEvents(events, local, legacy) {
 function applyEvents(events) {
   const cars = new Map();
   let activeVin = "";
-  let theme = "dark";
+    let theme = originalGetItem.call(localStorage, THEME_KEY) === "light" ? "light" : "dark";
 
   events.forEach(event => {
     const type = event.entity_type;
