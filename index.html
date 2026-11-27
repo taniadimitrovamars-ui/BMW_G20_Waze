@@ -2890,6 +2890,31 @@ function loadCars(){
  }catch(error){console.error("Load garage:",error);cars=[];activeVin=""}
 }
 window.loadCars=loadCars;
+ window.MGARAGE_DIAG = function(){
+  const raw = JSON.parse(
+    localStorage.getItem(STORAGE_KEY) || "[]"
+  );
+
+  const localCar = Array.isArray(raw)
+    ? raw.find(c => c && c.vin === activeVin)
+    : null;
+
+  const currentCar = cars.find(c => c.vin === activeVin);
+
+  const result = {
+    origin: location.origin,
+    activeVin,
+    storedCars: Array.isArray(raw) ? raw.length : "invalid",
+    storedDocuments: localCar?.documents?.length ?? "missing",
+    loadedDocuments: currentCar?.documents?.length ?? "missing",
+    storedDocumentTitles: (localCar?.documents || [])
+      .map(d => d.title || d.fileName),
+    loadedDocumentTitles: (currentCar?.documents || [])
+      .map(d => d.title || d.fileName)
+  };
+
+  alert(JSON.stringify(result, null, 2));
+};
 
 function save(){
  localStorage.setItem(STORAGE_KEY,JSON.stringify(cars.map(cleanCar).filter(Boolean)));
