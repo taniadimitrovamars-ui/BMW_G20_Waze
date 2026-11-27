@@ -842,9 +842,6 @@ window.notifyCloudLocalChange = function() {
   }
 };
 
-  refreshDashboard();
-}
-
 function userStatus(message, type = "") {
   const element = byId("cloudUser");
 
