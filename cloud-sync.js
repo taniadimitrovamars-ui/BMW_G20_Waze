@@ -1684,6 +1684,303 @@ function getLatestRestore(events) {
   return latest;
 }
 
+async function restoreLocalFromCloud() {
+  if (!CLOUD_SYNC_SAFETY_LOCK) {
+    status("Възстановяването е разрешено само при активен Safety Lock.");
+    return;
+  }
+
+  if (syncRunning) {
+    status("Изчакай текущата операция.");
+    return;
+  }
+
+  if (!navigator.onLine) {
+    status("Необходима е интернет връзка.");
+    return;
+  }
+
+  if (!currentUser) {
+    status("Първо влез в Cloud профила.");
+    return;
+  }
+
+  const pendingCheck = inspectPendingStorage();
+
+  if (!pendingCheck.ok) {
+    status(
+      "Възстановяването е спряно: " + pendingCheck.reason
+    );
+    return;
+  }
+
+  if (pendingCheck.events.length !== 0) {
+    status(
+      "Възстановяването е спряно: има " +
+      pendingCheck.events.length +
+      " чакащи промени. Данните не са променени."
+    );
+    return;
+  }
+
+  syncRunning = true;
+  setBusy(true);
+  status("Проверка на облачните данни...");
+
+  try {
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session || session.user.id !== currentUser.id) {
+      throw new Error(
+        "Cloud профилът не съвпада с активната сесия."
+      );
+    }
+
+    const expectedVin = "WBASRTCS1KAJS4645";
+
+    const local = readLocalData();
+
+    if (
+      local.activeVin !== expectedVin ||
+      !local.cars.some(car => car.vin === expectedVin)
+    ) {
+      throw new Error(
+        "Локалният активен автомобил не съвпада с очаквания VIN."
+      );
+    }
+
+    status("Прочитане на облачната история...");
+
+    // Само SELECT от Cloud. Не се изпращат промени.
+    const events = await fetchAllEvents(session.user.id);
+
+    if (!events.length) {
+      throw new Error("В Cloud не са намерени събития.");
+    }
+
+    const restored = applyEvents(events);
+
+    if (
+      restored.cars.length !== 1 ||
+      restored.cars[0]?.vin !== expectedVin
+    ) {
+      throw new Error(
+        "Cloud проверката не потвърди очаквания автомобил."
+      );
+    }
+
+    const cloudCar = restored.cars[0];
+
+    const expectedDocumentIds = [
+      "2cb53117-3ae6-4915-bc24-11d274da24d4",
+      "0fc45a32-245d-451e-8cf6-81a83ed123fd",
+      "1b6b00c4-8872-48cb-a851-48a32439390a"
+    ];
+
+    const actualDocumentIds = new Set(
+      Array.isArray(cloudCar.documents)
+        ? cloudCar.documents.map(document => document.id)
+        : []
+    );
+
+    const documentsValid =
+      cloudCar.documents?.length === 3 &&
+      expectedDocumentIds.every(id =>
+        actualDocumentIds.has(id)
+      );
+
+    if (!documentsValid) {
+      throw new Error(
+        "Проверката на трите Cloud документа не премина. " +
+        "Локалните данни не са променени."
+      );
+    }
+
+    if (restored.activeVin !== expectedVin) {
+      throw new Error(
+        "Възстановеният активен автомобил не съвпада."
+      );
+    }
+
+    const latestRestore = getLatestRestore(events);
+
+    if (
+      !latestRestore ||
+      typeof latestRestore.event_id !== "string" ||
+      !latestRestore.event_id
+    ) {
+      throw new Error(
+        "Не е намерен валиден Cloud маркер за възстановяване."
+      );
+    }
+
+    // Повторна проверка на активната Cloud сесия.
+    const {
+      data: { session: currentSession },
+      error: currentSessionError
+    } = await supabase.auth.getSession();
+
+    if (currentSessionError) throw currentSessionError;
+
+    if (
+      !currentSession ||
+      currentSession.user.id !== session.user.id ||
+      !currentUser ||
+      currentUser.id !== session.user.id
+    ) {
+      throw new Error(
+        "Cloud профилът се е променил. Записът е отменен."
+      );
+    }
+
+    if (!confirm(
+      "ПРОВЕРКАТА Е УСПЕШНА\n\n" +
+      "Автомобили в Cloud: " + restored.cars.length + "\n" +
+      "Документи за BMW: " + cloudCar.documents.length + "\n\n" +
+      "Ще бъдат заменени само локалните данни на това устройство.\n" +
+      "Cloud данните няма да бъдат променяни или качвани.\n\n" +
+      "Продължаваме ли?"
+    )) {
+      status("Локалното възстановяване е отказано.");
+      return;
+    }
+
+    // Последна проверка на опашката преди локалния запис.
+    const finalPendingCheck = inspectPendingStorage();
+
+    if (!finalPendingCheck.ok) {
+      throw new Error(
+        "Опашката не може да бъде проверена. Записът е отменен: " +
+        finalPendingCheck.reason
+      );
+    }
+
+    if (finalPendingCheck.events.length !== 0) {
+      throw new Error(
+        "Появиха се чакащи промени. Записът е отменен."
+      );
+    }
+
+    // Запазваме оригиналните локални стойности за rollback.
+    const storageKeys = [
+      STORAGE_KEY,
+      ACTIVE_KEY,
+      THEME_KEY,
+      RESTORE_KEY
+    ];
+
+    const previousStorage = new Map(
+      storageKeys.map(key => [
+        key,
+        originalGetItem.call(localStorage, key)
+      ])
+    );
+
+    try {
+      // Само локален запис. Не генерира Cloud събития.
+      saveLocalData(restored);
+
+      originalSetItem.call(
+        localStorage,
+        RESTORE_KEY,
+        latestRestore.event_id
+      );
+
+    } catch (writeError) {
+      const rollbackErrors = [];
+
+      suppressLocalEvents = true;
+
+      try {
+        storageKeys.forEach(key => {
+          try {
+            const previousValue = previousStorage.get(key);
+
+            if (previousValue === null) {
+              Storage.prototype.removeItem.call(
+                localStorage,
+                key
+              );
+            } else {
+              originalSetItem.call(
+                localStorage,
+                key,
+                previousValue
+              );
+            }
+          } catch (rollbackError) {
+            rollbackErrors.push(
+              key + ": " +
+              (rollbackError?.message || rollbackError)
+            );
+          }
+        });
+      } finally {
+        suppressLocalEvents = false;
+      }
+
+      try {
+        const previousTheme =
+          previousStorage.get(THEME_KEY) || "dark";
+
+        if (typeof window.setTheme === "function") {
+          window.setTheme(previousTheme);
+        }
+      } catch (themeError) {
+        rollbackErrors.push(
+          "Тема: " + (themeError?.message || themeError)
+        );
+      }
+
+      if (rollbackErrors.length) {
+        throw new Error(
+          "Записът е неуспешен и възстановяването на предишните " +
+          "локални стойности има проблем: " +
+          rollbackErrors.join("; ") +
+          ". Първоначална грешка: " +
+          (writeError?.message || writeError)
+        );
+      }
+
+      throw new Error(
+        "Записът е неуспешен. Предишните локални данни са " +
+        "възстановени. Причина: " +
+        (writeError?.message || writeError)
+      );
+    }
+
+    window.renderAll?.();
+
+    status(
+      "Локалното възстановяване е успешно. " +
+      "Автомобили: " + restored.cars.length +
+      ". Документи: " + cloudCar.documents.length +
+      ". Cloud данните не са променяни.",
+      "ok"
+    );
+
+  } catch (error) {
+    console.error("M-GARAGE LOCAL CLOUD RECOVERY:", error);
+
+    status(
+      await diagnoseCloudError(
+        error,
+        "Грешка при локално възстановяване"
+      )
+    );
+
+  } finally {
+    syncRunning = false;
+    setBusy(false);
+    refreshDashboard();
+  }
+}
+
 /* ==========================================
    HISTORY
 ========================================== */
