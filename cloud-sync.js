@@ -3,7 +3,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4.3 (Accordion UI + Widget Sync + Diagnostics)
+   Version: 2.4.4 (Accordion UI + Widget Sync + Diagnostics)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -78,9 +78,6 @@ const PENDING_KEY = "mgu_cloud_pending";
 const DEVICE_KEY = "mgu_cloud_device";
 const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 const RESTORE_KEY = "mgu_cloud_restore_id";
-
-// TEMPORARY SAFETY LOCK — блокира всички Cloud Sync операции
-const CLOUD_SYNC_SAFETY_LOCK = true;
 
 const STEP_IDS = [
   "prep0", "prep", "status0", "flash", "keys", "persist",
@@ -313,14 +310,12 @@ function cleanCar(item) {
 
   const details = safeObject(item.details);
 
-  // Разпознаване на типа превозно средство
   const vehicleType =
     details.vehicleType === "atv" ? "atv" : "car";
 
   const vin = safeString(item.vin, 17)
     .toUpperCase();
 
-  // Съвместимост с локалната проверка на приложението
   if (!/^[A-Z0-9-]{5,17}$/.test(vin)) {
     return null;
   }
@@ -1038,16 +1033,7 @@ function setBusy(busy) {
     const control = byId(id);
     if (!control) return;
 
-    const allowedDuringLock = [
-      "cloudLogin",
-      "cloudRegister",
-      "cloudLogout",
-      "cloudLocalRestore"
-    ].includes(id);
-
-    control.disabled =
-      busy ||
-      (CLOUD_SYNC_SAFETY_LOCK && !allowedDuringLock);
+    control.disabled = Boolean(busy);
   });
 
   refreshDashboard();
@@ -1317,12 +1303,6 @@ function createBackup() {
 }
 
 function downloadBackup() {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    status("Cloud Export е временно блокиран за защита на данните.");
-    refreshDashboard();
-    return;
-  }
-
   try {
     const backup = createBackup();
 
@@ -1429,10 +1409,6 @@ async function fetchAllEvents(userId) {
 }
 
 async function uploadEvents(userId, events) {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    throw new Error("Cloud записът е временно блокиран за защита на данните.");
-  }
-
   if (!events.length) return;
 
   const invalid = events.filter(event =>
@@ -1467,10 +1443,6 @@ async function uploadEvents(userId, events) {
 }
 
 async function uploadPending(userId) {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    throw new Error("Изпращането на чакащи Cloud промени е временно блокирано.");
-  }
-
   const pending = readPending();
 
   if (!pending.length) return 0;
@@ -1685,11 +1657,6 @@ function getLatestRestore(events) {
 }
 
 async function restoreLocalFromCloud() {
-  if (!CLOUD_SYNC_SAFETY_LOCK) {
-    status("Възстановяването е разрешено само при активен Safety Lock.");
-    return;
-  }
-
   if (syncRunning) {
     status("Изчакай текущата операция.");
     return;
@@ -1714,11 +1681,12 @@ async function restoreLocalFromCloud() {
     return;
   }
 
-  if (pendingCheck.events.length !== 0) {
+  const foreign = foreignPending(currentUser.id);
+  const unassigned = unassignedPending();
+
+  if (foreign.length || unassigned.length) {
     status(
-      "Възстановяването е спряно: има " +
-      pendingCheck.events.length +
-      " чакащи промени. Данните не са променени."
+      "Възстановяването е спряно: има чакащи промени без собственик или от друг профил."
     );
     return;
   }
@@ -1741,22 +1709,8 @@ async function restoreLocalFromCloud() {
       );
     }
 
-    const expectedVin = "WBASRTCS1KAJS4645";
-
-    const local = readLocalData();
-
-    if (
-      local.activeVin !== expectedVin ||
-      !local.cars.some(car => car.vin === expectedVin)
-    ) {
-      throw new Error(
-        "Локалният активен автомобил не съвпада с очаквания VIN."
-      );
-    }
-
     status("Прочитане на облачната история...");
 
-    // Само SELECT от Cloud. Не се изпращат промени.
     const events = await fetchAllEvents(session.user.id);
 
     if (!events.length) {
@@ -1764,62 +1718,13 @@ async function restoreLocalFromCloud() {
     }
 
     const restored = applyEvents(events);
-
-    if (
-      restored.cars.length !== 1 ||
-      restored.cars[0]?.vin !== expectedVin
-    ) {
-      throw new Error(
-        "Cloud проверката не потвърди очаквания автомобил."
-      );
-    }
-
-    const cloudCar = restored.cars[0];
-
-    const expectedDocumentIds = [
-      "2cb53117-3ae6-4915-bc24-11d274da24d4",
-      "0fc45a32-245d-451e-8cf6-81a83ed123fd",
-      "1b6b00c4-8872-48cb-a851-48a32439390a"
-    ];
-
-    const actualDocumentIds = new Set(
-      Array.isArray(cloudCar.documents)
-        ? cloudCar.documents.map(document => document.id)
-        : []
+    const totalDocs = restored.cars.reduce(
+      (sum, car) => sum + (Array.isArray(car.documents) ? car.documents.length : 0),
+      0
     );
-
-    const documentsValid =
-      cloudCar.documents?.length === 3 &&
-      expectedDocumentIds.every(id =>
-        actualDocumentIds.has(id)
-      );
-
-    if (!documentsValid) {
-      throw new Error(
-        "Проверката на трите Cloud документа не премина. " +
-        "Локалните данни не са променени."
-      );
-    }
-
-    if (restored.activeVin !== expectedVin) {
-      throw new Error(
-        "Възстановеният активен автомобил не съвпада."
-      );
-    }
 
     const latestRestore = getLatestRestore(events);
 
-    if (
-      !latestRestore ||
-      typeof latestRestore.event_id !== "string" ||
-      !latestRestore.event_id
-    ) {
-      throw new Error(
-        "Не е намерен валиден Cloud маркер за възстановяване."
-      );
-    }
-
-    // Повторна проверка на активната Cloud сесия.
     const {
       data: { session: currentSession },
       error: currentSessionError
@@ -1841,16 +1746,14 @@ async function restoreLocalFromCloud() {
     if (!confirm(
       "ПРОВЕРКАТА Е УСПЕШНА\n\n" +
       "Автомобили в Cloud: " + restored.cars.length + "\n" +
-      "Документи за BMW: " + cloudCar.documents.length + "\n\n" +
-      "Ще бъдат заменени само локалните данни на това устройство.\n" +
-      "Cloud данните няма да бъдат променяни или качвани.\n\n" +
+      "Документи общо: " + totalDocs + "\n\n" +
+      "Ще бъдат заменени локалните данни на това устройство с данните от Cloud.\n\n" +
       "Продължаваме ли?"
     )) {
       status("Локалното възстановяване е отказано.");
       return;
     }
 
-    // Последна проверка на опашката преди локалния запис.
     const finalPendingCheck = inspectPendingStorage();
 
     if (!finalPendingCheck.ok) {
@@ -1860,13 +1763,6 @@ async function restoreLocalFromCloud() {
       );
     }
 
-    if (finalPendingCheck.events.length !== 0) {
-      throw new Error(
-        "Появиха се чакащи промени. Записът е отменен."
-      );
-    }
-
-    // Запазваме оригиналните локални стойности за rollback.
     const storageKeys = [
       STORAGE_KEY,
       ACTIVE_KEY,
@@ -1882,15 +1778,15 @@ async function restoreLocalFromCloud() {
     );
 
     try {
-      // Само локален запис. Не генерира Cloud събития.
       saveLocalData(restored);
 
-      originalSetItem.call(
-        localStorage,
-        RESTORE_KEY,
-        latestRestore.event_id
-      );
-
+      if (latestRestore?.event_id) {
+        originalSetItem.call(
+          localStorage,
+          RESTORE_KEY,
+          latestRestore.event_id
+        );
+      }
     } catch (writeError) {
       const rollbackErrors = [];
 
@@ -1959,8 +1855,7 @@ async function restoreLocalFromCloud() {
     status(
       "Локалното възстановяване е успешно. " +
       "Автомобили: " + restored.cars.length +
-      ". Документи: " + cloudCar.documents.length +
-      ". Cloud данните не са променяни.",
+      ". Документи: " + totalDocs + ".",
       "ok"
     );
 
@@ -1992,10 +1887,6 @@ async function writeHistory(
   changesCount,
   errorMessage = ""
 ) {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    throw new Error("Cloud историята е временно блокирана за защита на данните.");
-  }
-
   const { error } = await supabase
     .from("sync_history")
     .insert({
@@ -2239,13 +2130,6 @@ async function loadDevices() {
 ========================================== */
 
 async function restoreBackup() {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    restoreStatus("Cloud Restore е временно блокиран за защита на данните.");
-    status("Cloud Restore е временно блокиран.");
-    refreshDashboard();
-    return;
-  }
-
   if (syncRunning) {
     restoreStatus("Изчакай текущата синхронизация.");
     return;
@@ -2553,12 +2437,6 @@ async function logout() {
 ========================================== */
 
 async function syncNow() {
-  if (CLOUD_SYNC_SAFETY_LOCK) {
-    status("Cloud Sync е временно блокиран за защита на локалните данни.");
-    refreshDashboard();
-    return;
-  }
-
   if (syncRunning) return;
 
   if (!navigator.onLine) {
@@ -2853,22 +2731,6 @@ byId("cloudAssignPending")?.addEventListener(
   "click",
   assignPendingToCurrentUser
 );
-
-// GLOBAL CLOUD UI SAFETY LOCK
-if (CLOUD_SYNC_SAFETY_LOCK) {
-  const cloudPanel = byId("cloudSyncPanel");
-
-  cloudPanel?.querySelectorAll(
-    "button:not(#cloudLogin):not(#cloudRegister):not(#cloudLogout):not(#cloudLocalRestore), " +
-    "input:not(#cloudEmail):not(#cloudPassword)"
-  ).forEach(control => {
-    control.disabled = true;
-    control.title = "Временно блокирано за защита на данните.";
-  });
-
-  status("Cloud операциите са временно блокирани. Входът остава достъпен.");
-  restoreStatus("Cloud Restore е временно блокиран.");
-}
 
 /* ==========================================
    AUTH STATE
