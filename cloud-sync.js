@@ -302,25 +302,51 @@ function cleanRecord(item, type) {
 function cleanCar(item) {
   if (!item || typeof item !== "object") return null;
 
-  const vin = safeString(item.vin, 17).toUpperCase();
+  const details = safeObject(item.details);
 
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return null;
+  // Разпознаване на типа превозно средство
+  const vehicleType =
+    details.vehicleType === "atv" ? "atv" : "car";
+
+  const vin = safeString(item.vin, 17)
+    .toUpperCase();
+
+  // Автомобил: стандартен 17-символен VIN
+  if (
+    vehicleType === "car" &&
+    !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)
+  ) {
+    return null;
+  }
+
+  // ATV: идентификатор от 5 до 17 символа
+  if (
+    vehicleType === "atv" &&
+    !/^[A-Z0-9-]{5,17}$/.test(vin)
+  ) {
+    return null;
+  }
 
   const sourceDone = safeObject(item.done);
   const done = {};
 
   STEP_IDS.forEach(id => {
-    if (sourceDone[id] === true) done[id] = true;
+    if (sourceDone[id] === true) {
+      done[id] = true;
+    }
   });
-
-  const details = safeObject(item.details);
 
   return {
     vin,
-    nick: safeString(item.nick || "BMW", 30) || "BMW",
+    nick: safeString(
+      item.nick || (vehicleType === "atv" ? "ATV" : "BMW"),
+      30
+    ) || (vehicleType === "atv" ? "ATV" : "BMW"),
+
     done,
 
     details: {
+      vehicleType,
       make: safeString(details.make, 60),
       model: safeString(details.model, 80),
       year: safeNumber(details.year, 0, 2100),
