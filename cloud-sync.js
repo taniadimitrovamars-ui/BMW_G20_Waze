@@ -3,7 +3,7 @@
 /* ==========================================
    M-GARAGE PRO
    CLOUD SYNC MODULE
-   Version: 2.4.4 (Accordion UI + Widget Sync + Diagnostics)
+   Version: 2.4.5 (Auto Auth Prompt + Clean Auto Sync + Restore)
    DATA SAFETY & ACCOUNT PROTECTION
    SUPABASE ENTITY TYPE FIX
    BACKWARD COMPATIBLE
@@ -99,6 +99,7 @@ let syncTimer = null;
 let currentUser = null;
 let lastSyncError = false;
 let authInitialized = false;
+let initialSyncTriggered = false;
 
 /* ==========================================
    DIAGNOSTICS HELPER
@@ -678,6 +679,13 @@ function createInterface() {
 createInterface();
 
 const byId = id => document.getElementById(id);
+
+function openCloudPanelForAuth() {
+  const panel = byId("cloudSyncPanel");
+  if (panel && panel.tagName === "DETAILS") {
+    panel.open = true;
+  }
+}
 
 /* ==========================================
    STATUS & DASHBOARD
@@ -2304,7 +2312,7 @@ function showAuthenticated(user) {
   userStatus("Влязъл потребител: " + user.email, "ok");
 
   if (changedUser) {
-    status("Cloud профилът е активен.");
+    status("Cloud профилът е активен. Зареждане на данните...");
     loadHistory();
     loadDevices();
   }
@@ -2318,7 +2326,7 @@ function showLoggedOut() {
   if (byId("cloudAuthForm")) byId("cloudAuthForm").hidden = false;
   if (byId("cloudActions")) byId("cloudActions").hidden = true;
 
-  userStatus("Не си влязъл в Cloud Sync.");
+  userStatus("Влез с акаунта си, за да синхронизираш и възстановиш данните.");
 
   if (byId("cloudHistoryStatus")) {
     byId("cloudHistoryStatus").textContent =
@@ -2335,8 +2343,9 @@ function showLoggedOut() {
   byId("deviceSummary")?.replaceChildren();
 
   refreshPendingOwnership();
+  openCloudPanelForAuth();
 
-  status("Локалните данни са налични.");
+  status("Очаква се вход с имейл и парола.");
 }
 
 async function register() {
@@ -2362,7 +2371,7 @@ async function register() {
     if (data.session) {
       showAuthenticated(data.user);
       status("Регистрацията е успешна.", "ok");
-      scheduleAutomaticSync(1000);
+      scheduleAutomaticSync(600);
     } else {
       status("Регистрацията е приета. Провери имейла си.");
     }
@@ -2396,9 +2405,9 @@ async function login() {
 
     lastSyncError = false;
     showAuthenticated(data.user);
-    status("Входът е успешен.", "ok");
+    status("Входът е успешен. Възстановяване на данните...", "ok");
 
-    scheduleAutomaticSync(1000);
+    scheduleAutomaticSync(500);
   } catch (error) {
     lastSyncError = true;
     status(await diagnoseCloudError(error, "Грешка при вход"));
@@ -2743,16 +2752,18 @@ supabase.auth.onAuthStateChange((event, session) => {
     showAuthenticated(session.user);
 
     if (
-      event === "SIGNED_IN" ||
-      event === "INITIAL_SESSION"
+      (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+      (!initialSyncTriggered || event === "SIGNED_IN")
     ) {
-      scheduleAutomaticSync(1200);
+      initialSyncTriggered = true;
+      scheduleAutomaticSync(600);
     }
 
     if (changedUser) {
       refreshPendingOwnership();
     }
   } else {
+    initialSyncTriggered = false;
     showLoggedOut();
   }
 
@@ -2777,10 +2788,6 @@ async function initializeCloud() {
 
     if (session) {
       showAuthenticated(session.user);
-
-      if (!authInitialized) {
-        scheduleAutomaticSync(1500);
-      }
     } else {
       showLoggedOut();
     }
