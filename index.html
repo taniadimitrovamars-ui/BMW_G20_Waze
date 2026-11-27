@@ -2913,7 +2913,12 @@ window.loadCars=loadCars;
       .map(d => d.title || d.fileName)
   };
 
-  alert(JSON.stringify(result, null, 2));
+  document.getElementById("garageDiagOutput")?.remove();
+const box = document.createElement("pre");
+box.id = "garageDiagOutput";
+box.style.cssText = "white-space:pre-wrap;padding:12px;background:#eee;color:#111;position:fixed;inset:10px;z-index:999999;overflow:auto;font-size:13px;";
+box.textContent = JSON.stringify(result, null, 2);
+document.body.appendChild(box);
 };
 
 function save(){
