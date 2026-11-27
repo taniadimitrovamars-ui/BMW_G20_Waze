@@ -79,6 +79,9 @@ const DEVICE_KEY = "mgu_cloud_device";
 const LAST_SYNC_KEY = "mgu_cloud_last_sync";
 const RESTORE_KEY = "mgu_cloud_restore_id";
 
+// TEMPORARY SAFETY LOCK — блокира всички Cloud Sync операции
+const CLOUD_SYNC_SAFETY_LOCK = true;
+
 const STEP_IDS = [
   "prep0", "prep", "status0", "flash", "keys", "persist",
   "ssh_fix", "store_key", "store", "waze", "recode", "after"
@@ -284,10 +287,16 @@ function cleanRecord(item, type) {
     result.dueDate = safeDate(source.dueDate);
     result.dueMileage = safeNumber(source.dueMileage);
     result.completed = source.completed === true;
+    result.sourceServiceId = safeId(source.sourceServiceId);
+  }
+
+  if (type === "service") {
+    result.linkedReminderId = safeId(source.linkedReminderId);
   }
 
   if (type === "modification") {
     result.partNumber = safeString(source.partNumber, 100);
+    result.status = safeString(source.status, 50);
   }
 
   if (type === "document") {
@@ -302,25 +311,40 @@ function cleanRecord(item, type) {
 function cleanCar(item) {
   if (!item || typeof item !== "object") return null;
 
-  const vin = safeString(item.vin, 17).toUpperCase();
+  const details = safeObject(item.details);
 
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return null;
+  // Разпознаване на типа превозно средство
+  const vehicleType =
+    details.vehicleType === "atv" ? "atv" : "car";
+
+  const vin = safeString(item.vin, 17)
+    .toUpperCase();
+
+  // Съвместимост с локалната проверка на приложението
+  if (!/^[A-Z0-9-]{5,17}$/.test(vin)) {
+    return null;
+  }
 
   const sourceDone = safeObject(item.done);
   const done = {};
 
   STEP_IDS.forEach(id => {
-    if (sourceDone[id] === true) done[id] = true;
+    if (sourceDone[id] === true) {
+      done[id] = true;
+    }
   });
-
-  const details = safeObject(item.details);
 
   return {
     vin,
-    nick: safeString(item.nick || "BMW", 30) || "BMW",
+    nick: safeString(
+      item.nick || (vehicleType === "atv" ? "ATV" : "BMW"),
+      30
+    ) || (vehicleType === "atv" ? "ATV" : "BMW"),
+
     done,
 
     details: {
+      vehicleType,
       make: safeString(details.make, 60),
       model: safeString(details.model, 80),
       year: safeNumber(details.year, 0, 2100),
@@ -427,6 +451,19 @@ function createInterface() {
         <div id="dashboardPending" class="cloud-value">0</div>
       </div>
     </div>
+
+    <details class="ref-box" open>
+      <summary>
+        Локална диагностика на чакащите промени
+        <span class="chev">▾</span>
+      </summary>
+      <div class="backup-info">
+        Информацията се чете само от това устройство.
+        Не се изпращат и не се променят данни.
+      </div>
+      <pre id="pendingDiagnostics"
+        style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.7;margin:8px 0">Зареждане...</pre>
+    </details>
 
     <div id="cloudUser" class="form-msg">Проверка на профила...</div>
 
@@ -547,12 +584,18 @@ function createInterface() {
     </div>
   `;
 
-  const rules = document.querySelector(".rules");
+  const slot = document.getElementById("cloudSyncSlot");
 
-  if (rules) {
-    rules.after(panel);
+  if (slot) {
+    slot.append(panel);
   } else {
-    document.querySelector(".app")?.append(panel);
+    const rules = document.querySelector(".rules");
+
+    if (rules) {
+      rules.after(panel);
+    } else {
+      document.querySelector(".app")?.append(panel);
+    }
   }
 
   const style = document.createElement("style");
@@ -751,6 +794,55 @@ function setIndicator(id, value, color) {
   element.style.color = color || "inherit";
 }
 
+function refreshPendingDiagnostics() {
+  const output = byId("pendingDiagnostics");
+  if (!output) return;
+
+  const pending = readPending();
+
+  const counts = {};
+  let assigned = 0;
+  let unassigned = 0;
+  let foreign = 0;
+
+  pending.forEach(event => {
+    const key = event.entity_type + " / " + event.operation;
+    counts[key] = (counts[key] || 0) + 1;
+
+    if (!event.owner_user_id) {
+      unassigned++;
+    } else if (
+      currentUser &&
+      event.owner_user_id === currentUser.id
+    ) {
+      assigned++;
+    } else {
+      foreign++;
+    }
+  });
+
+  const lines = [
+    "ОБЩО ЧАКАЩИ: " + pending.length,
+    "",
+    "ПРОФИЛНА ПРИНАДЛЕЖНОСТ:",
+    "Свързани с текущия профил: " + assigned,
+    "Без профил: " + unassigned,
+    "Друг профил или неустановен: " + foreign,
+    "",
+    "ТИП И ОПЕРАЦИЯ:"
+  ];
+
+  Object.keys(counts).sort().forEach(key => {
+    lines.push(key + ": " + counts[key]);
+  });
+
+  if (!pending.length) {
+    lines.push("Няма валидни чакащи промени.");
+  }
+
+  output.textContent = lines.join("\n");
+}
+
 function refreshDashboard() {
   const online = navigator.onLine;
   const pending = readPending().length;
@@ -798,19 +890,23 @@ function refreshDashboard() {
   setIndicator("dashboardCloud", "● " + message, color);
 
   refreshPendingOwnership();
+  refreshPendingDiagnostics();
   window.refreshGarageCloudWidget?.();
 }
 
-function status(message, type = "") {
-  const element = byId("cloudStatus");
-
-  if (element) {
-    element.textContent = message;
-    element.className = "form-msg" + (type ? " " + type : "");
-  }
-
+// Съвместимост с основното приложение
+window.setCloudSyncStatus = function(state, timestamp) {
   refreshDashboard();
-}
+  window.refreshTopCloudButton?.();
+};
+
+window.notifyCloudLocalChange = function() {
+  refreshDashboard();
+
+  if (readPending().length > 0) {
+    scheduleAutomaticSync();
+  }
+};
 
 function userStatus(message, type = "") {
   const element = byId("cloudUser");
@@ -1108,6 +1204,12 @@ function createBackup() {
 }
 
 function downloadBackup() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    status("Cloud Export е временно блокиран за защита на данните.");
+    refreshDashboard();
+    return;
+  }
+
   try {
     const backup = createBackup();
 
@@ -1715,6 +1817,13 @@ async function loadDevices() {
 ========================================== */
 
 async function restoreBackup() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    restoreStatus("Cloud Restore е временно блокиран за защита на данните.");
+    status("Cloud Restore е временно блокиран.");
+    refreshDashboard();
+    return;
+  }
+
   if (syncRunning) {
     restoreStatus("Изчакай текущата синхронизация.");
     return;
@@ -2022,6 +2131,12 @@ async function logout() {
 ========================================== */
 
 async function syncNow() {
+  if (CLOUD_SYNC_SAFETY_LOCK) {
+    status("Cloud Sync е временно блокиран за защита на локалните данни.");
+    refreshDashboard();
+    return;
+  }
+
   if (syncRunning) return;
 
   if (!navigator.onLine) {
@@ -2312,6 +2427,19 @@ byId("cloudAssignPending")?.addEventListener(
   "click",
   assignPendingToCurrentUser
 );
+
+// GLOBAL CLOUD UI SAFETY LOCK
+if (CLOUD_SYNC_SAFETY_LOCK) {
+  const cloudPanel = byId("cloudSyncPanel");
+
+  cloudPanel?.querySelectorAll("button, input").forEach(control => {
+    control.disabled = true;
+    control.title = "Временно блокирано за защита на данните.";
+  });
+
+  status("Cloud функциите са временно блокирани.");
+  restoreStatus("Cloud Restore е временно блокиран.");
+}
 
 /* ==========================================
    AUTH STATE
