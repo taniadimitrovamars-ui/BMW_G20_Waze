@@ -506,6 +506,11 @@ function createInterface() {
           ⟳ Повтори синхронизацията
         </button>
       </div>
+      <div class="btn-row">
+        <button class="btn secondary" id="cloudLocalRestore" type="button">
+          ↓ Възстанови локално от Cloud
+        </button>
+      </div>
     </div>
 
     <div id="pendingOwnership" class="form-msg" hidden>
@@ -711,6 +716,64 @@ function readPending() {
     );
   } catch {
     return [];
+  }
+}
+
+function inspectPendingStorage() {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+
+    if (raw === null || raw === "") {
+      return {
+        ok: true,
+        events: []
+      };
+    }
+
+    const data = JSON.parse(raw);
+
+    if (!Array.isArray(data)) {
+      return {
+        ok: false,
+        reason: "Опашката не е масив."
+      };
+    }
+
+    const invalid = data.some(event =>
+      !event ||
+      typeof event !== "object" ||
+      Array.isArray(event) ||
+      typeof event.event_id !== "string" ||
+      !event.event_id.trim() ||
+      typeof event.entity_type !== "string" ||
+      !ALLOWED_ENTITY_TYPES.has(event.entity_type) ||
+      typeof event.entity_id !== "string" ||
+      !event.entity_id.trim() ||
+      typeof event.operation !== "string" ||
+      !event.data ||
+      typeof event.data !== "object" ||
+      Array.isArray(event.data)
+    );
+
+    if (invalid) {
+      return {
+        ok: false,
+        reason: "Открити са невалидни записи в опашката."
+      };
+    }
+
+    return {
+      ok: true,
+      events: data
+    };
+
+  } catch (error) {
+    return {
+      ok: false,
+      reason:
+        "Опашката не може да бъде прочетена: " +
+        (error?.message || error)
+    };
   }
 }
 
@@ -960,11 +1023,31 @@ function restoreStatus(message, type = "") {
 
 function setBusy(busy) {
   [
-    "cloudLogin", "cloudRegister", "cloudSync", "cloudLogout",
-    "cloudRetry", "cloudHistoryRefresh", "cloudDevicesRefresh",
-    "cloudExport", "cloudRestore", "cloudAssignPending"
+    "cloudLogin",
+    "cloudRegister",
+    "cloudSync",
+    "cloudLogout",
+    "cloudRetry",
+    "cloudLocalRestore",
+    "cloudHistoryRefresh",
+    "cloudDevicesRefresh",
+    "cloudExport",
+    "cloudRestore",
+    "cloudAssignPending"
   ].forEach(id => {
-    if (byId(id)) byId(id).disabled = busy;
+    const control = byId(id);
+    if (!control) return;
+
+    const allowedDuringLock = [
+      "cloudLogin",
+      "cloudRegister",
+      "cloudLogout",
+      "cloudLocalRestore"
+    ].includes(id);
+
+    control.disabled =
+      busy ||
+      (CLOUD_SYNC_SAFETY_LOCK && !allowedDuringLock);
   });
 
   refreshDashboard();
@@ -2461,6 +2544,10 @@ byId("cloudRegister")?.addEventListener("click", register);
 byId("cloudLogout")?.addEventListener("click", logout);
 byId("cloudSync")?.addEventListener("click", syncNow);
 byId("cloudRetry")?.addEventListener("click", syncNow);
+byId("cloudLocalRestore")?.addEventListener(
+  "click",
+  restoreLocalFromCloud
+);
 byId("cloudHistoryRefresh")?.addEventListener("click", loadHistory);
 byId("cloudDevicesRefresh")?.addEventListener("click", loadDevices);
 byId("cloudExport")?.addEventListener("click", downloadBackup);
@@ -2475,7 +2562,7 @@ if (CLOUD_SYNC_SAFETY_LOCK) {
   const cloudPanel = byId("cloudSyncPanel");
 
   cloudPanel?.querySelectorAll(
-    "button:not(#cloudLogin):not(#cloudRegister):not(#cloudLogout), " +
+    "button:not(#cloudLogin):not(#cloudRegister):not(#cloudLogout):not(#cloudLocalRestore), " +
     "input:not(#cloudEmail):not(#cloudPassword)"
   ).forEach(control => {
     control.disabled = true;
