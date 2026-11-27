@@ -5634,7 +5634,7 @@ function seriesForMode(s,mode){
  }
  if(mode==="all"||mode==="timing"){
   const pal=["#f06464","#f0b547","#a78bfa","#38bdf8"];
-  knock.slice(0,4).forEach((c,i)=>out.push({label:c.name,col:pal[i%pal.length],color:pal[i%pal.length]}));
+  knock.slice(0,4).forEach((c,i)=>out.push({label:c.name,col:c,color:pal[i%pal.length]}));
  }
  if(mode==="all"||mode==="fuel"){
   if(wg)out.push({label:"WGDC %",col:wg,color:"#38bdf8"});
