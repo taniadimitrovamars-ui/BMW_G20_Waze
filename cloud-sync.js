@@ -358,7 +358,7 @@ function cleanCar(item) {
       notes: safeString(details.notes, 4000)
     },
 
-    services: safeArray(item.services)
+    serviceRecords: safeArray(item.serviceRecords)
       .map(record => cleanRecord(record, "service")),
 
     modifications: safeArray(item.modifications)
