@@ -452,6 +452,19 @@ function createInterface() {
       </div>
     </div>
 
+    <details class="ref-box" open>
+      <summary>
+        Локална диагностика на чакащите промени
+        <span class="chev">▾</span>
+      </summary>
+      <div class="backup-info">
+        Информацията се чете само от това устройство.
+        Не се изпращат и не се променят данни.
+      </div>
+      <pre id="pendingDiagnostics"
+        style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.7;margin:8px 0">Зареждане...</pre>
+    </details>
+
     <div id="cloudUser" class="form-msg">Проверка на профила...</div>
 
     <details class="ref-box">
@@ -781,6 +794,55 @@ function setIndicator(id, value, color) {
   element.style.color = color || "inherit";
 }
 
+function refreshPendingDiagnostics() {
+  const output = byId("pendingDiagnostics");
+  if (!output) return;
+
+  const pending = readPending();
+
+  const counts = {};
+  let assigned = 0;
+  let unassigned = 0;
+  let foreign = 0;
+
+  pending.forEach(event => {
+    const key = event.entity_type + " / " + event.operation;
+    counts[key] = (counts[key] || 0) + 1;
+
+    if (!event.owner_user_id) {
+      unassigned++;
+    } else if (
+      currentUser &&
+      event.owner_user_id === currentUser.id
+    ) {
+      assigned++;
+    } else {
+      foreign++;
+    }
+  });
+
+  const lines = [
+    "ОБЩО ЧАКАЩИ: " + pending.length,
+    "",
+    "ПРОФИЛНА ПРИНАДЛЕЖНОСТ:",
+    "Свързани с текущия профил: " + assigned,
+    "Без профил: " + unassigned,
+    "Друг профил или неустановен: " + foreign,
+    "",
+    "ТИП И ОПЕРАЦИЯ:"
+  ];
+
+  Object.keys(counts).sort().forEach(key => {
+    lines.push(key + ": " + counts[key]);
+  });
+
+  if (!pending.length) {
+    lines.push("Няма валидни чакащи промени.");
+  }
+
+  output.textContent = lines.join("\n");
+}
+
 function refreshDashboard() {
   const online = navigator.onLine;
   const pending = readPending().length;
@@ -828,6 +890,7 @@ function refreshDashboard() {
   setIndicator("dashboardCloud", "● " + message, color);
 
   refreshPendingOwnership();
+  refreshPendingDiagnostics();
   window.refreshGarageCloudWidget?.();
 }
 
