@@ -287,11 +287,11 @@ function cleanRecord(item, type) {
     result.dueDate = safeDate(source.dueDate);
     result.dueMileage = safeNumber(source.dueMileage);
     result.completed = source.completed === true;
-    result.sourceServiceId = safeId(source.sourceServiceId);
+    result.sourceServiceId = safeString(source.sourceServiceId, 100);
   }
 
   if (type === "service") {
-    result.linkedReminderId = safeId(source.linkedReminderId);
+    result.linkedReminderId = safeString(source.linkedReminderId, 100);
   }
 
   if (type === "modification") {
@@ -358,7 +358,7 @@ function cleanCar(item) {
       notes: safeString(details.notes, 4000)
     },
 
-    serviceRecords: safeArray(item.serviceRecords)
+    services: safeArray(item.services)
       .map(record => cleanRecord(record, "service")),
 
     modifications: safeArray(item.modifications)
