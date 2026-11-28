@@ -5311,10 +5311,27 @@ const mlogState={tab:"one",mode:"all",slots:{A:null,B:null},active:"A",pullIdx:{
 const $=id=>document.getElementById(id);
 
 function loadMlogSaved(){
- try{const s=JSON.parse(localStorage.getItem(MLOG_KEY)||"null");if(s?.slots){mlogState.slots.A=s.slots.A||null;mlogState.slots.B=s.slots.B||null;}}catch{}
+ try{
+  const s=JSON.parse(localStorage.getItem(MLOG_KEY)||"null");
+  if(!s?.slots)return;
+  ["A","B"].forEach(name=>{
+   const raw=s.slots[name];
+   if(!raw||typeof raw.csv!=="string"||!raw.csv.trim())return;
+   try{mlogState.slots[name]=buildSlot(name,raw.name,raw.csv);}catch{}
+  });
+ }catch{}
 }
 function saveMlogSaved(){
- try{localStorage.setItem(MLOG_KEY,JSON.stringify({slots:mlogState.slots}));}catch{}
+ try{
+  const slim={};
+  ["A","B"].forEach(name=>{
+   const s=mlogState.slots[name];
+   slim[name]=s?{name:s.name,csv:s.csv}:null;
+  });
+  localStorage.setItem(MLOG_KEY,JSON.stringify({slots:slim}));
+ }catch{
+  showToast("Логът не може да се запази в паметта (няма място)","warn");
+ }
 }
 
 function parseCsv(text){
