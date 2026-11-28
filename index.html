@@ -5353,7 +5353,25 @@ function parseCsv(text){
   const cells=split(lines[r]);
   cols.forEach((c,i)=>{const v=parseFloat(String(cells[i]??"").replace(",","."));c.values.push(Number.isFinite(v)?v:NaN);});
  }
- return{rows:lines.length-1,cols};
+  const UNIT_RULES={
+  hpa:{to:"bar",mul:0.001,add:0},mbar:{to:"bar",mul:0.001,add:0},kpa:{to:"bar",mul:0.01,add:0},
+  psi:{to:"bar",mul:0.0689476,add:0},bar:{to:"bar",mul:1,add:0},
+  f:{to:"°C",mul:1/1.8,add:-32/1.8},degf:{to:"°C",mul:1/1.8,add:-32/1.8},
+  c:{to:"°C",mul:1,add:0},degc:{to:"°C",mul:1,add:0}
+ };
+ const converted=[];
+ cols.forEach(c=>{
+  const m=c.name.match(/\[([^\]]*)\]\s*$/)||c.name.match(/\(([^()]*)\)\s*$/);
+  if(!m)return;
+  const rule=UNIT_RULES[m[1].toLowerCase().replace(/[^a-z]/g,"")];
+  if(!rule)return;
+  c.unit=m[1].trim();
+  c.unitTo=rule.to;
+  if(rule.mul===1&&rule.add===0)return;
+  c.values=c.values.map(v=>Number.isFinite(v)?v*rule.mul+rule.add:v);
+  converted.push({name:c.name,from:c.unit,to:rule.to});
+ });
+ return{rows:lines.length-1,cols,converted};
 }
 
 function findCol(cols,patterns){
