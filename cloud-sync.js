@@ -2618,11 +2618,6 @@ async function syncNow() {
         processedChanges += initial.length;
       }
 
-      if (initial.length) {
-        await uploadEvents(userId, initial);
-        processedChanges += initial.length;
-      }
-
       processedChanges += await uploadPending(userId);
 
       events = await fetchAllEvents(userId);
